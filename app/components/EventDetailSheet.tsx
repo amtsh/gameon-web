@@ -10,6 +10,7 @@ import {
   User,
   Users,
 } from "lucide-react";
+import { useState } from "react";
 import { sports } from "../data/mock-data";
 import {
   clockTime,
@@ -18,7 +19,22 @@ import {
   spotsLeft,
 } from "../event-feed";
 import { HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
+import { ConfirmDialog, ModalSheet } from "./ModalSheet";
 import type { SportEvent } from "../types";
+
+// Mirrors DestructiveEventAction in EventDetailView.swift.
+const destructiveActions = {
+  leave: {
+    title: "Leave this game?",
+    message: "You will be removed from the player list.",
+    confirmLabel: "Leave Game",
+  },
+  withdraw: {
+    title: "Withdraw request?",
+    message: "The host will no longer see your join request.",
+    confirmLabel: "Withdraw Request",
+  },
+} as const;
 
 type Props = {
   event: SportEvent;
@@ -33,6 +49,9 @@ const skillLevelLabels: Record<SportEvent["skillLevel"], string> = {
 };
 
 export function EventDetailSheet({ event, onClose }: Props) {
+  const [confirming, setConfirming] = useState<
+    keyof typeof destructiveActions | null
+  >(null);
   const sport = sports.find((candidate) => candidate.id === event.sport);
   const spots = spotsLeft(event);
   const archived = isArchived(event);
@@ -52,14 +71,8 @@ export function EventDetailSheet({ event, onClose }: Props) {
   )}`;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <section
-        className="detail-sheet"
-        onClick={(clickEvent) => clickEvent.stopPropagation()}
-      >
+    <ModalSheet detents={[0.62, 0.94]} variant="detail" scroll={false} onClose={onClose}>
         <div className="detail-scroll">
-          <div className="sheet-grabber" style={{ marginTop: -16 }} />
-
           {/* Header: spots badge, sport meta, title, status pills */}
           <div className="flex items-center gap-3.5">
             <SpotsLeftBadge count={spots} />
@@ -203,7 +216,12 @@ export function EventDetailSheet({ event, onClose }: Props) {
           ) : null}
 
           {event.isJoined && !event.isCreatedByCurrentUser && !archived ? (
-            <button className="text-danger-action mt-4">Leave game</button>
+            <button
+              className="text-danger-action mt-4"
+              onClick={() => setConfirming("leave")}
+            >
+              Leave game
+            </button>
           ) : null}
         </div>
 
@@ -232,6 +250,9 @@ export function EventDetailSheet({ event, onClose }: Props) {
                     : "primary-action"
                 }
                 disabled={spots === 0 && !event.hasPendingRequest}
+                onClick={() =>
+                  event.hasPendingRequest ? setConfirming("withdraw") : undefined
+                }
               >
                 {event.hasPendingRequest
                   ? "Withdraw request"
@@ -242,8 +263,18 @@ export function EventDetailSheet({ event, onClose }: Props) {
             )}
           </div>
         ) : null}
-      </section>
-    </div>
+
+        {confirming ? (
+          <ConfirmDialog
+            {...destructiveActions[confirming]}
+            onConfirm={() => {
+              setConfirming(null);
+              onClose();
+            }}
+            onCancel={() => setConfirming(null)}
+          />
+        ) : null}
+    </ModalSheet>
   );
 }
 

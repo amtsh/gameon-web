@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useState } from "react";
+import { ModalSheet } from "./ModalSheet";
 
 type Props = {
   onClose: () => void;
@@ -11,8 +12,7 @@ export function ContactSheet({ onClose }: Props) {
   const [method, setMethod] = useState<"whatsapp" | "telegram">("telegram");
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <section className="form-sheet compact" onClick={(event) => event.stopPropagation()}>
+    <ModalSheet detents={[0.52]} onClose={onClose}>
         <header className="sheet-nav">
           <button onClick={onClose} aria-label="Close">
             <X size={20} />
@@ -44,7 +44,6 @@ export function ContactSheet({ onClose }: Props) {
             Your contact is shared only after a join request is approved.
           </p>
         </div>
-      </section>
-    </div>
+    </ModalSheet>
   );
 }

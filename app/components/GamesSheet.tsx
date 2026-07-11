@@ -42,16 +42,19 @@ export function GamesSheet({
   const pastGames = useMemo(() => archivedUserEvents(events), [events]);
 
   return (
-    <Sheet.Root license="commercial" defaultPresented={true}>
+    <Sheet.Root
+      license="commercial"
+      defaultPresented={true}
+      defaultActiveDetent={2}
+    >
       <Sheet.Portal>
         <Sheet.View
           className="GamesSheet-view"
           // Three detents mirroring iOS presentationDetents([.height(180), .fraction(0.62), .large])
-          detents={[180, "62svh", "100%"]}
+          detents={["180px", "62svh", "100%"]}
           swipeOvershoot={false}
+          swipeDismissal={false}
           nativeEdgeSwipePrevention={true}
-          // Prevent the sheet from being fully dismissed — it's the app's home surface
-          onDismiss={(e) => e.preventDefault()}
         >
           <Sheet.Content className="GamesSheet-content">
             <Sheet.BleedingBackground className="GamesSheet-bleedingBackground" />

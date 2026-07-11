@@ -1,7 +1,12 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Map, Marker, type MapRef } from "@vis.gl/react-maplibre";
+import {
+  AttributionControl,
+  Map,
+  Marker,
+  type MapRef,
+} from "@vis.gl/react-maplibre";
 import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef } from "react";
@@ -65,6 +70,7 @@ export function AppMap({ events, selectedEvent, locateToken, onSelect }: Props) 
         mapStyle={MAP_STYLE}
         attributionControl={false}
       >
+        <AttributionControl compact position="top-right" />
         {activeEvents.map((event) => {
           const sport = sports.find((candidate) => candidate.id === event.sport);
           const isSelected = selectedEvent?.id === event.id;

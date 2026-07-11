@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { sports } from "../data/mock-data";
+import { ModalSheet } from "./ModalSheet";
 import { VenueSearchField } from "./VenueSearchField";
 import type { SkillLevel, SportKind, Venue } from "../types";
 
@@ -48,8 +49,7 @@ export function CreateEventSheet({ onClose }: Props) {
   });
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <section className="form-sheet" onClick={(event) => event.stopPropagation()}>
+    <ModalSheet detents={[0.94]} onClose={onClose}>
         <header className="sheet-nav">
           <button aria-label="Close" onClick={onClose}>
             <X size={20} />
@@ -146,7 +146,6 @@ export function CreateEventSheet({ onClose }: Props) {
             {...register("description")}
           />
         </div>
-      </section>
-    </div>
+    </ModalSheet>
   );
 }
