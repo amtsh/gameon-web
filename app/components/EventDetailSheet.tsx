@@ -8,9 +8,10 @@ import {
   Gauge,
   MapPin,
   Share2,
-  User,
+  User as UserIcon,
   Users,
 } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { downloadSportEventIcs } from "@/lib/calendar/download-ics.client";
 import { contactUrl } from "@/lib/contact-url";
@@ -37,16 +38,19 @@ import {
   spotsLeft,
 } from "../event-feed";
 import { HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
+import { JoinGuideSheet } from "./JoinGuideSheet";
 import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
+import { getJoinGuideStep } from "@/lib/join/requirements";
 import type { SportEvent } from "../types";
 
 type Props = {
   event: SportEvent;
   profile: Profile | null;
+  user: User | null;
   isSignedIn: boolean;
+  authBusy: boolean;
   presented: boolean;
   onPresentedChange: (presented: boolean) => void;
-  onRequireSignIn: () => void;
   onEdit: (event: SportEvent) => void;
   onMutated: () => void | Promise<void>;
 };
@@ -98,16 +102,18 @@ function extractErrorMessage(error: unknown): string {
 export function EventDetailSheet({
   event,
   profile,
+  user,
   isSignedIn,
+  authBusy,
   presented,
   onPresentedChange,
-  onRequireSignIn,
   onEdit,
   onMutated,
 }: Props) {
   const [confirming, setConfirming] = useState<
     keyof typeof destructiveActions | null
   >(null);
+  const [joinGuideOpen, setJoinGuideOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<PendingJoinRequest[]>(
     [],
   );
@@ -143,6 +149,21 @@ export function EventDetailSheet({
       setActionError(extractErrorMessage(error));
     }
   }, [archived, event.id, event.isCreatedByCurrentUser]);
+
+  useEffect(() => {
+    if (!presented || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("join") !== "1") return;
+
+    params.delete("join");
+    const remainder = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (remainder ? `?${remainder}` : ""),
+    );
+    setJoinGuideOpen(true);
+  }, [presented]);
 
   useEffect(() => {
     if (!presented) return;
@@ -198,6 +219,14 @@ export function EventDetailSheet({
       }
       await requestToJoin(event.id, profile, event.sport, prefs);
     });
+  };
+
+  const startJoinFlow = () => {
+    if (getJoinGuideStep(isSignedIn, profile) !== null) {
+      setJoinGuideOpen(true);
+      return;
+    }
+    handleJoin();
   };
 
   const handleShare = useCallback(async () => {
@@ -365,7 +394,7 @@ export function EventDetailSheet({
             value={event.cost?.trim() || "Not mentioned"}
           />
           <MetadataItem
-            icon={<User size={12} />}
+            icon={<UserIcon size={12} />}
             label="Host"
             value={
               event.isCreatedByCurrentUser ? (
@@ -487,21 +516,22 @@ export function EventDetailSheet({
               }
               disabled={busy}
               onClick={() => {
-                if (!isSignedIn) { onRequireSignIn(); return; }
                 if (event.hasPendingRequest) { setConfirming("withdraw"); return; }
                 if (event.isOnWaitlist) { setConfirming("leaveWaitlist"); return; }
-                handleJoin();
+                startJoinFlow();
               }}
               type="button"
             >
-              {!isSignedIn
-                ? "Sign in to join"
-                : busy
-                  ? "Working\u2026"
-                  : event.hasPendingRequest
-                    ? "Withdraw request"
-                    : event.isOnWaitlist
-                      ? "Leave waitlist"
+              {busy
+                ? "Working\u2026"
+                : event.hasPendingRequest
+                  ? "Withdraw request"
+                  : event.isOnWaitlist
+                    ? "Leave waitlist"
+                    : !isSignedIn
+                      ? "Sign in to join"
+                      : getJoinGuideStep(isSignedIn, profile) === "contact"
+                      ? "Add contact to join"
                       : spots === 0
                         ? "Join waitlist"
                         : "Request to join"}
@@ -517,6 +547,18 @@ export function EventDetailSheet({
           onCancel={() => setConfirming(null)}
         />
       ) : null}
+
+      <JoinGuideSheet
+        authBusy={authBusy}
+        event={event}
+        isWaitlist={spots === 0}
+        onJoined={onMutated}
+        onPresentedChange={setJoinGuideOpen}
+        onProfileRefresh={onMutated}
+        presented={joinGuideOpen}
+        profile={profile}
+        user={user}
+      />
     </ModalSheet>
   );
 }

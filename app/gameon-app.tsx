@@ -140,9 +140,10 @@ export default function GameOnApp({
 
   useEffect(() => {
     if (!user || !profile || profile.is_onboarding_complete || onboardingShown.current) return;
+    if (initialSharedEvent !== undefined) return;
     onboardingShown.current = true;
     setActiveSheet("profile");
-  }, [profile, user]);
+  }, [initialSharedEvent, profile, user]);
 
   const handleSignIn = useCallback(async () => {
     setAuthBusy(true);
@@ -276,10 +277,11 @@ export default function GameOnApp({
         <EventDetailSheet
           event={detailEvent}
           profile={profile}
+          user={user}
           isSignedIn={Boolean(user)}
+          authBusy={authBusy}
           presented={detailPresented}
           onPresentedChange={setDetailPresented}
-          onRequireSignIn={() => setActiveSheet("profile")}
           onEdit={openEdit}
           onMutated={refreshSessionData}
         />
