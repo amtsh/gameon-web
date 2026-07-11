@@ -2,7 +2,7 @@
 
 import { Sheet, Scroll } from "@silk-hq/components";
 import { Plus, User } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import {
@@ -19,6 +19,8 @@ type Props = {
   avatarUrl?: string;
   selectedSports: SportKind[];
   showingPast: boolean;
+  activeDetent: number;
+  onActiveDetentChange: (detent: number) => void;
   onToggleSport: (sport: SportKind) => void;
   onShowAll: () => void;
   onShowPast: () => void;
@@ -33,6 +35,8 @@ export function GamesSheet({
   avatarUrl,
   selectedSports,
   showingPast,
+  activeDetent,
+  onActiveDetentChange,
   onToggleSport,
   onShowAll,
   onShowPast,
@@ -46,18 +50,12 @@ export function GamesSheet({
   );
   const pastGames = pastEvents;
 
-  // Detent 0 is fully dismissed; 1 = half, 2 = full. Never allow resting
-  // below half — this sheet is the app's persistent home surface.
-  const [activeDetent, setActiveDetent] = useState(1);
-
   return (
     <Sheet.Root
       license="commercial"
       defaultPresented={true}
       activeDetent={activeDetent}
-      onActiveDetentChange={(detent) =>
-        setActiveDetent(Math.max(1, detent))
-      }
+      onActiveDetentChange={onActiveDetentChange}
     >
       <Sheet.Portal>
         <Sheet.View

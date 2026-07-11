@@ -47,6 +47,7 @@ export default function GameOnApp({
   const [detailEvent, setDetailEvent] = useState<SportEvent | undefined>();
   const [detailPresented, setDetailPresented] = useState(false);
   const [editEvent, setEditEvent] = useState<SportEvent | undefined>();
+  const [gamesDetent, setGamesDetent] = useState(1);
   const onboardingShown = useRef(false);
 
   const refreshSessionData = useCallback(async () => {
@@ -201,9 +202,17 @@ export default function GameOnApp({
 
   const showPast = useCallback(() => setShowingPast(true), []);
 
+  // Open the detail sheet immediately; the games sheet collapses to half
+  // (if it was full) in parallel, in the background, so the detail sheet
+  // never waits on it.
   const selectEvent = useCallback((event: SportEvent) => {
     setDetailEvent(event);
     setDetailPresented(true);
+    setGamesDetent(1);
+  }, []);
+
+  const handleGamesDetentChange = useCallback((detent: number) => {
+    setGamesDetent(Math.max(1, detent));
   }, []);
 
   return (
@@ -224,6 +233,8 @@ export default function GameOnApp({
         avatarUrl={getUserAvatarUrl(user)}
         selectedSports={selectedSports}
         showingPast={showingPast}
+        activeDetent={gamesDetent}
+        onActiveDetentChange={handleGamesDetentChange}
         onToggleSport={toggleSport}
         onShowAll={showAll}
         onShowPast={showPast}
