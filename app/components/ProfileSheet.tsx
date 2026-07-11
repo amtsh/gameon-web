@@ -107,7 +107,7 @@ export function ProfileSheet({
 
   return (
     <ModalSheet
-      height="96svh"
+      height={user ? "96svh" : "50svh"}
       title={user ? "Edit profile" : "Sign in"}
       presented={presented}
       onPresentedChange={onPresentedChange}
@@ -121,7 +121,7 @@ export function ProfileSheet({
         <h2>{user ? "Edit profile" : "Sign in"}</h2>
         {user ? (
           <button disabled={authBusy || saving || !name.trim()} onClick={() => void handleSave()} type="button">
-            {saving ? "Saving…" : "Save"}
+            {saving ? "Saving\u2026" : "Save"}
           </button>
         ) : (
           <span />
