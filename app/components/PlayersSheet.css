@@ -130,6 +130,12 @@
   font-weight: 600;
 }
 
+.players-host-badge {
+  align-self: flex-start;
+  padding: 3px 8px;
+  font-size: 10px;
+}
+
 /* ── Skeleton shimmer ── */
 
 @keyframes players-shimmer {

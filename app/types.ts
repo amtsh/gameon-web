@@ -41,6 +41,7 @@ export type SportEvent = {
   hasPendingRequest?: boolean;
   isOnWaitlist?: boolean;
   pendingRequestCount?: number;
+  hostId?: string;
   hostName?: string;
   hostContact?: ContactInfo;
   autoApprove?: boolean;

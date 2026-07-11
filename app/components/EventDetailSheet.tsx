@@ -614,6 +614,7 @@ export function EventDetailSheet({
 
       <PlayersSheet
         eventId={event.id}
+        hostId={event.hostId}
         totalCount={event.joinedCount}
         presented={playersOpen}
         onPresentedChange={setPlayersOpen}

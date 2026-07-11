@@ -69,6 +69,7 @@ export function toSportEvent(
     joinedCount: row.attendee_count,
     cost: row.cost || undefined,
     description: row.description || undefined,
+    hostId: row.host_id,
     hostName,
     isCreatedByCurrentUser: isHosted,
     isJoined,

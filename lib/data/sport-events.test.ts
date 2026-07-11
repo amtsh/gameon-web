@@ -16,6 +16,7 @@ describe("toSportEvent", () => {
     });
 
     expect(event.id).toBe("event-1");
+    expect(event.hostId).toBe(row.host_id);
     expect(event.hostName).toBe("Amit");
     expect(event.cost).toBe("80 SEK");
     expect(event.venue).toEqual({

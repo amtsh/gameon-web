@@ -14,7 +14,10 @@ export type ApprovedPlayer = {
   id: string;
   name: string;
   firstName: string;
-  level: SkillLevel;
+  /** Null for the host — filling their own spot creates no join request,
+      so their skill level for this sport isn't visible to other players. */
+  level: SkillLevel | null;
+  isHost: boolean;
   avatarUrl: string | null;
 };
 
@@ -54,6 +57,7 @@ export async function fetchHostJoinRequests(
 /** Fetch all approved participants for an event. Visible to everyone. */
 export async function fetchApprovedPlayers(
   eventId: string,
+  hostId?: string,
 ): Promise<ApprovedPlayer[]> {
   const supabase = createClient();
 
@@ -98,11 +102,15 @@ export async function fetchApprovedPlayers(
     const profile = profileMap.get(row.profile_id);
     const fullName = profile?.name ?? "Player";
     const firstName = fullName.split(" ")[0] ?? fullName;
+    const isHost = row.profile_id === hostId;
     return {
       id: row.profile_id,
       name: fullName,
       firstName,
-      level: (levelByProfile.get(row.profile_id) ?? "beginner") as SkillLevel,
+      level: isHost
+        ? null
+        : ((levelByProfile.get(row.profile_id) ?? "beginner") as SkillLevel),
+      isHost,
       avatarUrl: null,
     };
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   fetchApprovedPlayers,
@@ -56,6 +56,7 @@ function PlayerAvatar({ player }: { player: ApprovedPlayer }) {
 
 type Props = {
   eventId: string;
+  hostId?: string;
   totalCount: number;
   presented: boolean;
   onPresentedChange: (v: boolean) => void;
@@ -63,6 +64,7 @@ type Props = {
 
 export function PlayersSheet({
   eventId,
+  hostId,
   totalCount,
   presented,
   onPresentedChange,
@@ -76,7 +78,7 @@ export function PlayersSheet({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchApprovedPlayers(eventId)
+    fetchApprovedPlayers(eventId, hostId)
       .then((data) => { if (!cancelled) { setPlayers(data); setLoading(false); } })
       .catch((err) => {
         if (!cancelled) {
@@ -85,7 +87,7 @@ export function PlayersSheet({
         }
       });
     return () => { cancelled = true; };
-  }, [eventId, presented]);
+  }, [eventId, hostId, presented]);
 
   return (
     <ModalSheet
@@ -138,12 +140,19 @@ export function PlayersSheet({
                 <PlayerAvatar player={player} />
                 <div className="players-info">
                   <span className="players-name">{player.firstName}</span>
-                  <span
-                    className="players-level"
-                    style={{ color: levelColor[player.level] }}
-                  >
-                    {levelLabel[player.level]}
-                  </span>
+                  {player.isHost ? (
+                    <span className="status-badge host players-host-badge">
+                      <Crown fill="currentColor" size={11} />
+                      Host
+                    </span>
+                  ) : (
+                    <span
+                      className="players-level"
+                      style={{ color: levelColor[player.level ?? "beginner"] }}
+                    >
+                      {levelLabel[player.level ?? "beginner"]}
+                    </span>
+                  )}
                 </div>
               </li>
             ))}
