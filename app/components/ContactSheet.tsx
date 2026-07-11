@@ -69,7 +69,7 @@ export function ContactSheet({
 
   return (
     <ModalSheet
-      height="52svh"
+      height="96svh"
       title="Contact"
       presented={presented}
       onPresentedChange={onPresentedChange}
