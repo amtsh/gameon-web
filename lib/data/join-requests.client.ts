@@ -25,7 +25,7 @@ export async function fetchPendingJoinRequests(
 
   const requesterIds = [...new Set(requests.map((row) => row.requester_id))];
   const { data: profiles, error: profileError } = await supabase
-    .from("profiles")
+    .from("public_profiles")
     .select("id, name")
     .in("id", requesterIds);
 
@@ -85,6 +85,20 @@ export async function withdrawJoinRequest(eventId: string) {
     .eq("status", "pending");
 
   if (error) throw error;
+}
+
+/** Host contact for an event, released by the DB only to the host,
+    approved participants, or approved requesters. */
+export async function fetchHostContact(
+  eventId: string,
+): Promise<{ method: "whatsapp" | "telegram"; value: string } | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_host_contact", {
+    target_event_id: eventId,
+  });
+  if (error) throw error;
+  const contact = data?.[0];
+  return contact ? { method: contact.method, value: contact.value } : null;
 }
 
 export async function approveJoinRequest(requestId: string) {

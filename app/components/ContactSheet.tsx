@@ -31,19 +31,24 @@ export function ContactSheet({
 
   useEffect(() => {
     if (!presented) return;
-    const initialMethod = profile?.contact_method ?? "telegram";
-    setMethod(initialMethod);
-    setValues({
-      telegram:
-        profile?.contact_method === "telegram"
-          ? (profile.contact_value ?? "")
-          : "",
-      whatsapp:
-        profile?.contact_method === "whatsapp"
-          ? (profile.contact_value ?? "")
-          : "",
+    // Deferred one frame: React's lint forbids synchronous setState in
+    // effects, and the reset is invisible behind the sheet-open animation.
+    const frame = requestAnimationFrame(() => {
+      const initialMethod = profile?.contact_method ?? "telegram";
+      setMethod(initialMethod);
+      setValues({
+        telegram:
+          profile?.contact_method === "telegram"
+            ? (profile.contact_value ?? "")
+            : "",
+        whatsapp:
+          profile?.contact_method === "whatsapp"
+            ? (profile.contact_value ?? "")
+            : "",
+      });
+      setSaveError(null);
     });
-    setSaveError(null);
+    return () => cancelAnimationFrame(frame);
   }, [presented, profile]);
 
   const handleSave = async () => {

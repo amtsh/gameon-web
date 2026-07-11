@@ -1,16 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "@silk-hq/components/layered-styles";
+import { getSiteMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "GameOn",
-  description: "Find and join local sports games nearby.",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "GameOn",
-  },
-};
+export const metadata: Metadata = getSiteMetadata();
 
 export const viewport: Viewport = {
   width: "device-width",

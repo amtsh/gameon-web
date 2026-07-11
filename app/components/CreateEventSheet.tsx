@@ -79,34 +79,40 @@ export function CreateEventSheet({
   useEffect(() => {
     if (!presented) return;
 
-    if (editEvent) {
-      setSport(editEvent.sport);
-      setSkillLevel(editEvent.skillLevel);
-      setVenue(editEvent.venue);
-      setFillYourSpot(false);
-      reset({
-        title: editEvent.title,
-        startsAt: toLocalDateTimeInput(editEvent.startsAt),
-        endsAt: toLocalDateTimeInput(editEvent.endsAt),
-        capacity: editEvent.capacity,
-        cost: editEvent.cost ?? "",
-        description: editEvent.description ?? "",
-      });
-      return;
-    }
+    // Deferred one frame: React's lint forbids synchronous setState in
+    // effects, and the reset is invisible behind the sheet-open animation.
+    const frame = requestAnimationFrame(() => {
+      if (editEvent) {
+        setSport(editEvent.sport);
+        setSkillLevel(editEvent.skillLevel);
+        setVenue(editEvent.venue);
+        setFillYourSpot(false);
+        reset({
+          title: editEvent.title,
+          startsAt: toLocalDateTimeInput(editEvent.startsAt),
+          endsAt: toLocalDateTimeInput(editEvent.endsAt),
+          capacity: editEvent.capacity,
+          cost: editEvent.cost ?? "",
+          description: editEvent.description ?? "",
+        });
+        return;
+      }
 
-    setSport("badminton");
-    setSkillLevel("any");
-    setVenue(null);
-    setFillYourSpot(true);
-    reset({
-      title: "",
-      startsAt: "2026-07-12T18:00",
-      endsAt: "2026-07-12T19:00",
-      capacity: 8,
-      cost: "",
-      description: "",
+      setSport("badminton");
+      setSkillLevel("any");
+      setVenue(null);
+      setFillYourSpot(true);
+      reset({
+        title: "",
+        startsAt: "2026-07-12T18:00",
+        endsAt: "2026-07-12T19:00",
+        capacity: 8,
+        cost: "",
+        description: "",
+      });
     });
+
+    return () => cancelAnimationFrame(frame);
   }, [editEvent, presented, reset]);
 
   const onSubmit = handleSubmit(async (values) => {

@@ -14,12 +14,14 @@ import { useCallback, useEffect, useState } from "react";
 import { deleteSportEvent } from "@/lib/data/create-event.client";
 import {
   approveJoinRequest,
+  fetchHostContact,
   fetchPendingJoinRequests,
   leaveEvent,
   requestToJoin,
   withdrawJoinRequest,
   type PendingJoinRequest,
 } from "@/lib/data/join-requests.client";
+import type { ContactInfo } from "../types";
 import type { Profile } from "@/lib/data/profile.shared";
 import { sportPreferencesMap } from "@/lib/data/profile-mutations.client";
 import { sports } from "../data/mock-data";
@@ -88,12 +90,17 @@ export function EventDetailSheet({
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [hostContact, setHostContact] = useState<{
+    eventId: string;
+    contact: ContactInfo;
+  } | null>(null);
 
   const sport = sports.find((candidate) => candidate.id === event.sport);
   const spots = spotsLeft(event);
   const archived = isArchived(event);
 
   const loadRequests = useCallback(async () => {
+    setActionError(null);
     if (!event.isCreatedByCurrentUser || archived) {
       setPendingRequests([]);
       return;
@@ -109,9 +116,33 @@ export function EventDetailSheet({
 
   useEffect(() => {
     if (!presented) return;
-    setActionError(null);
-    void loadRequests();
+    const frame = requestAnimationFrame(() => void loadRequests());
+    return () => cancelAnimationFrame(frame);
   }, [loadRequests, presented]);
+
+  // Host contact is never in the event payload — the DB releases it only to
+  // the host, approved participants, or approved requesters via RPC. The
+  // result is tagged with its event id so a stale value never renders.
+  const contactEligible =
+    presented && isSignedIn && Boolean(event.isJoined) &&
+    !event.isCreatedByCurrentUser;
+
+  useEffect(() => {
+    if (!contactEligible) return;
+    let cancelled = false;
+    fetchHostContact(event.id)
+      .then((contact) => {
+        if (!cancelled && contact) {
+          setHostContact({ eventId: event.id, contact });
+        }
+      })
+      .catch(() => {
+        // Not authorized or offline — simply omit the contact section.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [contactEligible, event.id]);
 
   const runMutation = async (action: () => Promise<void>) => {
     setActionError(null);
@@ -269,7 +300,7 @@ export function EventDetailSheet({
           />
         </div>
 
-        {event.hostContact && event.isJoined && !event.isCreatedByCurrentUser ? (
+        {contactEligible && hostContact?.eventId === event.id ? (
           <>
             <hr className="detail-divider my-6" />
             <div className="pl-[17px]">
@@ -278,18 +309,18 @@ export function EventDetailSheet({
                 <Icon
                   className="mr-1.5 inline-block align-[-2px] text-[var(--muted-icon)]"
                   icon={
-                    event.hostContact.method === "telegram"
+                    hostContact.contact.method === "telegram"
                       ? "mdi:telegram"
                       : "mdi:whatsapp"
                   }
                   width={14}
                 />
                 {event.hostName ?? "Host"} on{" "}
-                {event.hostContact.method === "telegram"
+                {hostContact.contact.method === "telegram"
                   ? "Telegram"
                   : "WhatsApp"}
               </p>
-              <p className="detail-body">{event.hostContact.value}</p>
+              <p className="detail-body">{hostContact.contact.value}</p>
             </div>
           </>
         ) : null}

@@ -1,13 +1,22 @@
 import type { User } from "@supabase/supabase-js";
 
+/** user_metadata is end-user writable via the auth API, so never trust it
+    blindly in an img src — accept https URLs only. */
+function safeHttpsUrl(candidate: unknown): string | undefined {
+  if (typeof candidate !== "string" || candidate.length === 0) return undefined;
+  try {
+    return new URL(candidate).protocol === "https:" ? candidate : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Google OAuth avatar from Supabase user metadata. */
 export function getUserAvatarUrl(user: User | null): string | undefined {
   if (!user?.user_metadata) return undefined;
 
-  const { avatar_url: avatarUrl, picture } = user.user_metadata;
-
-  if (typeof avatarUrl === "string" && avatarUrl.length > 0) return avatarUrl;
-  if (typeof picture === "string" && picture.length > 0) return picture;
-
-  return undefined;
+  return (
+    safeHttpsUrl(user.user_metadata.avatar_url) ??
+    safeHttpsUrl(user.user_metadata.picture)
+  );
 }

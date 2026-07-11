@@ -2,6 +2,20 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SportEvent } from "@/app/types";
 import type { Database, SportEventRow } from "@/lib/supabase/database.types";
 
+// host_contact_method / host_contact_value are intentionally absent: their
+// SELECT privilege is revoked (see 20260711160000_tighten_security.sql) and
+// contact is released only via the get_host_contact() RPC. A `select("*")`
+// would fail with a permission error.
+const EVENT_COLUMNS =
+  "id, host_id, sport, title, description, cost, skill_level, capacity, " +
+  "attendee_count, starts_at, ends_at, venue_name, venue_address, venue_city, " +
+  "venue_country, venue_latitude, venue_longitude, created_at";
+
+type PublicSportEventRow = Omit<
+  SportEventRow,
+  "host_contact_method" | "host_contact_value"
+>;
+
 type EventContext = {
   participantEventIds: Set<string>;
   pendingRequestEventIds: Set<string>;
@@ -11,7 +25,7 @@ type EventContext = {
 
 /** Map a DB row + viewer context to the UI SportEvent shape. */
 export function toSportEvent(
-  row: SportEventRow,
+  row: PublicSportEventRow,
   hostName: string,
   ctx: EventContext,
 ): SportEvent {
@@ -38,10 +52,8 @@ export function toSportEvent(
     cost: row.cost || undefined,
     description: row.description || undefined,
     hostName,
-    hostContact:
-      row.host_contact_method && row.host_contact_value
-        ? { method: row.host_contact_method, value: row.host_contact_value }
-        : undefined,
+    // Host contact is deliberately not part of the event payload; the detail
+    // sheet fetches it via the authorization-checked get_host_contact() RPC.
     isCreatedByCurrentUser: isHosted,
     isJoined,
     hasPendingRequest,
@@ -52,7 +64,7 @@ export function toSportEvent(
 async function loadEventContext(
   supabase: SupabaseClient<Database>,
   userId: string,
-  events: SportEventRow[],
+  events: PublicSportEventRow[],
 ): Promise<EventContext> {
   const eventIds = events.map((event) => event.id);
   const hostedEventIds = events
@@ -101,16 +113,17 @@ export async function loadSportEvents(
 ): Promise<SportEvent[]> {
   const { data: events, error } = await supabase
     .from("sport_events")
-    .select("*")
+    .select(EVENT_COLUMNS)
     .gt("ends_at", new Date().toISOString())
-    .order("starts_at", { ascending: true });
+    .order("starts_at", { ascending: true })
+    .overrideTypes<PublicSportEventRow[], { merge: false }>();
 
   if (error) throw error;
   if (!events?.length) return [];
 
   const hostIds = [...new Set(events.map((event) => event.host_id))];
   const { data: hosts } = await supabase
-    .from("profiles")
+    .from("public_profiles")
     .select("id, name")
     .in("id", hostIds);
 
@@ -152,17 +165,18 @@ export async function loadPastUserSportEvents(
 
   const { data: events, error } = await supabase
     .from("sport_events")
-    .select("*")
+    .select(EVENT_COLUMNS)
     .lte("ends_at", now)
     .or(filters.join(","))
-    .order("ends_at", { ascending: false });
+    .order("ends_at", { ascending: false })
+    .overrideTypes<PublicSportEventRow[], { merge: false }>();
 
   if (error) throw error;
   if (!events?.length) return [];
 
   const hostIds = [...new Set(events.map((event) => event.host_id))];
   const { data: hosts } = await supabase
-    .from("profiles")
+    .from("public_profiles")
     .select("id, name")
     .in("id", hostIds);
 

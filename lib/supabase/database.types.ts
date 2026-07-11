@@ -259,11 +259,26 @@ export type Database = {
         ];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      public_profiles: {
+        Row: {
+          id: string;
+          name: string;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       approve_join_request: {
         Args: { request_id: string };
         Returns: undefined;
+      };
+      get_host_contact: {
+        Args: { target_event_id: string };
+        Returns: {
+          method: ContactMethod;
+          value: string;
+        }[];
       };
     };
     Enums: {

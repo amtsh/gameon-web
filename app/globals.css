@@ -259,6 +259,8 @@ textarea {
 }
 
 .circle-button-avatar {
+  width: calc(44px * 0.9);
+  height: calc(44px * 0.9);
   padding: 0;
   overflow: hidden;
 }
