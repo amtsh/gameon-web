@@ -128,14 +128,14 @@ export function GamesSheet({
               <Sheet.SpecialWrapper.Content className="GamesSheet-specialWrapperContent">
                 <Sheet.BleedingBackground className="GamesSheet-bleedingBackground" />
 
-                {/* Handle: hidden on desktop (nothing to drag between) */}
-                {!isDesktop && (
-                  <Sheet.Handle
-                    className="GamesSheet-handle"
-                    action={atFullDetent ? "dismiss" : "step"}
-                    aria-label="Resize sheet"
-                  />
-                )}
+                {/* Handle: always rendered for visual consistency.
+                    On desktop it's purely decorative (action="none");
+                    on mobile it steps/dismisses the sheet as before. */}
+                <Sheet.Handle
+                  className="GamesSheet-handle"
+                  action={isDesktop ? "none" : atFullDetent ? "dismiss" : "step"}
+                  aria-label={isDesktop ? undefined : "Resize sheet"}
+                />
 
                 <header className="GamesSheet-header">
                   <div className="min-w-0 flex-1">
