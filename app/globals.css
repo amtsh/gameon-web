@@ -220,7 +220,8 @@ textarea {
   -webkit-backdrop-filter: blur(22px);
 }
 
-.floating-actions button {
+.floating-actions button,
+.floating-actions a {
   display: grid;
   width: 44px;
   height: 48px;
