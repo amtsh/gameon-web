@@ -59,13 +59,19 @@ export async function requestToJoin(
 
   const requesterLevel = sportPreferences.get(sport) ?? "beginner";
 
-  const { error } = await supabase.from("event_join_requests").insert({
-    event_id: eventId,
-    requester_id: user.id,
-    requester_level: requesterLevel,
-    contact_method: profile.contact_method,
-    contact_value: profile.contact_value.trim(),
-  });
+  // Upsert so that a user who previously withdrew can re-request without
+  // hitting the unique constraint on (event_id, requester_id).
+  const { error } = await supabase.from("event_join_requests").upsert(
+    {
+      event_id: eventId,
+      requester_id: user.id,
+      requester_level: requesterLevel,
+      contact_method: profile.contact_method,
+      contact_value: profile.contact_value.trim(),
+      status: "pending",
+    },
+    { onConflict: "event_id,requester_id" },
+  );
 
   if (error) throw error;
 }
