@@ -186,44 +186,6 @@ textarea {
   background: var(--hairline);
 }
 
-/* RecommendedEventsSheet: white sheet, radius, hero title */
-.games-sheet {
-  position: absolute;
-  z-index: 3;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  height: 62svh;
-  padding: 0 18px max(8px, env(safe-area-inset-bottom));
-  border-radius: 22px 22px 0 0;
-  background: var(--app-background);
-  box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.24);
-}
-
-/* Drag handle for detent snapping (grabber hit area) */
-.sheet-drag-zone {
-  flex: 0 0 auto;
-  margin: 0 -18px;
-  padding: 10px 18px 12px;
-  cursor: grab;
-  touch-action: none;
-}
-
-.sheet-drag-zone:active {
-  cursor: grabbing;
-}
-
-.sheet-grabber {
-  width: 40px;
-  height: 5px;
-  margin: 0 auto;
-  border-radius: 999px;
-  background: rgba(60, 60, 67, 0.3);
-}
-
 .hero-title {
   color: var(--primary-text);
   font-size: 24px;
@@ -849,16 +811,6 @@ textarea {
 }
 
 @media (min-width: 820px) {
-  .games-sheet {
-    right: 28px;
-    bottom: 28px;
-    left: auto;
-    width: 430px;
-    max-height: calc(100svh - 56px);
-    border-radius: 22px;
-    padding-bottom: 14px;
-  }
-
   .floating-actions {
     top: 32px;
     left: 32px;
