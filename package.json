@@ -11,6 +11,8 @@
   "dependencies": {
     "@iconify/react": "^6.0.2",
     "@silk-hq/components": "^0.10.1",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.109.0",
     "@vis.gl/react-maplibre": "^8.1.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
