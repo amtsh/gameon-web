@@ -4,10 +4,7 @@ import { Icon } from "@iconify/react";
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signInWithGoogle } from "@/lib/auth/google";
-import {
-  joinWaitlist,
-  requestToJoin,
-} from "@/lib/data/join-requests.client";
+import { requestToJoin } from "@/lib/data/join-requests.client";
 import type { Profile } from "@/lib/data/profile.shared";
 import {
   saveContact,
@@ -68,15 +65,12 @@ export function JoinGuideSheet({
   const executeJoin = useCallback(
     async (profileForJoin: Profile) => {
       const prefs = await sportPreferencesMap();
-      if (isWaitlist) {
-        await joinWaitlist(event.id, profileForJoin, event.sport, prefs);
-      } else {
-        await requestToJoin(event.id, profileForJoin, event.sport, prefs);
-      }
+      // Full games are routed to the waitlist by the database.
+      await requestToJoin(event.id, profileForJoin, event.sport, prefs);
       await onJoined();
       onPresentedChange(false);
     },
-    [event.id, event.sport, isWaitlist, onJoined, onPresentedChange],
+    [event.id, event.sport, onJoined, onPresentedChange],
   );
 
   const completeJoinIfReady = useCallback(async () => {
@@ -98,7 +92,9 @@ export function JoinGuideSheet({
 
   useEffect(() => {
     if (!presented || step !== null) return;
-    void completeJoinIfReady();
+    // Deferred: the lint forbids synchronous setState in effects.
+    const frame = requestAnimationFrame(() => void completeJoinIfReady());
+    return () => cancelAnimationFrame(frame);
   }, [completeJoinIfReady, presented, step]);
 
   const handleSignIn = async () => {

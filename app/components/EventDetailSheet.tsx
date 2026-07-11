@@ -20,9 +20,7 @@ import {
   approveJoinRequest,
   fetchHostContact,
   fetchPendingJoinRequests,
-  joinWaitlist,
   leaveEvent,
-  leaveWaitlist,
   requestToJoin,
   withdrawJoinRequest,
   type PendingJoinRequest,
@@ -162,7 +160,9 @@ export function EventDetailSheet({
       "",
       window.location.pathname + (remainder ? `?${remainder}` : ""),
     );
-    setJoinGuideOpen(true);
+    // Deferred: the lint forbids synchronous setState in effects.
+    const frame = requestAnimationFrame(() => setJoinGuideOpen(true));
+    return () => cancelAnimationFrame(frame);
   }, [presented]);
 
   useEffect(() => {
@@ -211,12 +211,9 @@ export function EventDetailSheet({
       setActionError("Profile not loaded");
       return;
     }
+    // Full games are routed to the waitlist by the database.
     void runMutation(async () => {
       const prefs = await sportPreferencesMap();
-      if (spots === 0) {
-        await joinWaitlist(event.id, profile, event.sport, prefs);
-        return;
-      }
       await requestToJoin(event.id, profile, event.sport, prefs);
     });
   };
@@ -257,8 +254,11 @@ export function EventDetailSheet({
     const kind = confirming;
     setConfirming(null);
     if (kind === "leave") { await runMutation(() => leaveEvent(event.id)); return; }
-    if (kind === "withdraw") { await runMutation(() => withdrawJoinRequest(event.id)); return; }
-    if (kind === "leaveWaitlist") { await runMutation(() => leaveWaitlist(event.id)); return; }
+    // Withdrawing covers both pending requests and waitlist spots — same row.
+    if (kind === "withdraw" || kind === "leaveWaitlist") {
+      await runMutation(() => withdrawJoinRequest(event.id));
+      return;
+    }
     if (kind === "delete") {
       await runMutation(async () => {
         await deleteSportEvent(event.id);

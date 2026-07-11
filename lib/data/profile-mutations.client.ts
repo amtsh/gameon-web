@@ -1,4 +1,4 @@
-import type { SkillLevel, SportKind, Venue } from "@/app/types";
+import type { SkillLevel, SportKind } from "@/app/types";
 import type { Profile } from "@/lib/data/profile.shared";
 import { geocodePlace } from "@/lib/location/geocode";
 import type { Coordinates } from "@/lib/location/geo";

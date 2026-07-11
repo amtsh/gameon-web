@@ -15,7 +15,7 @@ export type ContactMethod = "whatsapp" | "telegram";
 
 export type LocationMode = "device_location" | "postal_code";
 
-export type JoinRequestStatus = "pending" | "approved";
+export type JoinRequestStatus = "pending" | "approved" | "waitlisted";
 
 export type Database = {
   public: {
@@ -255,48 +255,6 @@ export type Database = {
           {
             foreignKeyName: "event_join_requests_requester_id_fkey";
             columns: ["requester_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      event_waitlist: {
-        Row: {
-          event_id: string;
-          profile_id: string;
-          requester_level: SkillLevel;
-          contact_method: ContactMethod;
-          contact_value: string;
-          joined_at: string;
-        };
-        Insert: {
-          event_id: string;
-          profile_id: string;
-          requester_level?: SkillLevel;
-          contact_method: ContactMethod;
-          contact_value: string;
-          joined_at?: string;
-        };
-        Update: {
-          event_id?: string;
-          profile_id?: string;
-          requester_level?: SkillLevel;
-          contact_method?: ContactMethod;
-          contact_value?: string;
-          joined_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "event_waitlist_event_id_fkey";
-            columns: ["event_id"];
-            isOneToOne: false;
-            referencedRelation: "sport_events";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "event_waitlist_profile_id_fkey";
-            columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];

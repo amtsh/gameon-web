@@ -58,7 +58,7 @@ export function GamesSheet({
   // keyboard (same technique used in SheetWithDetent example).
   const travelHandler = useMemo<SheetViewProps["onTravel"]>(() => {
     if (!atFullDetent) return undefined;
-    return ({ progress, ...rest }) => {
+    return ({ progress }) => {
       if (viewRef.current && progress < 0.999) {
         viewRef.current.focus();
       }
@@ -66,7 +66,6 @@ export function GamesSheet({
   }, [atFullDetent]);
 
   const setRefs = useCallback((node: HTMLElement | null) => {
-    // @ts-ignore
     viewRef.current = node;
   }, []);
 

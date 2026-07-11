@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
-import { fetchPastSportEvents } from "@/lib/data/events-past";
-import { fetchSportEvent, fetchSportEvents } from "@/lib/data/events";
-import { fetchProfile } from "@/lib/data/profile";
+import { loadAppData } from "@/lib/data/app-data";
+import { fetchSportEvent } from "@/lib/data/events";
 import { siteDescription, siteName } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/seo/site";
-import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import GameOnApp from "../../gameon-app";
 import { mockEvents } from "../../data/mock-data";
-import type { Profile } from "@/lib/data/profile.shared";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -68,36 +65,19 @@ export default async function SharedGamePage({ params }: Props) {
     );
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let initialProfile: Profile | null = null;
-  let initialPastEvents: Awaited<ReturnType<typeof fetchPastSportEvents>> = [];
-
-  if (user) {
-    [initialProfile, initialPastEvents] = await Promise.all([
-      fetchProfile(),
-      fetchPastSportEvents(),
-    ]);
-  }
-
-  const [initialEvents, initialSharedEvent] = await Promise.all([
-    fetchSportEvents(),
-    fetchSportEvent(id),
-  ]);
+  const { user, profile, events, pastEvents, sharedEvent } =
+    await loadAppData(id);
 
   return (
     <>
-      <GameJsonLd id={id} title={initialSharedEvent?.title} />
+      <GameJsonLd id={id} title={sharedEvent?.title} />
       <h1 className="sr-only">{siteName} \u2014 Shared game</h1>
       <GameOnApp
-        initialEvents={initialEvents}
-        initialPastEvents={initialPastEvents}
-        initialProfile={initialProfile}
+        initialEvents={events}
+        initialPastEvents={pastEvents}
+        initialProfile={profile}
         initialUser={user}
-        initialSharedEvent={initialSharedEvent}
+        initialSharedEvent={sharedEvent ?? null}
         usesSupabase={true}
       />
     </>

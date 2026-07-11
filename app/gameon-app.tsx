@@ -133,7 +133,6 @@ export default function GameOnApp({
       .on("postgres_changes", { event: "*", schema: "public", table: "sport_events" }, () => { void refreshSessionData(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "event_participants" }, () => { void refreshSessionData(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "event_join_requests" }, () => { void refreshSessionData(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "event_waitlist" }, () => { void refreshSessionData(); })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [refreshSessionData, usesSupabase]);
@@ -142,7 +141,9 @@ export default function GameOnApp({
     if (!user || !profile || profile.is_onboarding_complete || onboardingShown.current) return;
     if (initialSharedEvent !== undefined) return;
     onboardingShown.current = true;
-    setActiveSheet("profile");
+    // Deferred: the lint forbids synchronous setState in effects.
+    const frame = requestAnimationFrame(() => setActiveSheet("profile"));
+    return () => cancelAnimationFrame(frame);
   }, [initialSharedEvent, profile, user]);
 
   const handleSignIn = useCallback(async () => {

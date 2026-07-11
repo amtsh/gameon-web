@@ -27,6 +27,14 @@ type EventContext = {
   pendingRequestCounts: Map<string, number>;
 };
 
+const emptyEventContext = (): EventContext => ({
+  participantEventIds: new Set(),
+  pendingRequestEventIds: new Set(),
+  waitlistEventIds: new Set(),
+  hostedEventIds: new Set(),
+  pendingRequestCounts: new Map(),
+});
+
 export function toSportEvent(
   row: PublicSportEventRow,
   hostName: string,
@@ -84,7 +92,7 @@ async function loadEventContext(
     .filter((event) => event.host_id === userId)
     .map((event) => event.id);
 
-  const [participants, requests, waitlist, hostedPending] = await Promise.all([
+  const [participants, requests, hostedPending] = await Promise.all([
     supabase
       .from("event_participants")
       .select("event_id")
@@ -92,14 +100,9 @@ async function loadEventContext(
       .in("event_id", eventIds),
     supabase
       .from("event_join_requests")
-      .select("event_id")
+      .select("event_id, status")
       .eq("requester_id", userId)
-      .eq("status", "pending")
-      .in("event_id", eventIds),
-    supabase
-      .from("event_waitlist")
-      .select("event_id")
-      .eq("profile_id", userId)
+      .in("status", ["pending", "waitlisted"])
       .in("event_id", eventIds),
     hostedEventIds.length > 0
       ? supabase
@@ -110,15 +113,21 @@ async function loadEventContext(
       : Promise.resolve({ data: [], error: null }),
   ]);
 
+  const requestRows = requests.data ?? [];
+
   return {
     participantEventIds: new Set(
       (participants.data ?? []).map((row) => row.event_id),
     ),
     pendingRequestEventIds: new Set(
-      (requests.data ?? []).map((row) => row.event_id),
+      requestRows
+        .filter((row) => row.status === "pending")
+        .map((row) => row.event_id),
     ),
     waitlistEventIds: new Set(
-      (waitlist.data ?? []).map((row) => row.event_id),
+      requestRows
+        .filter((row) => row.status === "waitlisted")
+        .map((row) => row.event_id),
     ),
     hostedEventIds: new Set(hostedEventIds),
     pendingRequestCounts: (hostedPending.data ?? []).reduce((map, row) => {
@@ -153,13 +162,7 @@ export async function loadSportEvents(
 
   const ctx = userId
     ? await loadEventContext(supabase, userId, events)
-    : {
-        participantEventIds: new Set<string>(),
-        pendingRequestEventIds: new Set<string>(),
-        waitlistEventIds: new Set<string>(),
-        hostedEventIds: new Set<string>(),
-        pendingRequestCounts: new Map<string, number>(),
-      };
+    : emptyEventContext();
 
   const visibleEvents = events.filter((event) => {
     if (userId && isUserRelatedEvent(event.id, ctx)) return true;
@@ -200,13 +203,7 @@ export async function loadSportEvent(
 
   const ctx = userId
     ? await loadEventContext(supabase, userId, [event])
-    : {
-        participantEventIds: new Set<string>(),
-        pendingRequestEventIds: new Set<string>(),
-        waitlistEventIds: new Set<string>(),
-        hostedEventIds: new Set<string>(),
-        pendingRequestCounts: new Map<string, number>(),
-      };
+    : emptyEventContext();
 
   return toSportEvent(
     event,

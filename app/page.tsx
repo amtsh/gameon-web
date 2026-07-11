@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { fetchPastSportEvents } from "@/lib/data/events-past";
-import { fetchSportEvents } from "@/lib/data/events";
-import { fetchProfile } from "@/lib/data/profile";
+import { loadAppData } from "@/lib/data/app-data";
 import { siteDescription, siteName } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/seo/site";
-import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import GameOnApp from "./gameon-app";
 import { mockEvents } from "./data/mock-data";
-import type { Profile } from "@/lib/data/profile.shared";
 
 export const metadata: Metadata = {
   title: "Find local sports games nearby",
@@ -77,22 +73,7 @@ export default async function Home() {
     );
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let initialProfile: Profile | null = null;
-  let initialPastEvents: Awaited<ReturnType<typeof fetchPastSportEvents>> = [];
-
-  if (user) {
-    [initialProfile, initialPastEvents] = await Promise.all([
-      fetchProfile(),
-      fetchPastSportEvents(),
-    ]);
-  }
-
-  const initialEvents = await fetchSportEvents();
+  const { user, profile, events, pastEvents } = await loadAppData();
 
   return (
     <>
@@ -101,9 +82,9 @@ export default async function Home() {
         {siteName} — Find and join local sports games nearby
       </h1>
       <GameOnApp
-        initialEvents={initialEvents}
-        initialPastEvents={initialPastEvents}
-        initialProfile={initialProfile}
+        initialEvents={events}
+        initialPastEvents={pastEvents}
+        initialProfile={profile}
         initialUser={user}
         usesSupabase={true}
       />
