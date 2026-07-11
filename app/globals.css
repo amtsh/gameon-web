@@ -143,6 +143,48 @@ textarea {
   display: none;
 }
 
+/* ── Sheet scroll areas: native thin scrollbar ── */
+.sheet-scroll-view {
+  /* Firefox: thin track, auto-colour based on surface */
+  scrollbar-width: thin;
+  scrollbar-color: var(--separator) transparent;
+  /* Reserve gutter so content width doesn't jump when bar appears */
+  scrollbar-gutter: stable;
+}
+
+/* Webkit (Chrome, Safari, Edge) */
+.sheet-scroll-view::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sheet-scroll-view::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+}
+
+.sheet-scroll-view::-webkit-scrollbar-thumb {
+  background: var(--separator);
+  border-radius: 9999px;
+  /* Fade out when not scrolling on desktop */
+  transition: background 200ms ease;
+}
+
+/* On desktop: dim the thumb when idle, brighten on hover/active */
+@media (hover: hover) {
+  .sheet-scroll-view::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+
+  .sheet-scroll-view:hover::-webkit-scrollbar-thumb,
+  .sheet-scroll-view::-webkit-scrollbar-thumb:hover {
+    background: var(--separator);
+  }
+
+  .sheet-scroll-view::-webkit-scrollbar-thumb:active {
+    background: var(--label-text);
+  }
+}
+
 .gameon-root {
   position: relative;
   width: 100vw;

@@ -118,16 +118,12 @@ export function GamesSheet({
             if (!isDesktop && status === "idleOutside") setAtFullDetent(false);
           }}
           onTravelRangeChange={(range) => {
-            // On mobile: range.end === 2 means reached the last (full) detent.
-            // On desktop: always at full.
             if (isDesktop || range.end === 2) setAtFullDetent(true);
           }}
           onTravel={travelHandler}
           ref={setRefs}
         >
           <Sheet.Content className="GamesSheet-content">
-            {/* Required for swipe to work in Safari when the sheet is
-                non-modal and has no backdrop. */}
             <Sheet.SpecialWrapper.Root className="GamesSheet-specialWrapperRoot">
               <Sheet.SpecialWrapper.Content className="GamesSheet-specialWrapperContent">
                 <Sheet.BleedingBackground className="GamesSheet-bleedingBackground" />
@@ -188,14 +184,9 @@ export function GamesSheet({
                   onShowPast={onShowPast}
                 />
 
-                {/* Silk Scroll handles the gesture boundary between
-                    scrolling the list and dragging the sheet up/down.
-                    scrollGesture is disabled until the sheet is fully
-                    expanded — prevents the list scroll from stealing
-                    the upward swipe at the half detent. */}
                 <Scroll.Root className="GamesSheet-scrollRoot">
                   <Scroll.View
-                    className="GamesSheet-scrollView no-scrollbar"
+                    className="GamesSheet-scrollView sheet-scroll-view"
                     scrollGestureTrap={{ yEnd: true }}
                     scrollGesture={atFullDetent ? "auto" : false}
                     safeArea="layout-viewport"

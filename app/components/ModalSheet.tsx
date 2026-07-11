@@ -80,7 +80,7 @@ export function ModalSheetScroll({ children }: { children: React.ReactNode }) {
   return (
     <Scroll.Root className="ModalSheet-scrollRoot">
       <Scroll.View
-        className="ModalSheet-scrollView no-scrollbar"
+        className="ModalSheet-scrollView sheet-scroll-view"
         scrollGestureTrap={{ yEnd: true }}
         onScrollStart={{ dismissKeyboard: true }}
       >
