@@ -1,5 +1,7 @@
 import type { SkillLevel, SportKind, Venue } from "@/app/types";
 import type { Profile } from "@/lib/data/profile.shared";
+import { geocodePlace } from "@/lib/location/geocode";
+import type { Coordinates } from "@/lib/location/geo";
 import { createClient } from "@/lib/supabase/client";
 
 export type SportPreference = {
@@ -45,6 +47,11 @@ export async function saveProfile(input: SaveProfileInput) {
   if (!user) throw new Error("Sign in required");
 
   const postalCode = input.postalCode.trim() || null;
+  let coordinates: Coordinates | null = null;
+
+  if (postalCode) {
+    coordinates = await geocodePlace(postalCode);
+  }
 
   const { error: profileError } = await supabase
     .from("profiles")
@@ -52,6 +59,8 @@ export async function saveProfile(input: SaveProfileInput) {
       name: input.name.trim(),
       postal_code: postalCode,
       location_mode: postalCode ? "postal_code" : "device_location",
+      postal_latitude: coordinates?.latitude ?? null,
+      postal_longitude: coordinates?.longitude ?? null,
       is_onboarding_complete: input.completeOnboarding ?? true,
     })
     .eq("id", user.id);
@@ -94,6 +103,26 @@ export async function saveContact(
     .update({
       contact_method: method,
       contact_value: trimmed,
+    })
+    .eq("id", user.id);
+
+  if (error) throw error;
+}
+
+/** Persist device GPS as the user's discovery center. */
+export async function saveDiscoveryCoordinates(center: Coordinates) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sign in required");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      location_mode: "device_location",
+      postal_latitude: center.latitude,
+      postal_longitude: center.longitude,
     })
     .eq("id", user.id);
 

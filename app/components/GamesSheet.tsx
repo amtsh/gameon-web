@@ -5,10 +5,8 @@ import { Plus, User } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
-import {
-  activeUserEvents,
-  groupedDiscoverableEvents,
-} from "../event-feed";
+import { activeUserEvents, groupedDiscoverableEvents } from "../event-feed";
+import { DISCOVERY_RADIUS_KM } from "@/lib/location/constants";
 import type { SheetName, SportEvent, SportKind } from "../types";
 import "./GamesSheet.css";
 
@@ -67,13 +65,10 @@ export function GamesSheet({
     };
   }, [atFullDetent]);
 
-  const setRefs = useCallback(
-    (node: HTMLElement | null) => {
-      // @ts-ignore
-      viewRef.current = node;
-    },
-    [],
-  );
+  const setRefs = useCallback((node: HTMLElement | null) => {
+    // @ts-ignore
+    viewRef.current = node;
+  }, []);
 
   return (
     <Sheet.Root
@@ -126,7 +121,7 @@ export function GamesSheet({
                       Nearby Games
                     </Sheet.Title>
                     <p className="hero-subtitle">
-                      Discover and join local games
+                      Within {DISCOVERY_RADIUS_KM} km radius around you
                     </p>
                   </div>
                   <button
@@ -215,7 +210,11 @@ export function GamesSheet({
                           ))}
 
                           {sections.length === 0 && yourGames.length === 0 ? (
-                            <p className="empty-state">No upcoming games nearby</p>
+                            <p className="empty-state">
+                              No games within {DISCOVERY_RADIUS_KM} km. Set your
+                              postal code in profile, or open a shared game
+                              link.
+                            </p>
                           ) : null}
 
                           {sections.map((section) => (

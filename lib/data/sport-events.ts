@@ -1,6 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SportEvent } from "@/app/types";
 import type { Database, SportEventRow } from "@/lib/supabase/database.types";
+import {
+  DEFAULT_DISCOVERY_FILTER,
+  isUserRelatedEvent,
+  isWithinDiscoveryRadius,
+  type DiscoveryFilter,
+} from "@/lib/location/discovery";
+import { haversineDistanceKm } from "@/lib/location/geo";
 
 const EVENT_COLUMNS =
   "id, host_id, sport, title, description, cost, skill_level, capacity, " +
@@ -23,10 +30,16 @@ export function toSportEvent(
   row: PublicSportEventRow,
   hostName: string,
   ctx: EventContext,
+  discovery?: DiscoveryFilter,
 ): SportEvent {
   const isHosted = ctx.hostedEventIds.has(row.id);
   const isJoined = ctx.participantEventIds.has(row.id);
   const hasPendingRequest = ctx.pendingRequestEventIds.has(row.id);
+
+  const venueCoords = {
+    latitude: row.venue_latitude,
+    longitude: row.venue_longitude,
+  };
 
   return {
     id: row.id,
@@ -52,6 +65,9 @@ export function toSportEvent(
     hasPendingRequest,
     pendingRequestCount: ctx.pendingRequestCounts.get(row.id),
     autoApprove: row.auto_approve,
+    distanceKm: discovery
+      ? haversineDistanceKm(discovery.center, venueCoords)
+      : undefined,
   };
 }
 
@@ -104,6 +120,7 @@ async function loadEventContext(
 export async function loadSportEvents(
   supabase: SupabaseClient<Database>,
   userId?: string,
+  discovery: DiscoveryFilter = DEFAULT_DISCOVERY_FILTER,
 ): Promise<SportEvent[]> {
   const { data: events, error } = await supabase
     .from("sport_events")
@@ -132,16 +149,25 @@ export async function loadSportEvents(
         pendingRequestCounts: new Map<string, number>(),
       };
 
-  return events.map((event) =>
-    toSportEvent(event, hostNames.get(event.host_id) ?? "Host", ctx),
+  const visibleEvents = events.filter((event) => {
+    if (userId && isUserRelatedEvent(event.id, ctx)) return true;
+    return isWithinDiscoveryRadius(
+      { latitude: event.venue_latitude, longitude: event.venue_longitude },
+      discovery,
+    );
+  });
+
+  return visibleEvents.map((event) =>
+    toSportEvent(event, hostNames.get(event.host_id) ?? "Host", ctx, discovery),
   );
 }
 
-/** Load a single upcoming sport event by ID for shareable detail pages. */
+/** Load a single upcoming sport event by ID (no radius filter — for share links). */
 export async function loadSportEvent(
   supabase: SupabaseClient<Database>,
   eventId: string,
   userId?: string,
+  discovery?: DiscoveryFilter,
 ): Promise<SportEvent | null> {
   const { data: event, error } = await supabase
     .from("sport_events")
@@ -169,7 +195,12 @@ export async function loadSportEvent(
         pendingRequestCounts: new Map<string, number>(),
       };
 
-  return toSportEvent(event, host?.name ?? "Host", ctx);
+  return toSportEvent(
+    event,
+    host?.name ?? "Host",
+    ctx,
+    discovery,
+  );
 }
 
 /** Past events the signed-in user hosted or joined. */

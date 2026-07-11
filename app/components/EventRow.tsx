@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { memo } from "react";
 import { sports } from "../data/mock-data";
 import { clockTime, durationText, eventRelativeLabel, eventTime, spotsLeft } from "../event-feed";
+import { formatDistanceKm } from "@/lib/location/geo";
 import type { SportEvent } from "../types";
 
 type Props = {
@@ -63,6 +64,12 @@ export const EventRow = memo(function EventRow({
           <span className="truncate">
             {event.venue.name || event.venue.address || "Venue"}
           </span>
+          {event.distanceKm != null ? (
+            <>
+              <span style={{ color: "var(--label-text)" }}>·</span>
+              <span>{formatDistanceKm(event.distanceKm)}</span>
+            </>
+          ) : null}
         </span>
 
         <span className="row-meta mt-1">

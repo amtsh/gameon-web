@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { signInWithGoogle, signOut } from "@/lib/auth/google";
 import { getUserAvatarUrl } from "@/lib/auth/user";
 import {
@@ -9,6 +9,15 @@ import {
   fetchSportEventsClient,
 } from "@/lib/data/events.client";
 import { fetchProfileClient } from "@/lib/data/profile.client";
+import {
+  saveDiscoveryCoordinates,
+} from "@/lib/data/profile-mutations.client";
+import {
+  getDeviceCoordinates,
+  resolveClientDiscoveryFilter,
+  storeDiscoveryCenter,
+} from "@/lib/location/discovery.client";
+import { DISCOVERY_RADIUS_KM } from "@/lib/location/constants";
 import { createClient } from "@/lib/supabase/client";
 import { AppMap } from "./components/AppMap";
 import { ContactSheet } from "./components/ContactSheet";
@@ -70,20 +79,15 @@ export default function GameOnApp({
     } = await supabase.auth.getUser();
     setUser(nextUser);
 
-    const nextEvents = await fetchSportEventsClient();
-    setEvents(nextEvents);
-
-    if (!nextUser) {
-      setProfile(null);
-      setPastEvents([]);
-      return;
-    }
-
-    const [nextProfile, nextPast] = await Promise.all([
-      fetchProfileClient(),
-      fetchPastSportEventsClient(),
-    ]);
+    const nextProfile = nextUser ? await fetchProfileClient() : null;
     setProfile(nextProfile);
+
+    const discovery = await resolveClientDiscoveryFilter(nextProfile);
+    const [nextEvents, nextPast] = await Promise.all([
+      fetchSportEventsClient(discovery),
+      nextUser ? fetchPastSportEventsClient() : Promise.resolve([]),
+    ]);
+    setEvents(nextEvents);
     setPastEvents(nextPast);
 
     setDetailEvent((current) => {
@@ -102,6 +106,14 @@ export default function GameOnApp({
     },
     [user],
   );
+
+  useEffect(() => {
+    if (!usesSupabase) return;
+    void (async () => {
+      const discovery = await resolveClientDiscoveryFilter(profile);
+      setEvents(await fetchSportEventsClient(discovery));
+    })();
+  }, [usesSupabase, profile?.postal_latitude, profile?.postal_longitude]);
 
   useEffect(() => {
     if (!usesSupabase) return;
@@ -197,17 +209,43 @@ export default function GameOnApp({
     }
   }, []);
 
+  const handleLocate = useCallback(async () => {
+    setLocateToken((token) => token + 1);
+    if (!usesSupabase) return;
+
+    try {
+      const center = await getDeviceCoordinates();
+      storeDiscoveryCenter(center);
+      if (user) {
+        await saveDiscoveryCoordinates(center);
+        setProfile(await fetchProfileClient());
+      }
+      setEvents(
+        await fetchSportEventsClient({
+          center,
+          radiusKm: DISCOVERY_RADIUS_KM,
+        }),
+      );
+    } catch {
+      // Map still flies via locateToken.
+    }
+  }, [usesSupabase, user]);
+
+  const mapEvents = useMemo(() => {
+    if (!detailEvent) return events;
+    if (events.some((event) => event.id === detailEvent.id)) return events;
+    return [...events, detailEvent];
+  }, [events, detailEvent]);
+
   return (
     <main className="gameon-root">
       <AppMap
-        events={events}
+        events={mapEvents}
         selectedEvent={detailPresented ? detailEvent : undefined}
         locateToken={locateToken}
         onSelect={selectEvent}
       />
-      <FloatingActions
-        onLocate={() => setLocateToken((token) => token + 1)}
-      />
+      <FloatingActions onLocate={handleLocate} />
       <GamesSheet
         events={events}
         pastEvents={pastEvents}
