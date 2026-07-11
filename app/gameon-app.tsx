@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { AppMap } from "./components/AppMap";
 import { ContactSheet } from "./components/ContactSheet";
 import { CreateEventSheet } from "./components/CreateEventSheet";
@@ -16,37 +16,43 @@ export default function GameOnApp() {
   const [selectedEvent, setSelectedEvent] = useState<SportEvent | undefined>();
   const [activeSheet, setActiveSheet] = useState<SheetName>(null);
   const [showingPast, setShowingPast] = useState(false);
+  const [locateToken, setLocateToken] = useState(0);
 
-  function toggleSport(sport: SportKind) {
+  const toggleSport = useCallback((sport: SportKind) => {
     setShowingPast(false);
     setSelectedSports((current) =>
       current.includes(sport)
         ? current.filter((candidate) => candidate !== sport)
         : [...current, sport],
     );
-  }
+  }, []);
+
+  const showAll = useCallback(() => {
+    setShowingPast(false);
+    setSelectedSports([]);
+  }, []);
+
+  const showPast = useCallback(() => setShowingPast(true), []);
 
   return (
     <main className="gameon-root">
       <AppMap
         events={mockEvents}
         selectedEvent={selectedEvent}
+        locateToken={locateToken}
         onSelect={setSelectedEvent}
       />
       <FloatingActions
         onCreate={() => setActiveSheet("create")}
-        onLocate={() => setSelectedEvent(undefined)}
+        onLocate={() => setLocateToken((token) => token + 1)}
       />
       <GamesSheet
         events={mockEvents}
         selectedSports={selectedSports}
         showingPast={showingPast}
         onToggleSport={toggleSport}
-        onShowAll={() => {
-          setShowingPast(false);
-          setSelectedSports([]);
-        }}
-        onShowPast={() => setShowingPast(true)}
+        onShowAll={showAll}
+        onShowPast={showPast}
         onSelectEvent={setSelectedEvent}
         onOpenSheet={setActiveSheet}
       />

@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, User } from "lucide-react";
+import { useMemo } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import {
@@ -31,9 +32,12 @@ export function GamesSheet({
   onSelectEvent,
   onOpenSheet,
 }: Props) {
-  const yourGames = activeUserEvents(events);
-  const sections = groupedDiscoverableEvents(events, selectedSports);
-  const pastGames = archivedUserEvents(events);
+  const yourGames = useMemo(() => activeUserEvents(events), [events]);
+  const sections = useMemo(
+    () => groupedDiscoverableEvents(events, selectedSports),
+    [events, selectedSports],
+  );
+  const pastGames = useMemo(() => archivedUserEvents(events), [events]);
 
   return (
     <section className="games-sheet" aria-label="Nearby Games">

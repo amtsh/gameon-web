@@ -2,15 +2,15 @@
 
 import { Icon } from "@iconify/react";
 import clsx from "clsx";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { sports } from "../data/mock-data";
-import type { SkillLevel, SportKind } from "../types";
+import { VenueSearchField } from "./VenueSearchField";
+import type { SkillLevel, SportKind, Venue } from "../types";
 
 type CreateEventValues = {
   title: string;
-  venue: string;
   startsAt: string;
   endsAt: string;
   capacity: number;
@@ -31,6 +31,7 @@ const skillLevels: Array<{ id: SkillLevel; label: string }> = [
 
 export function CreateEventSheet({ onClose }: Props) {
   const [sport, setSport] = useState<SportKind>("badminton");
+  const [venue, setVenue] = useState<Venue | null>(null);
   const {
     register,
     formState: { errors, isValid },
@@ -38,7 +39,6 @@ export function CreateEventSheet({ onClose }: Props) {
     mode: "onChange",
     defaultValues: {
       title: "",
-      venue: "",
       startsAt: "2026-07-12T18:00",
       endsAt: "2026-07-12T19:00",
       capacity: 8,
@@ -55,7 +55,7 @@ export function CreateEventSheet({ onClose }: Props) {
             <X size={20} />
           </button>
           <h2>Create Game</h2>
-          <button disabled={!isValid}>Create</button>
+          <button disabled={!isValid || !venue}>Create</button>
         </header>
 
         <div className="form-section">
@@ -87,14 +87,7 @@ export function CreateEventSheet({ onClose }: Props) {
 
         <div className="form-section">
           <p className="form-label">Game</p>
-          <div className="input-with-icon">
-            <Search size={17} />
-            <input
-              placeholder="Venue"
-              {...register("venue", { required: "Venue is required" })}
-            />
-          </div>
-          {errors.venue ? <p className="form-error">{errors.venue.message}</p> : null}
+          <VenueSearchField value={venue} onSelect={setVenue} />
           <input
             placeholder="Title"
             {...register("title", { required: "Title is required" })}

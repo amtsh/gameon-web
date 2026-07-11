@@ -3,6 +3,7 @@
 import { Icon } from "@iconify/react";
 import { Clock, Crown, MapPin } from "lucide-react";
 import clsx from "clsx";
+import { memo } from "react";
 import { sports } from "../data/mock-data";
 import { clockTime, durationText, eventTime, spotsLeft } from "../event-feed";
 import type { SportEvent } from "../types";
@@ -34,7 +35,11 @@ export function HostedByYouBadge() {
   );
 }
 
-export function EventRow({ event, isArchived = false, onSelect }: Props) {
+export const EventRow = memo(function EventRow({
+  event,
+  isArchived = false,
+  onSelect,
+}: Props) {
   const sport = sports.find((candidate) => candidate.id === event.sport);
   const startTime = isArchived
     ? `Ended ${clockTime(new Date(event.endsAt))}`
@@ -72,7 +77,7 @@ export function EventRow({ event, isArchived = false, onSelect }: Props) {
       </span>
     </button>
   );
-}
+});
 
 function rowBadges(event: SportEvent, isArchived: boolean) {
   const badges: React.ReactNode[] = [];
