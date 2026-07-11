@@ -2,7 +2,7 @@
 
 import { Sheet, Scroll } from "@silk-hq/components";
 import { Plus, User } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import {
@@ -17,10 +17,6 @@ type Props = {
   events: SportEvent[];
   selectedSports: SportKind[];
   showingPast: boolean;
-  /** Detent index: 1 = 180px, 2 = 62svh, 3 = full. Controlled by the
-      app so opening the detail sheet can snap to 62% like iOS. */
-  detent: number;
-  onDetentChange: (detent: number) => void;
   onToggleSport: (sport: SportKind) => void;
   onShowAll: () => void;
   onShowPast: () => void;
@@ -32,8 +28,6 @@ export function GamesSheet({
   events,
   selectedSports,
   showingPast,
-  detent,
-  onDetentChange,
   onToggleSport,
   onShowAll,
   onShowPast,
@@ -47,25 +41,31 @@ export function GamesSheet({
   );
   const pastGames = useMemo(() => archivedUserEvents(events), [events]);
 
+  // Detent 0 is fully dismissed; 1 = half, 2 = full. Never allow resting
+  // below half — this sheet is the app's persistent home surface.
+  const [activeDetent, setActiveDetent] = useState(1);
+
   return (
     <Sheet.Root
       license="commercial"
       defaultPresented={true}
-      activeDetent={detent}
-      onActiveDetentChange={onDetentChange}
+      activeDetent={activeDetent}
+      onActiveDetentChange={(detent) =>
+        setActiveDetent(Math.max(1, detent))
+      }
     >
       <Sheet.Portal>
         <Sheet.View
           className="GamesSheet-view"
-          // Intermediate detents mirroring iOS
-          // presentationDetents([.height(180), .fraction(0.62), .large]);
-          // the last detent (full height) is implicit.
-          detents={["180px", "62svh"]}
+          // Half and full — full stops at the view top (below status bar).
+          detents={["62svh", "100%"]}
           swipeOvershoot={false}
           swipeDismissal={false}
           // Non-modal, like iOS presentationBackgroundInteraction(.enabled):
           // the map and floating actions stay interactive.
           inertOutside={false}
+          onClickOutside={{ dismiss: false, stopOverlayPropagation: true }}
+          onEscapeKeyDown={{ dismiss: false, stopOverlayPropagation: true }}
           nativeEdgeSwipePrevention={true}
         >
           <Sheet.Content className="GamesSheet-content">

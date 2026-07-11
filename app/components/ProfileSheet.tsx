@@ -6,13 +6,19 @@ import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 
 type Props = {
-  onClose: () => void;
+  presented: boolean;
+  onPresentedChange: (presented: boolean) => void;
   onContact: () => void;
 };
 
-export function ProfileSheet({ onClose, onContact }: Props) {
+export function ProfileSheet({ presented, onPresentedChange, onContact }: Props) {
   return (
-    <ModalSheet height="96svh" onClose={onClose}>
+    <ModalSheet
+      height="96svh"
+      title="Edit profile"
+      presented={presented}
+      onPresentedChange={onPresentedChange}
+    >
         <header className="sheet-nav">
           <SheetDismissTrigger>
             <button aria-label="Close">

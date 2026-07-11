@@ -1,6 +1,7 @@
 .ModalSheet-view {
   /* Above the games sheet (z-index 5) */
   z-index: 10;
+  /* +60px so sheets can reach the top on iOS Safari */
   height: calc(var(--silk-100-lvh-dvh-pct) + 60px);
 }
 
@@ -36,11 +37,11 @@
   height: 5px;
   flex-shrink: 0;
   align-self: center;
-  margin: 10px auto 8px;
+  margin: 10px auto 6px;
   border: 0;
   border-radius: 9999px;
   background-color: var(--grabber);
-  cursor: pointer;
+  cursor: grab;
 }
 
 .ModalSheet-scrollRoot {

@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@iconify/react";
 import { Clock, Crown, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { memo } from "react";
@@ -51,7 +50,6 @@ export const EventRow = memo(function EventRow({
 
       <span className="min-w-0 flex-1">
         <span className="row-meta">
-          <Icon icon={sport?.icon ?? "mdi:trophy"} width={13} />
           {sport?.label}
         </span>
 

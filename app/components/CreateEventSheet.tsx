@@ -20,7 +20,8 @@ type CreateEventValues = {
 };
 
 type Props = {
-  onClose: () => void;
+  presented: boolean;
+  onPresentedChange: (presented: boolean) => void;
 };
 
 const skillLevels: Array<{ id: SkillLevel; label: string }> = [
@@ -30,7 +31,7 @@ const skillLevels: Array<{ id: SkillLevel; label: string }> = [
   { id: "advanced", label: "Advanced" },
 ];
 
-export function CreateEventSheet({ onClose }: Props) {
+export function CreateEventSheet({ presented, onPresentedChange }: Props) {
   const [sport, setSport] = useState<SportKind>("badminton");
   const [venue, setVenue] = useState<Venue | null>(null);
   const {
@@ -49,7 +50,12 @@ export function CreateEventSheet({ onClose }: Props) {
   });
 
   return (
-    <ModalSheet height="96svh" onClose={onClose}>
+    <ModalSheet
+      height="96svh"
+      title="Create Game"
+      presented={presented}
+      onPresentedChange={onPresentedChange}
+    >
         <header className="sheet-nav">
           <SheetDismissTrigger>
             <button aria-label="Close">

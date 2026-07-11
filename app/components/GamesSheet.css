@@ -1,11 +1,14 @@
 /* ============================================================
-   GamesSheet — Silk Sheet with three detents
-   Mirrors iOS presentationDetents([.height(180), .fraction(0.62), .large])
+   GamesSheet — Silk Sheet with half + full detents
+   Mirrors iOS presentationDetents([.fraction(0.62), .large])
    ============================================================ */
 
 .GamesSheet-view {
   /* Place above map (z-index 3) and floating actions (z-index 4) */
   z-index: 5;
+  /* Keep the travel track below the status bar (PageFromBottom pattern) */
+  top: max(env(safe-area-inset-top), 6px);
+  bottom: initial;
   /* +60px accounts for iOS Safari bottom bar so the sheet
      can travel all the way to the top without clipping */
   height: calc(var(--silk-100-lvh-dvh-pct) + 60px);
@@ -13,8 +16,8 @@
 
 .GamesSheet-content {
   box-sizing: border-box;
-  /* Full-height minus safe-area top — Silk animates between detents */
-  height: calc(100% - max(env(safe-area-inset-top), 6px));
+  /* View already clears the status bar — fill its track */
+  height: 100%;
   max-width: 430px;
   display: flex;
   flex-direction: column;
@@ -35,7 +38,7 @@
 .GamesSheet-specialWrapperContent {
   box-sizing: border-box;
   height: 100%;
-  padding: 0 18px max(8px, env(safe-area-inset-bottom));
+  padding: 4px 18px max(8px, env(safe-area-inset-bottom));
 }
 
 .GamesSheet-bleedingBackground {
@@ -50,8 +53,7 @@
   border: 0;
   border-radius: 9999px;
   background-color: var(--grabber);
-  cursor: pointer;
-  /* Centre the grabber horizontally */
+  cursor: grab;
   align-self: center;
   margin: 10px auto 6px;
   flex-shrink: 0;
@@ -81,22 +83,10 @@
   padding-bottom: 8px;
 }
 
-/* ── Desktop: detached floating card (matches old @media 820px rule) ── */
+/* ── Desktop: centered column, like a phone canvas ── */
 @media (min-width: 820px) {
-  .GamesSheet-view {
-    /* On desktop position the sheet at bottom-right like the original */
-    --silk-sheet-inset-right: 28px;
-    --silk-sheet-inset-bottom: 28px;
-  }
-
   .GamesSheet-content {
     width: 430px;
-    max-height: calc(100svh - 56px);
-    border-radius: 22px;
-    padding-bottom: 14px;
-  }
-
-  .GamesSheet-bleedingBackground {
-    border-radius: 22px;
+    margin-inline: auto;
   }
 }

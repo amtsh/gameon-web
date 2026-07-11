@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { AppMap } from "./components/AppMap";
 import { ContactSheet } from "./components/ContactSheet";
 import { CreateEventSheet } from "./components/CreateEventSheet";
@@ -13,31 +13,14 @@ import type { SheetName, SportEvent, SportKind } from "./types";
 
 export default function GameOnApp() {
   const [selectedSports, setSelectedSports] = useState<SportKind[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<SportEvent | undefined>();
   const [activeSheet, setActiveSheet] = useState<SheetName>(null);
   const [showingPast, setShowingPast] = useState(false);
   const [locateToken, setLocateToken] = useState(0);
-  // Games-sheet detent: 1 = 180px, 2 = 62svh, 3 = full.
-  const [sheetDetent, setSheetDetent] = useState(2);
-  const detentBeforeDetail = useRef<number | null>(null);
-
-  // Mirrors iOS updateSheetDetentForDetailPresentation(): opening the
-  // detail sheet snaps the games sheet to 62%, closing restores it.
-  function selectEvent(event: SportEvent) {
-    if (detentBeforeDetail.current === null) {
-      detentBeforeDetail.current = sheetDetent;
-      setSheetDetent(2);
-    }
-    setSelectedEvent(event);
-  }
-
-  function closeDetail() {
-    setSelectedEvent(undefined);
-    if (detentBeforeDetail.current !== null) {
-      setSheetDetent(detentBeforeDetail.current);
-      detentBeforeDetail.current = null;
-    }
-  }
+  // The detail sheet stays mounted once an event has been viewed; only
+  // `detailPresented` toggles. Remounting Silk sheets breaks their
+  // dismissal/re-presentation lifecycle.
+  const [detailEvent, setDetailEvent] = useState<SportEvent | undefined>();
+  const [detailPresented, setDetailPresented] = useState(false);
 
   const toggleSport = useCallback((sport: SportKind) => {
     setShowingPast(false);
@@ -55,11 +38,16 @@ export default function GameOnApp() {
 
   const showPast = useCallback(() => setShowingPast(true), []);
 
+  const selectEvent = useCallback((event: SportEvent) => {
+    setDetailEvent(event);
+    setDetailPresented(true);
+  }, []);
+
   return (
     <main className="gameon-root">
       <AppMap
         events={mockEvents}
-        selectedEvent={selectedEvent}
+        selectedEvent={detailPresented ? detailEvent : undefined}
         locateToken={locateToken}
         onSelect={selectEvent}
       />
@@ -71,8 +59,6 @@ export default function GameOnApp() {
         events={mockEvents}
         selectedSports={selectedSports}
         showingPast={showingPast}
-        detent={sheetDetent}
-        onDetentChange={setSheetDetent}
         onToggleSport={toggleSport}
         onShowAll={showAll}
         onShowPast={showPast}
@@ -80,21 +66,32 @@ export default function GameOnApp() {
         onOpenSheet={setActiveSheet}
       />
 
-      {selectedEvent ? (
-        <EventDetailSheet event={selectedEvent} onClose={closeDetail} />
-      ) : null}
-      {activeSheet === "create" ? (
-        <CreateEventSheet onClose={() => setActiveSheet(null)} />
-      ) : null}
-      {activeSheet === "profile" ? (
-        <ProfileSheet
-          onClose={() => setActiveSheet(null)}
-          onContact={() => setActiveSheet("contact")}
+      {detailEvent ? (
+        <EventDetailSheet
+          event={detailEvent}
+          presented={detailPresented}
+          onPresentedChange={setDetailPresented}
         />
       ) : null}
-      {activeSheet === "contact" ? (
-        <ContactSheet onClose={() => setActiveSheet("profile")} />
-      ) : null}
+      <CreateEventSheet
+        presented={activeSheet === "create"}
+        onPresentedChange={(presented) =>
+          setActiveSheet(presented ? "create" : null)
+        }
+      />
+      <ProfileSheet
+        presented={activeSheet === "profile"}
+        onPresentedChange={(presented) =>
+          setActiveSheet(presented ? "profile" : null)
+        }
+        onContact={() => setActiveSheet("contact")}
+      />
+      <ContactSheet
+        presented={activeSheet === "contact"}
+        onPresentedChange={(presented) =>
+          setActiveSheet(presented ? "contact" : "profile")
+        }
+      />
     </main>
   );
 }

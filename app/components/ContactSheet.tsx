@@ -5,14 +5,29 @@ import { useState } from "react";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 
 type Props = {
-  onClose: () => void;
+  presented: boolean;
+  onPresentedChange: (presented: boolean) => void;
 };
 
-export function ContactSheet({ onClose }: Props) {
-  const [method, setMethod] = useState<"whatsapp" | "telegram">("telegram");
+type Method = "whatsapp" | "telegram";
+
+export function ContactSheet({ presented, onPresentedChange }: Props) {
+  const [method, setMethod] = useState<Method>("telegram");
+  // Keep a separate value per method so switching tabs doesn't leak
+  // a Telegram handle into the WhatsApp field (mirrors iOS, which
+  // validates each method's format separately).
+  const [values, setValues] = useState<Record<Method, string>>({
+    telegram: "@amitplays",
+    whatsapp: "",
+  });
 
   return (
-    <ModalSheet height="52svh" onClose={onClose}>
+    <ModalSheet
+      height="52svh"
+      title="Contact"
+      presented={presented}
+      onPresentedChange={onPresentedChange}
+    >
         <header className="sheet-nav">
           <SheetDismissTrigger>
             <button aria-label="Close">
@@ -39,8 +54,15 @@ export function ContactSheet({ onClose }: Props) {
             </button>
           </div>
           <input
-            defaultValue={method === "telegram" ? "@amitplays" : ""}
+            value={values[method]}
+            inputMode={method === "whatsapp" ? "tel" : "text"}
             placeholder={method === "telegram" ? "@username" : "+46 phone"}
+            onChange={(changeEvent) =>
+              setValues((current) => ({
+                ...current,
+                [method]: changeEvent.target.value,
+              }))
+            }
           />
           <p className="hint">
             Your contact is shared only after a join request is approved.

@@ -38,7 +38,8 @@ const destructiveActions = {
 
 type Props = {
   event: SportEvent;
-  onClose: () => void;
+  presented: boolean;
+  onPresentedChange: (presented: boolean) => void;
 };
 
 const skillLevelLabels: Record<SportEvent["skillLevel"], string> = {
@@ -48,7 +49,7 @@ const skillLevelLabels: Record<SportEvent["skillLevel"], string> = {
   advanced: "Advanced",
 };
 
-export function EventDetailSheet({ event, onClose }: Props) {
+export function EventDetailSheet({ event, presented, onPresentedChange }: Props) {
   const [confirming, setConfirming] = useState<
     keyof typeof destructiveActions | null
   >(null);
@@ -72,11 +73,12 @@ export function EventDetailSheet({ event, onClose }: Props) {
 
   return (
     <ModalSheet
-      height="96svh"
-      intermediateDetent="62svh"
+      height="80svh"
+      title={event.title}
       variant="detail"
       scroll={false}
-      onClose={onClose}
+      presented={presented}
+      onPresentedChange={onPresentedChange}
     >
         <ModalSheetScroll>
           {/* Header: spots badge, sport meta, title, status pills */}
@@ -275,7 +277,7 @@ export function EventDetailSheet({ event, onClose }: Props) {
             {...destructiveActions[confirming]}
             onConfirm={() => {
               setConfirming(null);
-              onClose();
+              onPresentedChange(false);
             }}
             onCancel={() => setConfirming(null)}
           />
