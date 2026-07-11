@@ -19,7 +19,7 @@ import {
   spotsLeft,
 } from "../event-feed";
 import { HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
-import { ConfirmDialog, ModalSheet } from "./ModalSheet";
+import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
 import type { SportEvent } from "../types";
 
 // Mirrors DestructiveEventAction in EventDetailView.swift.
@@ -71,8 +71,14 @@ export function EventDetailSheet({ event, onClose }: Props) {
   )}`;
 
   return (
-    <ModalSheet detents={[0.62, 0.94]} variant="detail" scroll={false} onClose={onClose}>
-        <div className="detail-scroll">
+    <ModalSheet
+      height="96svh"
+      intermediateDetent="62svh"
+      variant="detail"
+      scroll={false}
+      onClose={onClose}
+    >
+        <ModalSheetScroll>
           {/* Header: spots badge, sport meta, title, status pills */}
           <div className="flex items-center gap-3.5">
             <SpotsLeftBadge count={spots} />
@@ -223,7 +229,7 @@ export function EventDetailSheet({ event, onClose }: Props) {
               Leave game
             </button>
           ) : null}
-        </div>
+        </ModalSheetScroll>
 
         {/* Bottom action (participants + archived games) */}
         {archived || !event.isCreatedByCurrentUser ? (

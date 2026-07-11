@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { AppMap } from "./components/AppMap";
 import { ContactSheet } from "./components/ContactSheet";
 import { CreateEventSheet } from "./components/CreateEventSheet";
@@ -17,6 +17,27 @@ export default function GameOnApp() {
   const [activeSheet, setActiveSheet] = useState<SheetName>(null);
   const [showingPast, setShowingPast] = useState(false);
   const [locateToken, setLocateToken] = useState(0);
+  // Games-sheet detent: 1 = 180px, 2 = 62svh, 3 = full.
+  const [sheetDetent, setSheetDetent] = useState(2);
+  const detentBeforeDetail = useRef<number | null>(null);
+
+  // Mirrors iOS updateSheetDetentForDetailPresentation(): opening the
+  // detail sheet snaps the games sheet to 62%, closing restores it.
+  function selectEvent(event: SportEvent) {
+    if (detentBeforeDetail.current === null) {
+      detentBeforeDetail.current = sheetDetent;
+      setSheetDetent(2);
+    }
+    setSelectedEvent(event);
+  }
+
+  function closeDetail() {
+    setSelectedEvent(undefined);
+    if (detentBeforeDetail.current !== null) {
+      setSheetDetent(detentBeforeDetail.current);
+      detentBeforeDetail.current = null;
+    }
+  }
 
   const toggleSport = useCallback((sport: SportKind) => {
     setShowingPast(false);
@@ -40,7 +61,7 @@ export default function GameOnApp() {
         events={mockEvents}
         selectedEvent={selectedEvent}
         locateToken={locateToken}
-        onSelect={setSelectedEvent}
+        onSelect={selectEvent}
       />
       <FloatingActions
         onCreate={() => setActiveSheet("create")}
@@ -50,18 +71,17 @@ export default function GameOnApp() {
         events={mockEvents}
         selectedSports={selectedSports}
         showingPast={showingPast}
+        detent={sheetDetent}
+        onDetentChange={setSheetDetent}
         onToggleSport={toggleSport}
         onShowAll={showAll}
         onShowPast={showPast}
-        onSelectEvent={setSelectedEvent}
+        onSelectEvent={selectEvent}
         onOpenSheet={setActiveSheet}
       />
 
       {selectedEvent ? (
-        <EventDetailSheet
-          event={selectedEvent}
-          onClose={() => setSelectedEvent(undefined)}
-        />
+        <EventDetailSheet event={selectedEvent} onClose={closeDetail} />
       ) : null}
       {activeSheet === "create" ? (
         <CreateEventSheet onClose={() => setActiveSheet(null)} />

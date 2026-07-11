@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { useState } from "react";
-import { ModalSheet } from "./ModalSheet";
+import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 
 type Props = {
   onClose: () => void;
@@ -12,11 +12,13 @@ export function ContactSheet({ onClose }: Props) {
   const [method, setMethod] = useState<"whatsapp" | "telegram">("telegram");
 
   return (
-    <ModalSheet detents={[0.52]} onClose={onClose}>
+    <ModalSheet height="52svh" onClose={onClose}>
         <header className="sheet-nav">
-          <button onClick={onClose} aria-label="Close">
-            <X size={20} />
-          </button>
+          <SheetDismissTrigger>
+            <button aria-label="Close">
+              <X size={20} />
+            </button>
+          </SheetDismissTrigger>
           <h2>Contact</h2>
           <button>Save</button>
         </header>

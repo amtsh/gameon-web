@@ -3,7 +3,7 @@
 import { Icon } from "@iconify/react";
 import { X } from "lucide-react";
 import { sports } from "../data/mock-data";
-import { ModalSheet } from "./ModalSheet";
+import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 
 type Props = {
   onClose: () => void;
@@ -12,11 +12,13 @@ type Props = {
 
 export function ProfileSheet({ onClose, onContact }: Props) {
   return (
-    <ModalSheet detents={[0.94]} onClose={onClose}>
+    <ModalSheet height="96svh" onClose={onClose}>
         <header className="sheet-nav">
-          <button aria-label="Close" onClick={onClose}>
-            <X size={20} />
-          </button>
+          <SheetDismissTrigger>
+            <button aria-label="Close">
+              <X size={20} />
+            </button>
+          </SheetDismissTrigger>
           <h2>Edit profile</h2>
           <button>Save</button>
         </header>

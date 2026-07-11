@@ -16,11 +16,26 @@
   /* Full-height minus safe-area top — Silk animates between detents */
   height: calc(100% - max(env(safe-area-inset-top), 6px));
   max-width: 430px;
-  padding: 0 18px max(8px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-radius: 22px 22px 0 0;
+}
+
+/* Safari workaround wrapper (non-modal sheet without backdrop) —
+   must not affect the flex layout of the sheet content. */
+.GamesSheet-specialWrapperRoot,
+.GamesSheet-specialWrapperContent {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.GamesSheet-specialWrapperContent {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0 18px max(8px, env(safe-area-inset-bottom));
 }
 
 .GamesSheet-bleedingBackground {
@@ -34,7 +49,7 @@
   height: 5px;
   border: 0;
   border-radius: 9999px;
-  background-color: rgba(60, 60, 67, 0.3);
+  background-color: var(--grabber);
   cursor: pointer;
   /* Centre the grabber horizontally */
   align-self: center;

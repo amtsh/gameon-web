@@ -1,99 +1,109 @@
 "use client";
 
+import { Scroll, Sheet } from "@silk-hq/components";
 import clsx from "clsx";
-import { useRef, useState } from "react";
+import "./ModalSheet.css";
 
 type Props = {
-  /** Sheet heights as viewport fractions, ascending. Mirrors iOS presentationDetents. */
-  detents?: number[];
+  /** Sheet content height, e.g. "96svh" or "52svh". */
+  height: string;
+  /** Optional intermediate detent below full height,
+      e.g. "62svh" for the detail sheet (iOS .fraction(0.62)). */
+  intermediateDetent?: string;
   variant?: "form" | "detail";
-  /** If false, children manage their own scrolling (e.g. pinned bottom bar). */
+  /** If false, children manage their own scrolling
+      (e.g. detail sheet's pinned bottom bar). */
   scroll?: boolean;
   onClose: () => void;
   children: React.ReactNode;
 };
 
 export function ModalSheet({
-  detents = [0.94],
+  height,
+  intermediateDetent,
   variant = "form",
   scroll = true,
   onClose,
   children,
 }: Props) {
-  const [detentIndex, setDetentIndex] = useState(0);
-  const [dragHeight, setDragHeight] = useState<number | null>(null);
-  const dragStart = useRef<{ y: number; height: number } | null>(null);
-
-  const onPointerDown = (downEvent: React.PointerEvent) => {
-    const sheet = downEvent.currentTarget.closest(".modal-sheet");
-    if (!sheet) return;
-    downEvent.currentTarget.setPointerCapture(downEvent.pointerId);
-    dragStart.current = {
-      y: downEvent.clientY,
-      height: sheet.getBoundingClientRect().height,
-    };
-  };
-
-  const onPointerMove = (moveEvent: React.PointerEvent) => {
-    if (!dragStart.current) return;
-    const next =
-      dragStart.current.height + (dragStart.current.y - moveEvent.clientY);
-    setDragHeight(Math.min(next, window.innerHeight * 0.94));
-  };
-
-  const onPointerEnd = () => {
-    if (!dragStart.current) return;
-    dragStart.current = null;
-    if (dragHeight === null) return;
-
-    const viewportHeight = window.innerHeight;
-    // Dragged well below the smallest detent → dismiss.
-    if (dragHeight < detents[0] * viewportHeight - 120) {
-      setDragHeight(null);
-      onClose();
-      return;
-    }
-    const nearest = detents.reduce(
-      (best, candidate, index) =>
-        Math.abs(candidate * viewportHeight - dragHeight) <
-        Math.abs(detents[best] * viewportHeight - dragHeight)
-          ? index
-          : best,
-      0,
-    );
-    setDetentIndex(nearest);
-    setDragHeight(null);
-  };
-
-  const style: React.CSSProperties = {
-    height: dragHeight ?? `${detents[detentIndex] * 100}svh`,
-    transition:
-      dragHeight !== null
-        ? "none"
-        : "height 280ms cubic-bezier(0.32, 0.72, 0, 1)",
-  };
-
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <section
-        className={clsx("modal-sheet", variant)}
-        style={style}
-        onClick={(clickEvent) => clickEvent.stopPropagation()}
-      >
-        <div
-          className="sheet-drag-zone"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerEnd}
-          onPointerCancel={onPointerEnd}
+    <Sheet.Root
+      license="commercial"
+      defaultPresented={true}
+      defaultActiveDetent={intermediateDetent ? 1 : undefined}
+      onPresentedChange={(presented) => {
+        if (!presented) onClose();
+      }}
+    >
+      <Sheet.Portal>
+        <Sheet.View
+          className="ModalSheet-view"
+          detents={intermediateDetent}
+          swipeOvershoot={false}
+          nativeEdgeSwipePrevention={true}
         >
-          <div className="sheet-grabber" />
-        </div>
-        <div className={clsx("modal-sheet-body", scroll && "scroll")}>
+          <Sheet.Backdrop
+            className="ModalSheet-backdrop"
+            travelAnimation={{ opacity: [0, 1] }}
+          />
+          <Sheet.Content
+            className={clsx("ModalSheet-content", variant)}
+            style={{ height }}
+          >
+            <Sheet.BleedingBackground
+              className={clsx("ModalSheet-bleedingBackground", variant)}
+            />
+            <Sheet.Handle
+              className="ModalSheet-handle"
+              action={intermediateDetent ? "step" : "dismiss"}
+              aria-label={intermediateDetent ? "Resize sheet" : "Close sheet"}
+            />
+            {scroll ? (
+              <Scroll.Root className="ModalSheet-scrollRoot">
+                <Scroll.View
+                  className="ModalSheet-scrollView no-scrollbar"
+                  scrollGestureTrap={{ yEnd: true }}
+                  onScrollStart={{ dismissKeyboard: true }}
+                >
+                  <Scroll.Content className="ModalSheet-scrollContent">
+                    {children}
+                  </Scroll.Content>
+                </Scroll.View>
+              </Scroll.Root>
+            ) : (
+              <div className="ModalSheet-body">{children}</div>
+            )}
+          </Sheet.Content>
+        </Sheet.View>
+      </Sheet.Portal>
+    </Sheet.Root>
+  );
+}
+
+/** Silk-managed scroll area for sheets that lay out their own body
+    (e.g. detail sheet content above a pinned bottom bar). */
+export function ModalSheetScroll({ children }: { children: React.ReactNode }) {
+  return (
+    <Scroll.Root className="ModalSheet-scrollRoot">
+      <Scroll.View
+        className="ModalSheet-scrollView no-scrollbar"
+        scrollGestureTrap={{ yEnd: true }}
+        onScrollStart={{ dismissKeyboard: true }}
+      >
+        <Scroll.Content className="ModalSheet-scrollContent">
           {children}
-        </div>
-      </section>
-    </div>
+        </Scroll.Content>
+      </Scroll.View>
+    </Scroll.Root>
+  );
+}
+
+/** Wrap a sheet's close (X) button so dismissal animates. */
+export function SheetDismissTrigger({ children }: { children: React.ReactNode }) {
+  return (
+    <Sheet.Trigger action="dismiss" asChild>
+      {children}
+    </Sheet.Trigger>
   );
 }
 

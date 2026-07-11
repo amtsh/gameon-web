@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { sports } from "../data/mock-data";
-import { ModalSheet } from "./ModalSheet";
+import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 import { VenueSearchField } from "./VenueSearchField";
 import type { SkillLevel, SportKind, Venue } from "../types";
 
@@ -49,11 +49,13 @@ export function CreateEventSheet({ onClose }: Props) {
   });
 
   return (
-    <ModalSheet detents={[0.94]} onClose={onClose}>
+    <ModalSheet height="96svh" onClose={onClose}>
         <header className="sheet-nav">
-          <button aria-label="Close" onClick={onClose}>
-            <X size={20} />
-          </button>
+          <SheetDismissTrigger>
+            <button aria-label="Close">
+              <X size={20} />
+            </button>
+          </SheetDismissTrigger>
           <h2>Create Game</h2>
           <button disabled={!isValid || !venue}>Create</button>
         </header>
