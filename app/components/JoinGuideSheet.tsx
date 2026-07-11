@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { signInWithGoogle } from "@/lib/auth/google";
 import { requestToJoin } from "@/lib/data/join-requests.client";
 import type { Profile } from "@/lib/data/profile.shared";
@@ -76,13 +76,9 @@ export function JoinGuideSheet({
   const [contactValue, setContactValue] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const joinStarted = useRef(false);
 
   useEffect(() => {
-    if (!presented) {
-      joinStarted.current = false;
-      return;
-    }
+    if (!presented) return;
     const frame = requestAnimationFrame(() => {
       setMethod(profile?.contact_method ?? "telegram");
       setContactValue(profile?.contact_value?.trim() ?? "");
@@ -101,28 +97,21 @@ export function JoinGuideSheet({
     [event.id, event.sport, onJoined, onPresentedChange],
   );
 
-  const completeJoinIfReady = useCallback(async () => {
-    if (!profile || step !== null || joinStarted.current) return;
-    joinStarted.current = true;
+  // User is fully ready — they tap the button to explicitly request.
+  const handleJoin = async () => {
+    if (!profile) return;
     setBusy(true);
     setError(null);
     try {
       await executeJoin(profile);
     } catch (joinError) {
-      joinStarted.current = false;
       setError(
         joinError instanceof Error ? joinError.message : "Could not join",
       );
     } finally {
       setBusy(false);
     }
-  }, [executeJoin, profile, step]);
-
-  useEffect(() => {
-    if (!presented || step !== null) return;
-    const frame = requestAnimationFrame(() => void completeJoinIfReady());
-    return () => cancelAnimationFrame(frame);
-  }, [completeJoinIfReady, presented, step]);
+  };
 
   const handleSignIn = async () => {
     setError(null);
@@ -151,10 +140,8 @@ export function JoinGuideSheet({
         contact_method: method,
         contact_value: contactValue.trim(),
       };
-      joinStarted.current = true;
       await executeJoin(refreshedProfile);
     } catch (saveError) {
-      joinStarted.current = false;
       setError(
         saveError instanceof Error
           ? saveError.message
@@ -240,12 +227,22 @@ export function JoinGuideSheet({
           </>
         ) : null}
 
-        {step === null && busy ? (
-          <div className="mt-8 text-center">
-            <p className="detail-body" style={{ fontWeight: 600 }}>
-              Joining game\u2026
+        {/* User is fully ready (signed in + has contact) — show explicit join button */}
+        {step === null ? (
+          <>
+            <h2 className="detail-title mt-4">Ready to join</h2>
+            <p className="detail-caption mt-2">
+              Tap below to send your request to the host.
             </p>
-          </div>
+            <button
+              className="primary-action mt-6"
+              disabled={busy}
+              onClick={() => void handleJoin()}
+              type="button"
+            >
+              {busy ? "Joining\u2026" : actionLabel}
+            </button>
+          </>
         ) : null}
 
         {error ? <p className="form-error mt-4">{error}</p> : null}
