@@ -25,6 +25,8 @@ type Props = {
   initialPastEvents: SportEvent[];
   initialUser: User | null;
   initialProfile: Profile | null;
+  /** Defined: open detail sheet. null: show "not found" state. undefined: normal home. */
+  initialSharedEvent?: SportEvent | null;
   usesSupabase: boolean;
 };
 
@@ -33,6 +35,7 @@ export default function GameOnApp({
   initialPastEvents,
   initialUser,
   initialProfile,
+  initialSharedEvent = undefined,
   usesSupabase,
 }: Props) {
   const [events, setEvents] = useState(initialEvents);
@@ -42,15 +45,21 @@ export default function GameOnApp({
   const [authBusy, setAuthBusy] = useState(false);
   const [selectedSports, setSelectedSports] = useState<SportKind[]>([]);
   const [activeSheet, setActiveSheet] = useState<SheetName>(null);
-  // Track which sheet opened ContactSheet so we can return to it on dismiss.
   const contactReturnSheet = useRef<SheetName>(null);
   const [showingPast, setShowingPast] = useState(false);
   const [locateToken, setLocateToken] = useState(0);
-  const [detailEvent, setDetailEvent] = useState<SportEvent | undefined>();
-  const [detailPresented, setDetailPresented] = useState(false);
+  const [detailEvent, setDetailEvent] = useState<SportEvent | undefined>(
+    initialSharedEvent ?? undefined,
+  );
+  const [detailPresented, setDetailPresented] = useState(
+    Boolean(initialSharedEvent),
+  );
   const [editEvent, setEditEvent] = useState<SportEvent | undefined>();
   const [gamesDetent, setGamesDetent] = useState(1);
   const onboardingShown = useRef(false);
+
+  // true when the URL was /game/[id] but the event does not exist.
+  const showingSharedMissing = initialSharedEvent === null;
 
   const refreshSessionData = useCallback(async () => {
     if (!usesSupabase) return;
@@ -88,10 +97,7 @@ export default function GameOnApp({
 
   const requireAuth = useCallback(
     (action: () => void) => {
-      if (user) {
-        action();
-        return;
-      }
+      if (user) { action(); return; }
       setActiveSheet("profile");
     },
     [user],
@@ -99,71 +105,34 @@ export default function GameOnApp({
 
   useEffect(() => {
     if (!usesSupabase) return;
-
     const supabase = createClient();
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       void refreshSessionData();
     });
-
     return () => subscription.unsubscribe();
   }, [refreshSessionData, usesSupabase]);
 
   useEffect(() => {
     if (!usesSupabase) return;
-
     const supabase = createClient();
     const channel = supabase
       .channel("gameon-public-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "sport_events" },
-        () => {
-          void refreshSessionData();
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "event_participants" },
-        () => {
-          void refreshSessionData();
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "event_join_requests" },
-        () => {
-          void refreshSessionData();
-        },
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "sport_events" }, () => { void refreshSessionData(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_participants" }, () => { void refreshSessionData(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_join_requests" }, () => { void refreshSessionData(); })
       .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return () => { void supabase.removeChannel(channel); };
   }, [refreshSessionData, usesSupabase]);
 
   useEffect(() => {
-    if (
-      !user ||
-      !profile ||
-      profile.is_onboarding_complete ||
-      onboardingShown.current
-    ) {
-      return;
-    }
+    if (!user || !profile || profile.is_onboarding_complete || onboardingShown.current) return;
     onboardingShown.current = true;
     setActiveSheet("profile");
   }, [profile, user]);
 
   const handleSignIn = useCallback(async () => {
     setAuthBusy(true);
-    try {
-      await signInWithGoogle();
-    } finally {
-      setAuthBusy(false);
-    }
+    try { await signInWithGoogle(); } finally { setAuthBusy(false); }
   }, []);
 
   const handleSignOut = useCallback(async () => {
@@ -173,9 +142,7 @@ export default function GameOnApp({
       setActiveSheet(null);
       setEditEvent(undefined);
       await refreshSessionData();
-    } finally {
-      setAuthBusy(false);
-    }
+    } finally { setAuthBusy(false); }
   }, [refreshSessionData]);
 
   const openCreate = useCallback(() => {
@@ -204,9 +171,6 @@ export default function GameOnApp({
 
   const showPast = useCallback(() => setShowingPast(true), []);
 
-  // Open the detail sheet immediately; the games sheet collapses to half
-  // (if it was full) in parallel, in the background, so the detail sheet
-  // never waits on it.
   const selectEvent = useCallback((event: SportEvent) => {
     setDetailEvent(event);
     setDetailPresented(true);
@@ -220,6 +184,17 @@ export default function GameOnApp({
   const openContact = useCallback((returnTo: SheetName) => {
     contactReturnSheet.current = returnTo;
     setActiveSheet("contact");
+  }, []);
+
+  const handleViewOtherGames = useCallback(() => {
+    setSelectedSports([]);
+    setShowingPast(false);
+    setDetailEvent(undefined);
+    setDetailPresented(false);
+    setGamesDetent(1);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", "/");
+    }
   }, []);
 
   return (
@@ -247,10 +222,7 @@ export default function GameOnApp({
         onShowPast={showPast}
         onSelectEvent={selectEvent}
         onOpenSheet={(sheet) => {
-          if (sheet === "create") {
-            requireAuth(openCreate);
-            return;
-          }
+          if (sheet === "create") { requireAuth(openCreate); return; }
           setActiveSheet(sheet);
         }}
       />
@@ -267,6 +239,25 @@ export default function GameOnApp({
           onMutated={refreshSessionData}
         />
       ) : null}
+
+      {showingSharedMissing ? (
+        <div className="pointer-events-none absolute inset-x-0 top-24 z-40 flex justify-center px-4">
+          <div className="pointer-events-auto w-full max-w-sm rounded-[28px] bg-[var(--card)] p-6 shadow-[0_24px_64px_rgba(15,23,42,0.18)]">
+            <p className="detail-title text-center">Game not found</p>
+            <p className="detail-caption mt-2 text-center">
+              This shared game no longer exists or has already ended.
+            </p>
+            <button
+              className="primary-action mt-5"
+              onClick={handleViewOtherGames}
+              type="button"
+            >
+              View other games
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <CreateEventSheet
         presented={activeSheet === "create"}
         onPresentedChange={(presented) => {
@@ -297,7 +288,6 @@ export default function GameOnApp({
           if (presented) {
             setActiveSheet("contact");
           } else {
-            // Return to whichever sheet opened the contact editor.
             setActiveSheet(contactReturnSheet.current);
           }
         }}

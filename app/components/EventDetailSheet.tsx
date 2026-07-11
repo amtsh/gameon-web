@@ -7,10 +7,11 @@ import {
   CreditCard,
   Gauge,
   MapPin,
+  Share2,
   User,
   Users,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { contactUrl } from "@/lib/contact-url";
 import { deleteSportEvent } from "@/lib/data/create-event.client";
 import {
@@ -36,6 +37,17 @@ import { HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
 import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
 import type { SportEvent } from "../types";
 
+type Props = {
+  event: SportEvent;
+  profile: Profile | null;
+  isSignedIn: boolean;
+  presented: boolean;
+  onPresentedChange: (presented: boolean) => void;
+  onRequireSignIn: () => void;
+  onEdit: (event: SportEvent) => void;
+  onMutated: () => void | Promise<void>;
+};
+
 const destructiveActions = {
   leave: {
     title: "Leave this game?",
@@ -54,17 +66,6 @@ const destructiveActions = {
   },
 } as const;
 
-type Props = {
-  event: SportEvent;
-  profile: Profile | null;
-  isSignedIn: boolean;
-  presented: boolean;
-  onPresentedChange: (presented: boolean) => void;
-  onRequireSignIn: () => void;
-  onEdit: (event: SportEvent) => void;
-  onMutated: () => void | Promise<void>;
-};
-
 const skillLevelLabels: Record<SportEvent["skillLevel"], string> = {
   any: "Any level",
   beginner: "Beginner",
@@ -72,16 +73,14 @@ const skillLevelLabels: Record<SportEvent["skillLevel"], string> = {
   advanced: "Advanced",
 };
 
-/** Extract the most useful message from a Supabase or generic error. */
 function extractErrorMessage(error: unknown): string {
   if (!error) return "Something went wrong";
   if (error instanceof Error && error.message) return error.message;
-  // Supabase errors: { message, details, hint, code }
   if (typeof error === "object") {
     const e = error as Record<string, unknown>;
     const msg = [e.message, e.details, e.hint]
       .filter((v) => typeof v === "string" && v.trim())
-      .join(" — ");
+      .join(" \u2014 ");
     if (msg) return msg;
     if (e.code) return `Error ${String(e.code)}`;
   }
@@ -111,10 +110,16 @@ export function EventDetailSheet({
     eventId: string;
     contact: ContactInfo;
   } | null>(null);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   const sport = sports.find((candidate) => candidate.id === event.sport);
   const spots = spotsLeft(event);
   const archived = isArchived(event);
+
+  const shareUrl = useMemo(() => {
+    if (typeof window === "undefined") return `/game/${event.id}`;
+    return new URL(`/game/${event.id}`, window.location.origin).toString();
+  }, [event.id]);
 
   const loadRequests = useCallback(async () => {
     setActionError(null);
@@ -152,12 +157,8 @@ export function EventDetailSheet({
           setHostContact({ eventId: event.id, contact });
         }
       })
-      .catch(() => {
-        // Not authorized or offline — simply omit the contact section.
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [contactEligible, event.id]);
 
   const runMutation = async (action: () => Promise<void>) => {
@@ -179,28 +180,37 @@ export function EventDetailSheet({
       setActionError("Profile not loaded");
       return;
     }
-    // sportPreferencesMap is fetched inside runMutation so any error
-    // it throws is caught and shown — previously it ran outside and
-    // errors were silently swallowed.
     void runMutation(async () => {
       const prefs = await sportPreferencesMap();
       await requestToJoin(event.id, profile, event.sport, prefs);
     });
   };
 
+  const handleShare = useCallback(async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: event.title,
+          text: `Join ${event.title} on GameOn`,
+          url: shareUrl,
+        });
+        return;
+      }
+      await navigator.clipboard.writeText(shareUrl);
+      setShareFeedback("Link copied");
+      window.setTimeout(() => setShareFeedback(null), 2000);
+    } catch {
+      setShareFeedback("Could not share");
+      window.setTimeout(() => setShareFeedback(null), 2000);
+    }
+  }, [event.title, shareUrl]);
+
   const handleConfirm = async () => {
     if (!confirming) return;
     const kind = confirming;
     setConfirming(null);
-
-    if (kind === "leave") {
-      await runMutation(() => leaveEvent(event.id));
-      return;
-    }
-    if (kind === "withdraw") {
-      await runMutation(() => withdrawJoinRequest(event.id));
-      return;
-    }
+    if (kind === "leave") { await runMutation(() => leaveEvent(event.id)); return; }
+    if (kind === "withdraw") { await runMutation(() => withdrawJoinRequest(event.id)); return; }
     if (kind === "delete") {
       await runMutation(async () => {
         await deleteSportEvent(event.id);
@@ -240,7 +250,17 @@ export function EventDetailSheet({
               <Icon icon={sport?.icon ?? "mdi:trophy"} width={12} />
               {sport?.label}
             </p>
-            <h2 className="detail-title mt-2">{event.title}</h2>
+            <div className="mt-2 flex items-start gap-3">
+              <h2 className="detail-title flex-1">{event.title}</h2>
+              <button
+                aria-label="Share game"
+                className="circle-button flex-shrink-0"
+                onClick={() => void handleShare()}
+                type="button"
+              >
+                <Share2 size={18} />
+              </button>
+            </div>
             <div className="row-badges">
               {event.isCreatedByCurrentUser ? <HostedByYouBadge /> : null}
               {event.isJoined && !event.isCreatedByCurrentUser ? (
@@ -250,13 +270,14 @@ export function EventDetailSheet({
                 <span className="status-badge warning">Pending request</span>
               ) : null}
             </div>
+            {shareFeedback ? (
+              <p className="detail-caption mt-2">{shareFeedback}</p>
+            ) : null}
           </div>
         </div>
 
         <div className="mt-6 flex items-center gap-3.5">
-          <span className="detail-icon-tile">
-            <Calendar size={22} />
-          </span>
+          <span className="detail-icon-tile"><Calendar size={22} /></span>
           <div className="min-w-0 flex-1">
             <p className="detail-label">When</p>
             <p className="detail-body mt-1.5">{dateTimeText}</p>
@@ -264,9 +285,7 @@ export function EventDetailSheet({
         </div>
 
         <div className="mt-6 flex items-center gap-3.5">
-          <span className="detail-icon-tile">
-            <MapPin size={22} />
-          </span>
+          <span className="detail-icon-tile"><MapPin size={22} /></span>
           <div className="min-w-0 flex-1">
             <p className="detail-label">Where</p>
             <p className="detail-body mt-1.5">{event.venue.name}</p>
@@ -317,8 +336,7 @@ export function EventDetailSheet({
               ) : (
                 <>
                   <span className="block">{event.hostName ?? "Host"}</span>
-                  {hostContactHref &&
-                  hostContact?.eventId === event.id ? (
+                  {hostContactHref && hostContact?.eventId === event.id ? (
                     <a
                       className="host-meta-contact link-info mt-1.5 inline-flex"
                       href={hostContactHref}
@@ -426,20 +444,12 @@ export function EventDetailSheet({
           ) : (
             <button
               className={
-                event.hasPendingRequest
-                  ? "primary-action danger"
-                  : "primary-action"
+                event.hasPendingRequest ? "primary-action danger" : "primary-action"
               }
               disabled={busy || (spots === 0 && !event.hasPendingRequest && isSignedIn)}
               onClick={() => {
-                if (!isSignedIn) {
-                  onRequireSignIn();
-                  return;
-                }
-                if (event.hasPendingRequest) {
-                  setConfirming("withdraw");
-                  return;
-                }
+                if (!isSignedIn) { onRequireSignIn(); return; }
+                if (event.hasPendingRequest) { setConfirming("withdraw"); return; }
                 handleJoin();
               }}
               type="button"
@@ -480,10 +490,7 @@ function MetadataItem({
 }) {
   return (
     <div className="metadata-item">
-      <p className="meta-label">
-        {icon}
-        {label}
-      </p>
+      <p className="meta-label">{icon}{label}</p>
       <p className="meta-value">{value}</p>
     </div>
   );

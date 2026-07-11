@@ -2,10 +2,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SportEvent } from "@/app/types";
 import type { Database, SportEventRow } from "@/lib/supabase/database.types";
 
-// host_contact_method / host_contact_value are intentionally absent: their
-// SELECT privilege is revoked (see 20260711160000_tighten_security.sql) and
-// contact is released only via the get_host_contact() RPC. A `select("*")`
-// would fail with a permission error.
 const EVENT_COLUMNS =
   "id, host_id, sport, title, description, cost, skill_level, capacity, " +
   "attendee_count, starts_at, ends_at, venue_name, venue_address, venue_city, " +
@@ -23,7 +19,6 @@ type EventContext = {
   pendingRequestCounts: Map<string, number>;
 };
 
-/** Map a DB row + viewer context to the UI SportEvent shape. */
 export function toSportEvent(
   row: PublicSportEventRow,
   hostName: string,
@@ -52,8 +47,6 @@ export function toSportEvent(
     cost: row.cost || undefined,
     description: row.description || undefined,
     hostName,
-    // Host contact is deliberately not part of the event payload; the detail
-    // sheet fetches it via the authorization-checked get_host_contact() RPC.
     isCreatedByCurrentUser: isHosted,
     isJoined,
     hasPendingRequest,
@@ -141,6 +134,41 @@ export async function loadSportEvents(
   return events.map((event) =>
     toSportEvent(event, hostNames.get(event.host_id) ?? "Host", ctx),
   );
+}
+
+/** Load a single upcoming sport event by ID for shareable detail pages. */
+export async function loadSportEvent(
+  supabase: SupabaseClient<Database>,
+  eventId: string,
+  userId?: string,
+): Promise<SportEvent | null> {
+  const { data: event, error } = await supabase
+    .from("sport_events")
+    .select(EVENT_COLUMNS)
+    .eq("id", eventId)
+    .gt("ends_at", new Date().toISOString())
+    .maybeSingle()
+    .overrideTypes<PublicSportEventRow | null, { merge: false }>();
+
+  if (error) throw error;
+  if (!event) return null;
+
+  const { data: host } = await supabase
+    .from("public_profiles")
+    .select("id, name")
+    .eq("id", event.host_id)
+    .maybeSingle();
+
+  const ctx = userId
+    ? await loadEventContext(supabase, userId, [event])
+    : {
+        participantEventIds: new Set<string>(),
+        pendingRequestEventIds: new Set<string>(),
+        hostedEventIds: new Set<string>(),
+        pendingRequestCounts: new Map<string, number>(),
+      };
+
+  return toSportEvent(event, host?.name ?? "Host", ctx);
 }
 
 /** Past events the signed-in user hosted or joined. */

@@ -44,4 +44,4 @@ export type SportEvent = {
   hostContact?: ContactInfo;
 };
 
-export type SheetName = "create" | "profile" | "contact" | null;
+export type SheetName = "create" | "profile" | "contact" | "detail" | null;
