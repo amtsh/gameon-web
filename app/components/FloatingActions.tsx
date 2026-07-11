@@ -15,6 +15,7 @@ export function FloatingActions({ onLocate }: Props) {
       <button aria-label="Current location" onClick={onLocate}>
         <Navigation size={19} style={{ transform: "rotate(-3deg)" }} />
       </button>
+      <span />
       <a
         aria-label="Report a bug or give feedback"
         href="https://gameon.userjot.com"
