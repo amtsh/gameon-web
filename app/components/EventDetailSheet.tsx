@@ -148,10 +148,9 @@ export function EventDetailSheet({
     }
   }, [archived, event.id, event.isCreatedByCurrentUser]);
 
-  // After Google OAuth redirect (?join=1), resume the join flow.
-  // • User is fully ready (signed in + contact saved) → join directly, no intermediate sheet.
-  // • Contact still needed → open JoinGuideSheet on the contact step.
-  // • Somehow not signed in → open JoinGuideSheet normally (shouldn’t happen post-redirect).
+  // After Google OAuth redirect (?join=1): strip the param, then let the user
+  // explicitly tap "Request to join". Never join automatically.
+  // If the contact step is still needed, open JoinGuideSheet for that step only.
   useEffect(() => {
     if (!presented || typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -167,25 +166,12 @@ export function EventDetailSheet({
 
     const remainingStep = getJoinGuideStep(isSignedIn, profile);
 
-    const frame = requestAnimationFrame(() => {
-      if (remainingStep === null && profile) {
-        // Fully ready: skip every sheet, join immediately.
-        setBusy(true);
-        setActionError(null);
-        sportPreferencesMap()
-          .then((prefs) => requestToJoin(event.id, profile, event.sport, prefs))
-          .then(() => onMutated())
-          .catch((err: unknown) =>
-            setActionError(extractErrorMessage(err)),
-          )
-          .finally(() => setBusy(false));
-        return;
-      }
-      // Contact step still needed, or somehow not signed in — open guide.
-      setJoinGuideOpen(true);
-    });
-
-    return () => cancelAnimationFrame(frame);
+    // Only open the guide if the contact step is still blocking.
+    // If fully ready, do nothing — user sees the detail sheet and taps the button.
+    if (remainingStep === "contact") {
+      const frame = requestAnimationFrame(() => setJoinGuideOpen(true));
+      return () => cancelAnimationFrame(frame);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presented]);
 
