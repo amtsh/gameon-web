@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Navigation, Sun } from "lucide-react";
+import { Bug, Moon, Navigation, Sun } from "lucide-react";
 import { setTheme, useTheme } from "../theme";
 
 type Props = {
@@ -15,6 +15,14 @@ export function FloatingActions({ onLocate }: Props) {
       <button aria-label="Current location" onClick={onLocate}>
         <Navigation size={19} style={{ transform: "rotate(-3deg)" }} />
       </button>
+      <a
+        aria-label="Report a bug or give feedback"
+        href="https://gameon.userjot.com"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <Bug size={19} />
+      </a>
       <span />
       <button
         aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
