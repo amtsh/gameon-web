@@ -329,12 +329,7 @@ textarea {
   align-items: center;
   gap: 12px;
   padding: 15px 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
   text-align: left;
-  cursor: pointer;
 }
 
 .event-row::after {
@@ -442,11 +437,6 @@ textarea {
 .status-badge.message {
   background: var(--subtle-surface);
   color: var(--info);
-  text-decoration: none;
-}
-
-.status-badge.message:hover {
-  background: color-mix(in srgb, var(--info) 12%, var(--subtle-surface));
 }
 
 .show-all-button {

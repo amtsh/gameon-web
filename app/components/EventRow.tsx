@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@iconify/react";
 import { Clock, Crown, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { memo } from "react";
@@ -107,6 +108,21 @@ function rowBadges(event: SportEvent, isArchived: boolean) {
         You are going
       </span>,
     );
+    if (!isArchived) {
+      const contactIcon =
+        event.hostContact?.method === "telegram"
+          ? "mdi:telegram"
+          : event.hostContact?.method === "whatsapp"
+            ? "mdi:whatsapp"
+            : "mdi:chat";
+
+      badges.push(
+        <span className="status-badge message" key="message-host">
+          <Icon icon={contactIcon} width={11} />
+          Message Host
+        </span>,
+      );
+    }
   } else if (event.hasPendingRequest) {
     badges.push(
       <span className="status-badge warning" key="waiting">
