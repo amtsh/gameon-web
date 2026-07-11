@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
+import { Icon } from "@iconify/react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
   CalendarClock,
-  Crown,
   ListOrdered,
+  Lock,
   MapPin,
-  Share2,
   ShieldCheck,
   Zap,
 } from "lucide-react";
@@ -15,45 +16,53 @@ import { sports } from "../data/mock-data";
 import "./landing.css";
 
 export const metadata: Metadata = {
-  title: "Pickup sports near you, on one map",
+  title: "Local sports games near you, on one map",
   description:
-    "GameOn maps every pickup game around you. Tap a pin, request a spot, play. Hosts fill games without touching a group chat.",
+    "GameOn maps every local game around you. Tap a pin, request a spot, play. Hosts fill games without touching a group chat.",
   alternates: { canonical: "/landing" },
 };
 
-const problems = [
-  {
-    title: "Buried plans",
-    body: "Thursday's game is 80 messages up in the chat, and the headcount is a pile of thumbs-ups.",
-  },
-  {
-    title: "Invisible games",
-    body: "Someone is playing your sport two blocks away tonight. You'll never hear about it.",
-  },
-  {
-    title: "Empty spots",
-    body: "One dropout the night before and the court is paid for nothing. Nobody is in line to take the spot.",
-  },
-];
-
 const steps = [
   {
+    icon: MapPin,
     title: "Open the map",
     body: "Every upcoming game within 25 km. Filter by sport. No account needed to look.",
   },
   {
+    icon: ShieldCheck,
     title: "Request a spot",
     body: "Two taps. The host approves you, or has auto-approve on and you're in immediately.",
   },
   {
+    icon: CalendarClock,
     title: "Show up",
     body: "Calendar reminders before start, directions in one tap, host contact once you're in.",
   },
 ];
 
-export default function LandingPage() {
-  const marqueeChips = [...sports, ...sports];
+const features = [
+  {
+    icon: ListOrdered,
+    title: "A waitlist that works",
+    body: "Full game? You're in line. A dropout promotes the next player automatically.",
+  },
+  {
+    icon: Lock,
+    title: "Contact stays private",
+    body: "Your number is shared with a host only once they approve you.",
+  },
+];
 
+const compareRows = [
+  { label: "Find a game tonight", chat: false, gameon: true },
+  { label: "See who's actually coming", chat: false, gameon: true },
+  { label: "Auto-fill a dropped spot", chat: false, gameon: true },
+  { label: "Calendar reminders", chat: false, gameon: true },
+  { label: "Browse without joining a group", chat: false, gameon: true },
+  { label: "Requires everyone to reply", chat: true, gameon: false },
+];
+
+export default function LandingPage() {
   return (
     <div className="lp">
       <div className="lp-container">
@@ -70,164 +79,153 @@ export default function LandingPage() {
           </Link>
         </nav>
 
-        {/* Hero */}
+        {/* Hero — centered headline, big visual below (Apple Home style) */}
         <header className="lp-hero">
-          <div>
-            <h1>
-              There&apos;s a game near you <em>right now</em>.
-            </h1>
-            <p className="lp-hero-sub">
-              GameOn maps every pickup game around you, badminton to
-              five-a-side. Tap a pin, request a spot, play. Hosting? Your game
-              fills itself.
-            </p>
-            <div className="lp-hero-ctas">
-              <Link className="lp-btn primary" href="/">
-                See games near you
-                <ArrowRight size={16} />
-              </Link>
-              <Link className="lp-btn ghost" href="/">
-                Host a game
-              </Link>
-            </div>
-            <p className="lp-hero-note">
-              Free. No install. Browse without an account.
-            </p>
+          <h1>
+            There&apos;s a game near you <em>right now</em>.
+          </h1>
+          <div className="lp-hero-sub">
+            <p>Every local sports game, on one map.</p>
+            <p>Tap a pin. Request a spot. Play.</p>
+            <p>Hosting? Your game fills itself.</p>
           </div>
-
-          {/* Product mockup, hand-built so it never drifts from the brand */}
-          <div className="lp-phone" aria-hidden="true">
-            <div className="lp-phone-map">
-              <span className="lp-pin" style={{ left: "22%", top: "30%", ["--pin-accent" as string]: "#63e6be" }}>🏸</span>
-              <span className="lp-pin" style={{ left: "58%", top: "48%", ["--pin-accent" as string]: "#0a84ff" }}>⚽</span>
-              <span className="lp-pin" style={{ left: "76%", top: "18%", ["--pin-accent" as string]: "#ff453a" }}>🏃</span>
-            </div>
-            <div className="lp-sheet">
-              <div className="lp-sheet-grabber" />
-              <div className="lp-row">
-                <span className="lp-row-spots"><b>3</b><span>spots</span></span>
-                <span>
-                  <span className="lp-row-title">Evening doubles</span>
-                  <span className="lp-row-meta" style={{ display: "block" }}>
-                    Eriksdalshallen · Today 18:30 · 1.5h
-                  </span>
-                </span>
-                <span className="lp-badge go">You are going</span>
-              </div>
-              <div className="lp-row">
-                <span className="lp-row-spots"><b>0</b><span>spots</span></span>
-                <span>
-                  <span className="lp-row-title">Five-a-side football</span>
-                  <span className="lp-row-meta" style={{ display: "block" }}>
-                    Tantolunden · Tomorrow 17:00 · 1.5h
-                  </span>
-                </span>
-                <span className="lp-badge wait">On waitlist</span>
-              </div>
-              <div className="lp-row">
-                <span className="lp-row-spots"><b>8</b><span>spots</span></span>
-                <span>
-                  <span className="lp-row-title">Morning 5K loop</span>
-                  <span className="lp-row-meta" style={{ display: "block" }}>
-                    Norr Mälarstrand · Mon 07:15 · 45m
-                  </span>
-                </span>
-              </div>
-            </div>
+          <div className="lp-hero-ctas">
+            <Link className="lp-btn primary" href="/">
+              See games near you
+              <ArrowRight size={16} />
+            </Link>
+            <Link className="lp-btn ghost" href="/">
+              Host a game
+            </Link>
           </div>
+          <p className="lp-hero-note">
+            Free. No install. Browse without an account.
+          </p>
         </header>
-      </div>
 
-      {/* Sport marquee */}
-      <div className="lp-marquee" aria-hidden="true">
-        <div className="lp-marquee-track">
-          {marqueeChips.map((sport, index) => (
-            <span className="lp-chip" key={`${sport.id}-${index}`}>
-              {sport.label}
-            </span>
-          ))}
+        {/* Hero visual */}
+        <div className="lp-hero-visual">
+          <Image
+            alt="GameOn map with nearby pickup games and a bottom sheet listing open games"
+            className="lp-hero-image"
+            height={1398}
+            priority
+            src="/landing/hero.webp"
+            width={710}
+          />
         </div>
       </div>
 
+      {/* Problem */}
       <div className="lp-container">
-        {/* Problem */}
-        <section className="lp-section">
+        <section className="lp-section lp-section-problem">
           <p className="lp-kicker">The problem</p>
-          <h2>Pickup sports run on group chats. Group chats lose games.</h2>
-          <div className="lp-problems">
-            {problems.map((problem) => (
-              <article className="lp-problem" key={problem.title}>
-                <h3>{problem.title}</h3>
-                <p>{problem.body}</p>
-              </article>
+          <h2>Local games run on group chats. Group chats lose games.</h2>
+          <p className="lp-section-sub">
+            Someone is playing your sport two blocks away tonight. Request a
+            spot in two taps — the host approves you, and your contact info goes
+            out only then.
+          </p>
+        </section>
+      </div>
+
+      {/* Dark full-bleed: every sport, one map */}
+      <section className="lp-dark-section">
+        <div className="lp-container lp-dark-split">
+          <div className="lp-stat-card">
+            <span className="lp-stat-number">{sports.length}</span>
+            <span className="lp-stat-label">sports live on the map</span>
+            <p className="lp-stat-body">
+              Badminton to five-a-side, all pinned where they actually
+              happen, updated the moment a host publishes a game.
+            </p>
+          </div>
+          <div className="lp-sport-grid">
+            {sports.map((sport) => (
+              <span
+                className="lp-sport-tile"
+                key={sport.id}
+                style={{ ["--tile-accent" as string]: sport.accent }}
+              >
+                <Icon icon={sport.icon} width={22} />
+                {sport.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="lp-container">
+        {/* Icon row — the pieces that keep games full */}
+        <section className="lp-section">
+          <p className="lp-kicker center">How it works</p>
+          <h2 className="center">From &ldquo;anyone playing?&rdquo; to playing.</h2>
+          <div className="lp-icon-row cols-3">
+            {steps.map((step) => (
+              <div className="lp-icon-item" key={step.title}>
+                <span className="lp-icon-circle">
+                  <step.icon size={22} strokeWidth={2} />
+                </span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </div>
             ))}
           </div>
         </section>
 
-        {/* Solution bento */}
         <section className="lp-section">
-          <p className="lp-kicker">The fix</p>
-          <h2>Put the game on the map.</h2>
-          <div className="lp-bento">
-            <article className="lp-cell wide">
-              <span className="accent" style={{ background: "#63e6be" }} />
-              <span className="lp-cell-icon"><MapPin size={20} /></span>
-              <h3>Every game, pinned</h3>
-              <p>
-                Upcoming games within 25 km, shown where they happen, with
-                spots left at a glance.
-              </p>
-            </article>
-            <article className="lp-cell narrow">
-              <span className="lp-cell-icon"><ShieldCheck size={20} /></span>
-              <h3>Hosts stay in control</h3>
-              <p>
-                Approve each request, or turn on auto-approve and let the game
-                fill itself.
-              </p>
-            </article>
-            <article className="lp-cell narrow">
-              <span className="lp-cell-icon"><ListOrdered size={20} /></span>
-              <h3>A waitlist that works</h3>
-              <p>
-                Full game? You&apos;re in line. A dropout promotes the next
-                player automatically.
-              </p>
-            </article>
-            <article className="lp-cell wide">
-              <span className="accent" style={{ background: "#0a84ff" }} />
-              <span className="lp-cell-icon"><Share2 size={20} /></span>
-              <h3>One link fills a game</h3>
-              <p>
-                Drop your game link in any chat. Friends join from the link —
-                sign-up happens on the way in, not before.
-              </p>
-            </article>
-            <article className="lp-cell half">
-              <span className="lp-cell-icon"><CalendarClock size={20} /></span>
-              <h3>No no-shows</h3>
-              <p>Add to calendar with reminders 24 hours and 1 hour before.</p>
-            </article>
-            <article className="lp-cell half">
-              <span className="lp-cell-icon"><Crown size={20} /></span>
-              <h3>Weekly game? One tap</h3>
-              <p>
-                Re-host last week&apos;s session, rolled forward a week.
-                Contact details are shared only after approval.
-              </p>
-            </article>
+          <p className="lp-kicker center">Built for real games</p>
+          <h2 className="center">The pieces that keep games full.</h2>
+          <div className="lp-icon-row cols-2">
+            {features.map((feature) => (
+              <div className="lp-icon-item" key={feature.title}>
+                <span className="lp-icon-circle">
+                  <feature.icon size={22} strokeWidth={2} />
+                </span>
+                <h3>{feature.title}</h3>
+                <p>{feature.body}</p>
+              </div>
+            ))}
           </div>
         </section>
+      </div>
 
-        {/* How it works */}
+      {/* Dark full-bleed: privacy statement, centered mark */}
+      <section className="lp-privacy">
+        <div className="lp-container lp-privacy-inner">
+          <p className="lp-kicker center on-dark">Privacy</p>
+          <h2 className="center">Your number is yours.</h2>
+          <p className="lp-section-sub center on-dark">
+            GameOn never posts your phone number, WhatsApp, or Telegram in
+            public. It reaches a host only once they approve your request —
+            and only that host.
+          </p>
+          <span className="lp-privacy-mark" aria-hidden="true">
+            <Zap size={36} strokeWidth={2.4} />
+          </span>
+        </div>
+      </section>
+
+      <div className="lp-container">
+        {/* Comparison table */}
         <section className="lp-section">
-          <p className="lp-kicker">How it works</p>
-          <h2>From &ldquo;anyone playing?&rdquo; to playing.</h2>
-          <div className="lp-steps">
-            {steps.map((step) => (
-              <div className="lp-step" key={step.title}>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
+          <p className="lp-kicker center">Game school</p>
+          <h2 className="center">Group chat vs. GameOn.</h2>
+          <div className="lp-compare">
+            <div className="lp-compare-head">
+              <span />
+              <span>Group chat</span>
+              <span className="highlight">{siteName}</span>
+            </div>
+            {compareRows.map((row) => (
+              <div className="lp-compare-row" key={row.label}>
+                <span>{row.label}</span>
+                <span className={row.chat ? "yes" : "no"}>
+                  {row.chat ? "✓" : "—"}
+                </span>
+                <span className={row.gameon ? "yes highlight" : "no"}>
+                  {row.gameon ? "✓" : "—"}
+                </span>
               </div>
             ))}
           </div>
