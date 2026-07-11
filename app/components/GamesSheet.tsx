@@ -113,6 +113,9 @@ export function GamesSheet({
           inertOutside={false}
           onClickOutside={{ dismiss: false, stopOverlayPropagation: true }}
           onEscapeKeyDown={{ dismiss: false, stopOverlayPropagation: true }}
+          // Non-modal sheet: don't steal focus into it (e.g. onto the
+          // profile button) just because it's presented on page load.
+          onPresentAutoFocus={{ focus: false }}
           nativeEdgeSwipePrevention={true}
           onTravelStatusChange={(status) => {
             if (!isDesktop && status === "idleOutside") setAtFullDetent(false);
@@ -129,13 +132,17 @@ export function GamesSheet({
                 <Sheet.BleedingBackground className="GamesSheet-bleedingBackground" />
 
                 {/* Handle: always rendered for visual consistency.
-                    On desktop it's purely decorative (action="none");
+                    On desktop it's purely decorative (no Sheet.Handle action);
                     on mobile it steps/dismisses the sheet as before. */}
-                <Sheet.Handle
-                  className="GamesSheet-handle"
-                  action={isDesktop ? "none" : atFullDetent ? "dismiss" : "step"}
-                  aria-label={isDesktop ? undefined : "Resize sheet"}
-                />
+                {isDesktop ? (
+                  <div className="GamesSheet-handle" aria-hidden="true" />
+                ) : (
+                  <Sheet.Handle
+                    className="GamesSheet-handle"
+                    action={atFullDetent ? "dismiss" : "step"}
+                    aria-label="Resize sheet"
+                  />
+                )}
 
                 <header className="GamesSheet-header">
                   <div className="min-w-0 flex-1">
