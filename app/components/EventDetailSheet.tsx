@@ -38,6 +38,7 @@ import {
 import { HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
 import { JoinGuideSheet } from "./JoinGuideSheet";
 import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
+import { PlayersSheet } from "./PlayersSheet";
 import { getJoinGuideStep } from "@/lib/join/requirements";
 import type { SportEvent } from "../types";
 
@@ -112,6 +113,7 @@ export function EventDetailSheet({
     keyof typeof destructiveActions | null
   >(null);
   const [joinGuideOpen, setJoinGuideOpen] = useState(false);
+  const [playersOpen, setPlayersOpen] = useState(false);
   const [hostRequests, setHostRequests] = useState<HostJoinRequest[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -158,7 +160,6 @@ export function EventDetailSheet({
       "",
       window.location.pathname + (remainder ? `?${remainder}` : ""),
     );
-    // Deferred: the lint forbids synchronous setState in effects.
     const frame = requestAnimationFrame(() => setJoinGuideOpen(true));
     return () => cancelAnimationFrame(frame);
   }, [presented]);
@@ -209,7 +210,6 @@ export function EventDetailSheet({
       setActionError("Profile not loaded");
       return;
     }
-    // Full games are routed to the waitlist by the database.
     void runMutation(async () => {
       const prefs = await sportPreferencesMap();
       await requestToJoin(event.id, profile, event.sport, prefs);
@@ -271,7 +271,6 @@ export function EventDetailSheet({
     const kind = confirming;
     setConfirming(null);
     if (kind === "leave") { await runMutation(() => leaveEvent(event.id)); return; }
-    // Withdrawing covers both pending requests and waitlist spots — same row.
     if (kind === "withdraw" || kind === "leaveWaitlist") {
       await runMutation(() => withdrawJoinRequest(event.id));
       return;
@@ -390,11 +389,26 @@ export function EventDetailSheet({
         <hr className="detail-divider my-6" />
 
         <div className="flex gap-4 pl-[17px]">
-          <MetadataItem
-            icon={<Users size={12} />}
-            label="Players"
-            value={`${event.joinedCount} / ${event.capacity} players`}
-          />
+          {/* Players metadata + "See players" link */}
+          <div className="metadata-item">
+            <p className="meta-label">
+              <Users size={12} />
+              Players
+            </p>
+            <p className="meta-value">
+              {event.joinedCount} / {event.capacity} players
+            </p>
+            {event.joinedCount > 0 ? (
+              <button
+                className="link-info mt-1.5"
+                onClick={() => setPlayersOpen(true)}
+                type="button"
+              >
+                See players
+                <ChevronRight size={14} strokeWidth={3} />
+              </button>
+            ) : null}
+          </div>
           <MetadataItem
             icon={<Gauge size={12} />}
             label="Level"
@@ -578,6 +592,13 @@ export function EventDetailSheet({
         presented={joinGuideOpen}
         profile={profile}
         user={user}
+      />
+
+      <PlayersSheet
+        eventId={event.id}
+        totalCount={event.joinedCount}
+        presented={playersOpen}
+        onPresentedChange={setPlayersOpen}
       />
     </ModalSheet>
   );

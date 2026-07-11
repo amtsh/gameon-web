@@ -1,0 +1,215 @@
+/* PlayersSheet — sticky nav + scrollable player list */
+
+.players-nav {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 4px;
+  /* Sits above the ModalSheetScroll; no sticky needed — it's outside the
+     scroll root so it never moves. */
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.players-nav-back {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--primary-text);
+  /* Subtle tap area without visual weight */
+  background: transparent;
+  transition: background 140ms ease;
+}
+
+.players-nav-back:hover {
+  background: var(--subtle-surface);
+}
+
+.players-nav-back:active {
+  background: var(--field-surface);
+}
+
+.players-nav-center {
+  text-align: center;
+}
+
+.players-nav-title {
+  color: var(--primary-text);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.players-nav-count {
+  color: var(--tertiary-text);
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+/* ── Player list ── */
+
+.players-list {
+  padding: 8px 0 24px;
+  list-style: none;
+}
+
+.players-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 20px;
+  /* Hair-line separator between rows */
+  border-bottom: 1px solid var(--hairline);
+  transition: background 120ms ease;
+}
+
+.players-row:last-child {
+  border-bottom: none;
+}
+
+.players-row:active {
+  background: var(--subtle-surface);
+}
+
+/* Avatar circle */
+.players-avatar {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--field-surface);
+  display: grid;
+  place-items: center;
+  /* Subtle ring so it reads clearly on white */
+  box-shadow: 0 0 0 1px var(--hairline);
+}
+
+.players-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 999px;
+  display: block;
+}
+
+.players-avatar-initials {
+  color: var(--label-text);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  /* Optically centred */
+  margin-top: 1px;
+}
+
+/* Name + level */
+.players-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.players-name {
+  color: var(--primary-text);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  /* Truncate very long first names */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.players-level {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── Skeleton shimmer ── */
+
+@keyframes players-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.players-skeleton-list {
+  padding: 8px 0;
+}
+
+.players-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.players-skeleton-row:last-child { border-bottom: none; }
+
+.players-skeleton-avatar,
+.players-skeleton-name,
+.players-skeleton-level {
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--field-surface)  25%,
+    var(--subtle-surface) 50%,
+    var(--field-surface)  75%
+  );
+  background-size: 200% 100%;
+  animation: players-shimmer 1.4s ease-in-out infinite;
+}
+
+.players-skeleton-avatar {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+}
+
+.players-skeleton-text {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.players-skeleton-name {
+  height: 14px;
+  width: 35%;
+  border-radius: 6px;
+}
+
+.players-skeleton-level {
+  height: 11px;
+  width: 22%;
+  border-radius: 6px;
+}
+
+/* ── States ── */
+
+.players-empty,
+.players-error {
+  padding: 32px 20px;
+  color: var(--tertiary-text);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.players-error {
+  color: var(--danger);
+}
+
+/* respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .players-skeleton-avatar,
+  .players-skeleton-name,
+  .players-skeleton-level {
+    animation: none;
+  }
+}

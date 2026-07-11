@@ -10,6 +10,14 @@ export type HostJoinRequest = {
   status: "pending" | "waitlisted";
 };
 
+export type ApprovedPlayer = {
+  id: string;
+  name: string;
+  firstName: string;
+  level: SkillLevel;
+  avatarUrl: string | null;
+};
+
 export async function fetchHostJoinRequests(
   eventId: string,
 ): Promise<HostJoinRequest[]> {
@@ -43,6 +51,49 @@ export async function fetchHostJoinRequests(
   }));
 }
 
+/** Fetch all approved participants for an event. Visible to everyone. */
+export async function fetchApprovedPlayers(
+  eventId: string,
+): Promise<ApprovedPlayer[]> {
+  const supabase = createClient();
+
+  // event_participants holds the approved/joined rows.
+  const { data: participants, error } = await supabase
+    .from("event_participants")
+    .select("profile_id, requester_level")
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  if (!participants?.length) return [];
+
+  const profileIds = participants.map((p) => p.profile_id);
+
+  const { data: profiles, error: profileError } = await supabase
+    .from("public_profiles")
+    .select("id, name, avatar_url")
+    .in("id", profileIds);
+
+  if (profileError) throw profileError;
+
+  const profileMap = new Map(
+    (profiles ?? []).map((p) => [p.id, p]),
+  );
+
+  return participants.map((row) => {
+    const profile = profileMap.get(row.profile_id);
+    const fullName = profile?.name ?? "Player";
+    const firstName = fullName.split(" ")[0] ?? fullName;
+    return {
+      id: row.profile_id,
+      name: fullName,
+      firstName,
+      level: row.requester_level as SkillLevel,
+      avatarUrl: profile?.avatar_url ?? null,
+    };
+  });
+}
+
 export async function requestToJoin(
   eventId: string,
   profile: Profile,
@@ -61,9 +112,6 @@ export async function requestToJoin(
 
   const requesterLevel = sportPreferences.get(sport) ?? "beginner";
 
-  // The DB routes the request: full game → 'waitlisted', auto-approve host →
-  // 'approved' (+ participant row), otherwise 'pending'. Upsert so a user who
-  // previously withdrew can re-request.
   const { error } = await supabase.from("event_join_requests").upsert(
     {
       event_id: eventId,
