@@ -58,8 +58,6 @@ export function ModalSheet({
           <Sheet.Backdrop
             className="ModalSheet-backdrop"
             travelAnimation={{ opacity: [0, 1] }}
-            // Locked sheets: tapping the backdrop does nothing
-            tappable={!locked}
           />
           <Sheet.Content
             className={clsx("ModalSheet-content", variant)}

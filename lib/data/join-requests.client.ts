@@ -60,25 +60,39 @@ export async function fetchApprovedPlayers(
   // event_participants holds the approved/joined rows.
   const { data: participants, error } = await supabase
     .from("event_participants")
-    .select("profile_id, requester_level")
+    .select("profile_id")
     .eq("event_id", eventId)
-    .order("created_at", { ascending: true });
+    .order("joined_at", { ascending: true });
 
   if (error) throw error;
   if (!participants?.length) return [];
 
   const profileIds = participants.map((p) => p.profile_id);
 
-  const { data: profiles, error: profileError } = await supabase
-    .from("public_profiles")
-    .select("id, name, avatar_url")
-    .in("id", profileIds);
+  const [
+    { data: profiles, error: profileError },
+    { data: requests, error: requestError },
+  ] = await Promise.all([
+    supabase
+      .from("public_profiles")
+      .select("id, name")
+      .in("id", profileIds),
+    supabase
+      .from("event_join_requests")
+      .select("requester_id, requester_level")
+      .eq("event_id", eventId)
+      .eq("status", "approved")
+      .in("requester_id", profileIds),
+  ]);
 
   if (profileError) throw profileError;
+  if (requestError) throw requestError;
 
-  const profileMap = new Map(
-    (profiles ?? []).map((p) => [p.id, p]),
+  const levelByProfile = new Map(
+    (requests ?? []).map((row) => [row.requester_id, row.requester_level]),
   );
+
+  const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
   return participants.map((row) => {
     const profile = profileMap.get(row.profile_id);
@@ -88,8 +102,8 @@ export async function fetchApprovedPlayers(
       id: row.profile_id,
       name: fullName,
       firstName,
-      level: row.requester_level as SkillLevel,
-      avatarUrl: profile?.avatar_url ?? null,
+      level: (levelByProfile.get(row.profile_id) ?? "beginner") as SkillLevel,
+      avatarUrl: null,
     };
   });
 }

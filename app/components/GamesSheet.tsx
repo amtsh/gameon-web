@@ -65,7 +65,7 @@ export function GamesSheet({
 
   // On desktop: single detent (full), sheet is always open, can't collapse.
   // On mobile: half (62svh) + full (100%).
-  const detents = isDesktop ? (["100%"] as const) : (["62svh", "100%"] as const);
+  const detents: string[] = isDesktop ? ["100%"] : ["62svh", "100%"];
 
   // Track whether the sheet has reached its topmost (full) detent.
   // When false the list must NOT scroll — every upward finger movement
