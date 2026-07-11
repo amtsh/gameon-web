@@ -19,11 +19,11 @@ import { deleteSportEvent } from "@/lib/data/create-event.client";
 import {
   approveJoinRequest,
   fetchHostContact,
-  fetchPendingJoinRequests,
+  fetchHostJoinRequests,
   leaveEvent,
   requestToJoin,
   withdrawJoinRequest,
-  type PendingJoinRequest,
+  type HostJoinRequest,
 } from "@/lib/data/join-requests.client";
 import type { ContactInfo } from "../types";
 import type { Profile } from "@/lib/data/profile.shared";
@@ -112,9 +112,7 @@ export function EventDetailSheet({
     keyof typeof destructiveActions | null
   >(null);
   const [joinGuideOpen, setJoinGuideOpen] = useState(false);
-  const [pendingRequests, setPendingRequests] = useState<PendingJoinRequest[]>(
-    [],
-  );
+  const [hostRequests, setHostRequests] = useState<HostJoinRequest[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -138,11 +136,11 @@ export function EventDetailSheet({
   const loadRequests = useCallback(async () => {
     setActionError(null);
     if (!event.isCreatedByCurrentUser || archived) {
-      setPendingRequests([]);
+      setHostRequests([]);
       return;
     }
     try {
-      setPendingRequests(await fetchPendingJoinRequests(event.id));
+      setHostRequests(await fetchHostJoinRequests(event.id));
     } catch (error) {
       setActionError(extractErrorMessage(error));
     }
@@ -224,6 +222,25 @@ export function EventDetailSheet({
       return;
     }
     handleJoin();
+  };
+
+  const pendingRequests = hostRequests.filter((r) => r.status === "pending");
+  const waitlistedRequests = hostRequests.filter(
+    (r) => r.status === "waitlisted",
+  );
+
+  const handleApproveRequest = async (requestId: string) => {
+    setApprovingId(requestId);
+    setActionError(null);
+    try {
+      await approveJoinRequest(requestId);
+      await onMutated();
+      await loadRequests();
+    } catch (error) {
+      setActionError(extractErrorMessage(error));
+    } finally {
+      setApprovingId(null);
+    }
   };
 
   const handleShare = useCallback(async () => {
@@ -439,26 +456,29 @@ export function EventDetailSheet({
             <div className="pl-[17px]">
               <p className="detail-label">Requests</p>
               {pendingRequests.length > 0 ? (
-                <PendingRequestRows
+                <JoinRequestRows
                   approvingId={approvingId}
-                  onApprove={async (requestId) => {
-                    setApprovingId(requestId);
-                    setActionError(null);
-                    try {
-                      await approveJoinRequest(requestId);
-                      await onMutated();
-                      await loadRequests();
-                    } catch (error) {
-                      setActionError(extractErrorMessage(error));
-                    } finally {
-                      setApprovingId(null);
-                    }
-                  }}
+                  canApprove={spots > 0}
+                  onApprove={(requestId) => void handleApproveRequest(requestId)}
                   requests={pendingRequests}
                 />
               ) : (
                 <p className="detail-body mt-2">No pending requests</p>
               )}
+
+              <p className="detail-label mt-5">Waitlist</p>
+              {waitlistedRequests.length > 0 ? (
+                <JoinRequestRows
+                  approvingId={approvingId}
+                  canApprove={spots > 0}
+                  onApprove={(requestId) => void handleApproveRequest(requestId)}
+                  requests={waitlistedRequests}
+                  waitlist
+                />
+              ) : (
+                <p className="detail-body mt-2">No one on the waitlist</p>
+              )}
+
               <button
                 className="outline-action mt-4"
                 onClick={() => onEdit(event)}
@@ -580,18 +600,22 @@ function MetadataItem({
   );
 }
 
-function PendingRequestRows({
+function JoinRequestRows({
   requests,
   approvingId,
+  canApprove,
   onApprove,
+  waitlist = false,
 }: {
-  requests: PendingJoinRequest[];
+  requests: HostJoinRequest[];
   approvingId: string | null;
+  canApprove: boolean;
   onApprove: (requestId: string) => void;
+  waitlist?: boolean;
 }) {
   return (
     <div>
-      {requests.map((requester) => (
+      {requests.map((requester, index) => (
         <div
           className="flex items-center gap-3 border-b border-[var(--hairline)] py-3"
           key={requester.id}
@@ -601,17 +625,25 @@ function PendingRequestRows({
               {requester.requesterName}
             </p>
             <p className="detail-caption mt-1">
-              {skillLevelLabels[requester.requesterLevel]} \u00b7 Pending
+              {skillLevelLabels[requester.requesterLevel]}
+              {" \u00b7 "}
+              {waitlist
+                ? `#${index + 1} in line`
+                : "Pending"}
             </p>
           </div>
-          <button
-            className="approve-pill"
-            disabled={approvingId === requester.id}
-            onClick={() => onApprove(requester.id)}
-            type="button"
-          >
-            {approvingId === requester.id ? "\u2026" : "Approve"}
-          </button>
+          {canApprove ? (
+            <button
+              className="approve-pill"
+              disabled={approvingId === requester.id}
+              onClick={() => onApprove(requester.id)}
+              type="button"
+            >
+              {approvingId === requester.id ? "\u2026" : "Approve"}
+            </button>
+          ) : waitlist ? (
+            <span className="status-badge warning">Waiting</span>
+          ) : null}
         </div>
       ))}
     </div>

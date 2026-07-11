@@ -2,22 +2,23 @@ import type { SkillLevel } from "@/app/types";
 import type { Profile } from "@/lib/data/profile.shared";
 import { createClient } from "@/lib/supabase/client";
 
-export type PendingJoinRequest = {
+export type HostJoinRequest = {
   id: string;
   requesterId: string;
   requesterName: string;
   requesterLevel: SkillLevel;
+  status: "pending" | "waitlisted";
 };
 
-export async function fetchPendingJoinRequests(
+export async function fetchHostJoinRequests(
   eventId: string,
-): Promise<PendingJoinRequest[]> {
+): Promise<HostJoinRequest[]> {
   const supabase = createClient();
   const { data: requests, error } = await supabase
     .from("event_join_requests")
-    .select("id, requester_id, requester_level")
+    .select("id, requester_id, requester_level, status")
     .eq("event_id", eventId)
-    .eq("status", "pending")
+    .in("status", ["pending", "waitlisted"])
     .order("created_at", { ascending: true });
 
   if (error) throw error;
@@ -38,6 +39,7 @@ export async function fetchPendingJoinRequests(
     requesterId: row.requester_id,
     requesterName: names.get(row.requester_id) ?? "Player",
     requesterLevel: row.requester_level,
+    status: row.status as "pending" | "waitlisted",
   }));
 }
 
