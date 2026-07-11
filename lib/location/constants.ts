@@ -7,5 +7,3 @@ export const DEFAULT_DISCOVERY_CENTER: Coordinates = {
 };
 
 export const DISCOVERY_RADIUS_KM = 25;
-
-export const DISCOVERY_CENTER_STORAGE_KEY = "gameon-discovery-center";

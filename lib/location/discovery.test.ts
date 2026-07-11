@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_DISCOVERY_FILTER,
+  isSameDiscoveryFilter,
   isUserRelatedEvent,
   isWithinDiscoveryRadius,
   resolveDiscoveryCenterFromProfile,
@@ -32,8 +33,44 @@ describe("resolveDiscoveryCenterFromProfile", () => {
   });
 });
 
+describe("isSameDiscoveryFilter", () => {
+  it("compares center and radius", () => {
+    expect(isSameDiscoveryFilter(DEFAULT_DISCOVERY_FILTER, DEFAULT_DISCOVERY_FILTER)).toBe(true);
+    expect(
+      isSameDiscoveryFilter(DEFAULT_DISCOVERY_FILTER, {
+        center: { latitude: 55, longitude: 13 },
+        radiusKm: DISCOVERY_RADIUS_KM,
+      }),
+    ).toBe(false);
+  });
+});
+
 describe("resolveDiscoveryFilter", () => {
-  it("falls back to the default center for guests", () => {
+  const gps = { latitude: 55.6, longitude: 13.0 };
+  const ip = { latitude: 52.52, longitude: 13.405 };
+
+  it("prefers GPS over postal code and IP", () => {
+    expect(resolveDiscoveryFilter(makeProfile(), gps, ip)).toEqual({
+      center: gps,
+      radiusKm: DISCOVERY_RADIUS_KM,
+    });
+  });
+
+  it("uses postal code when GPS is unavailable", () => {
+    expect(resolveDiscoveryFilter(makeProfile(), null, ip)).toEqual({
+      center: { latitude: 59.33, longitude: 18.03 },
+      radiusKm: DISCOVERY_RADIUS_KM,
+    });
+  });
+
+  it("uses IP when GPS and postal code are unavailable", () => {
+    expect(resolveDiscoveryFilter(null, null, ip)).toEqual({
+      center: ip,
+      radiusKm: DISCOVERY_RADIUS_KM,
+    });
+  });
+
+  it("falls back to Stockholm when nothing else is available", () => {
     expect(resolveDiscoveryFilter(null)).toEqual({
       center: DEFAULT_DISCOVERY_CENTER,
       radiusKm: DISCOVERY_RADIUS_KM,

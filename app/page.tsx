@@ -73,7 +73,7 @@ export default async function Home() {
     );
   }
 
-  const { user, profile, events, pastEvents } = await loadAppData();
+  const { user, profile, events, pastEvents, ipLocation } = await loadAppData();
 
   return (
     <>
@@ -86,6 +86,7 @@ export default async function Home() {
         initialPastEvents={pastEvents}
         initialProfile={profile}
         initialUser={user}
+        initialIpLocation={ipLocation}
         usesSupabase={true}
       />
     </>

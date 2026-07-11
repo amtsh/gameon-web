@@ -7,13 +7,18 @@ import {
 } from "@/lib/data/sport-events";
 import { loadProfile, type Profile } from "@/lib/data/profile.shared";
 import { resolveDiscoveryFilter } from "@/lib/location/discovery";
+import type { Coordinates } from "@/lib/location/geo";
+import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 
 export type AppData = {
   user: User | null;
   profile: Profile | null;
   events: SportEvent[];
   pastEvents: SportEvent[];
+  /** Session IP fix from edge headers — passed to client, not persisted. */
+  ipLocation: Coordinates | null;
   /** Only set when sharedEventId was passed; null = not found. */
   sharedEvent?: SportEvent | null;
 };
@@ -27,7 +32,8 @@ export async function loadAppData(sharedEventId?: string): Promise<AppData> {
   } = await supabase.auth.getUser();
 
   const profile = user ? await loadProfile(supabase, user.id) : null;
-  const discovery = resolveDiscoveryFilter(profile);
+  const ipLocation = readIpCoordinatesFromHeaderMap(await headers());
+  const discovery = resolveDiscoveryFilter(profile, null, ipLocation);
 
   const [events, pastEvents, sharedEvent] = await Promise.all([
     loadSportEvents(supabase, user?.id, discovery),
@@ -37,5 +43,5 @@ export async function loadAppData(sharedEventId?: string): Promise<AppData> {
       : Promise.resolve(undefined),
   ]);
 
-  return { user, profile, events, pastEvents, sharedEvent };
+  return { user, profile, events, pastEvents, ipLocation, sharedEvent };
 }

@@ -9,15 +9,14 @@ import {
   fetchSportEventsClient,
 } from "@/lib/data/events.client";
 import { fetchProfileClient } from "@/lib/data/profile.client";
+import { getDeviceCoordinates } from "@/lib/location/discovery.client";
+import { fetchIpCoordinates } from "@/lib/location/ip-geo.client";
 import {
-  saveDiscoveryCoordinates,
-} from "@/lib/data/profile-mutations.client";
-import {
-  getDeviceCoordinates,
-  resolveClientDiscoveryFilter,
-  storeDiscoveryCenter,
-} from "@/lib/location/discovery.client";
-import { DISCOVERY_RADIUS_KM } from "@/lib/location/constants";
+  isSameDiscoveryFilter,
+  resolveDiscoveryCenterFromProfile,
+  resolveDiscoveryFilter,
+} from "@/lib/location/discovery";
+import type { Coordinates } from "@/lib/location/geo";
 import { pickLatestHostedEvent } from "@/lib/create-event/prefill";
 import { usePwaInstallPrompt } from "@/lib/pwa/use-install-prompt.client";
 import { createClient } from "@/lib/supabase/client";
@@ -39,6 +38,8 @@ type Props = {
   initialProfile: Profile | null;
   /** Defined: open detail sheet. null: show "not found" state. undefined: normal home. */
   initialSharedEvent?: SportEvent | null;
+  /** Session-only IP fix from SSR edge headers. */
+  initialIpLocation?: Coordinates | null;
   usesSupabase: boolean;
 };
 
@@ -48,6 +49,7 @@ export default function GameOnApp({
   initialUser,
   initialProfile,
   initialSharedEvent = undefined,
+  initialIpLocation = null,
   usesSupabase,
 }: Props) {
   const [events, setEvents] = useState(initialEvents);
@@ -69,11 +71,24 @@ export default function GameOnApp({
   const [editEvent, setEditEvent] = useState<SportEvent | undefined>();
   const [gamesDetent, setGamesDetent] = useState(1);
   const onboardingShown = useRef(false);
+  const skippedSsrDiscoveryRefetch = useRef(false);
   const [installNudgeOpen, setInstallNudgeOpen] = useState(false);
   const pwaInstall = usePwaInstallPrompt();
+  /** Session-only GPS fix — never persisted. */
+  const [gpsLocation, setGpsLocation] = useState<Coordinates | null>(null);
+  /** Session-only IP fix — seeded from SSR, never persisted. */
+  const [ipLocation, setIpLocation] = useState<Coordinates | null>(
+    initialIpLocation,
+  );
 
   // true when the URL was /game/[id] but the event does not exist.
   const showingSharedMissing = initialSharedEvent === null;
+
+  /** SSR discovery seed — used to skip a redundant first client refetch. */
+  const ssrDiscovery = useMemo(
+    () => resolveDiscoveryFilter(initialProfile, null, initialIpLocation),
+    [initialIpLocation, initialProfile],
+  );
 
   const refreshSessionData = useCallback(async () => {
     if (!usesSupabase) return;
@@ -87,7 +102,7 @@ export default function GameOnApp({
     const nextProfile = nextUser ? await fetchProfileClient() : null;
     setProfile(nextProfile);
 
-    const discovery = await resolveClientDiscoveryFilter(nextProfile);
+    const discovery = resolveDiscoveryFilter(nextProfile, gpsLocation, ipLocation);
     const [nextEvents, nextPast] = await Promise.all([
       fetchSportEventsClient(discovery),
       nextUser ? fetchPastSportEventsClient() : Promise.resolve([]),
@@ -102,7 +117,7 @@ export default function GameOnApp({
       );
       return updated ?? current;
     });
-  }, [usesSupabase]);
+  }, [gpsLocation, ipLocation, usesSupabase]);
 
   // Nudge PWA installation only right after the user gets value from the
   // app (joined a game, or created one) — never on load or mid-flow.
@@ -130,13 +145,39 @@ export default function GameOnApp({
     [user],
   );
 
+  // IP fallback for local dev / missing edge headers — never prompts for GPS.
+  useEffect(() => {
+    if (initialIpLocation) return;
+    if (resolveDiscoveryCenterFromProfile(profile)) return;
+    let cancelled = false;
+    void fetchIpCoordinates().then((ip) => {
+      if (!cancelled && ip) setIpLocation(ip);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    initialIpLocation,
+    profile?.postal_latitude,
+    profile?.postal_longitude,
+  ]);
+
   useEffect(() => {
     if (!usesSupabase) return;
-    void (async () => {
-      const discovery = await resolveClientDiscoveryFilter(profile);
-      setEvents(await fetchSportEventsClient(discovery));
-    })();
-  }, [usesSupabase, profile?.postal_latitude, profile?.postal_longitude]);
+    const discovery = resolveDiscoveryFilter(profile, gpsLocation, ipLocation);
+    if (!skippedSsrDiscoveryRefetch.current) {
+      skippedSsrDiscoveryRefetch.current = true;
+      if (isSameDiscoveryFilter(discovery, ssrDiscovery)) return;
+    }
+    void fetchSportEventsClient(discovery).then(setEvents);
+  }, [
+    usesSupabase,
+    profile?.postal_latitude,
+    profile?.postal_longitude,
+    gpsLocation,
+    ipLocation,
+    ssrDiscovery,
+  ]);
 
   useEffect(() => {
     if (!usesSupabase) return;
@@ -235,27 +276,14 @@ export default function GameOnApp({
     }
   }, []);
 
-  const handleLocate = useCallback(async () => {
+  const handleLocate = useCallback(() => {
     setLocateToken((token) => token + 1);
-    if (!usesSupabase) return;
-
-    try {
-      const center = await getDeviceCoordinates();
-      storeDiscoveryCenter(center);
-      if (user) {
-        await saveDiscoveryCoordinates(center);
-        setProfile(await fetchProfileClient());
-      }
-      setEvents(
-        await fetchSportEventsClient({
-          center,
-          radiusKm: DISCOVERY_RADIUS_KM,
-        }),
-      );
-    } catch {
-      // Map still flies via locateToken.
-    }
-  }, [usesSupabase, user]);
+    void getDeviceCoordinates()
+      .then(setGpsLocation)
+      .catch(() => {
+        // Map still flies via locateToken.
+      });
+  }, []);
 
   const mapEvents = useMemo(() => {
     if (!detailEvent) return events;

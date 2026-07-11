@@ -65,7 +65,7 @@ export default async function SharedGamePage({ params }: Props) {
     );
   }
 
-  const { user, profile, events, pastEvents, sharedEvent } =
+  const { user, profile, events, pastEvents, sharedEvent, ipLocation } =
     await loadAppData(id);
 
   return (
@@ -78,6 +78,7 @@ export default async function SharedGamePage({ params }: Props) {
         initialProfile={profile}
         initialUser={user}
         initialSharedEvent={sharedEvent ?? null}
+        initialIpLocation={ipLocation}
         usesSupabase={true}
       />
     </>

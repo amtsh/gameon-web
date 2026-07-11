@@ -32,14 +32,42 @@ export function resolveDiscoveryCenterFromProfile(
   return null;
 }
 
+export function isSameDiscoveryFilter(a: DiscoveryFilter, b: DiscoveryFilter): boolean {
+  return (
+    a.center.latitude === b.center.latitude &&
+    a.center.longitude === b.center.longitude &&
+    a.radiusKm === b.radiusKm
+  );
+}
+
+/** GPS → profile postal code → IP → Stockholm default. */
 export function resolveDiscoveryFilter(
   profile: Profile | null | undefined,
+  gpsCenter?: Coordinates | null,
+  ipCenter?: Coordinates | null,
 ): DiscoveryFilter {
+  const fromGps = validCoordinates(gpsCenter);
+  const fromIp = validCoordinates(ipCenter);
+
   return {
     center:
-      resolveDiscoveryCenterFromProfile(profile) ?? DEFAULT_DISCOVERY_CENTER,
+      fromGps ??
+      resolveDiscoveryCenterFromProfile(profile) ??
+      fromIp ??
+      DEFAULT_DISCOVERY_CENTER,
     radiusKm: DISCOVERY_RADIUS_KM,
   };
+}
+
+function validCoordinates(center: Coordinates | null | undefined): Coordinates | null {
+  if (
+    center != null &&
+    Number.isFinite(center.latitude) &&
+    Number.isFinite(center.longitude)
+  ) {
+    return center;
+  }
+  return null;
 }
 
 type UserEventContext = {
