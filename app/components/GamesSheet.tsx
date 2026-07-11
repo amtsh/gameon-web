@@ -15,6 +15,7 @@ import "./GamesSheet.css";
 
 type Props = {
   events: SportEvent[];
+  isSignedIn: boolean;
   selectedSports: SportKind[];
   showingPast: boolean;
   onToggleSport: (sport: SportKind) => void;
@@ -26,6 +27,7 @@ type Props = {
 
 export function GamesSheet({
   events,
+  isSignedIn,
   selectedSports,
   showingPast,
   onToggleSport,
@@ -128,7 +130,11 @@ export function GamesSheet({
                         <>
                           <h2 className="section-title">Past Games</h2>
                           {pastGames.length === 0 ? (
-                            <p className="empty-state">No past games yet</p>
+                            <p className="empty-state">
+                              {isSignedIn
+                                ? "No past games yet"
+                                : "Sign in to see games you joined or hosted"}
+                            </p>
                           ) : (
                             pastGames.map((event) => (
                               <EventRow
@@ -152,6 +158,10 @@ export function GamesSheet({
                               onSelect={() => onSelectEvent(event)}
                             />
                           ))}
+
+                          {sections.length === 0 && yourGames.length === 0 ? (
+                            <p className="empty-state">No upcoming games nearby</p>
+                          ) : null}
 
                           {sections.map((section) => (
                             <div key={section.key}>

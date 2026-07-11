@@ -12,14 +12,11 @@ import clsx from "clsx";
 import { useEffect, useMemo, useRef } from "react";
 import { sports } from "../data/mock-data";
 import { isArchived } from "../event-feed";
-import { useTheme } from "../theme";
 import type { SportEvent } from "../types";
 
-// Free CARTO vector basemaps (no API key), light + dark to match the theme.
-const MAP_STYLES = {
-  light: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-  dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-} as const;
+// Keep the light basemap in both themes so dark mode only affects the UI.
+const MAP_STYLE =
+  "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
 
 const STOCKHOLM = { longitude: 18.0632, latitude: 59.3236 };
 
@@ -33,7 +30,6 @@ type Props = {
 
 export function AppMap({ events, selectedEvent, locateToken, onSelect }: Props) {
   const mapRef = useRef<MapRef>(null);
-  const theme = useTheme();
 
   const activeEvents = useMemo(
     () => events.filter((event) => !isArchived(event)),
@@ -72,7 +68,7 @@ export function AppMap({ events, selectedEvent, locateToken, onSelect }: Props) 
       <Map
         ref={mapRef}
         initialViewState={{ ...STOCKHOLM, zoom: 11.6 }}
-        mapStyle={MAP_STYLES[theme]}
+        mapStyle={MAP_STYLE}
         attributionControl={false}
       >
         <AttributionControl compact position="top-right" />

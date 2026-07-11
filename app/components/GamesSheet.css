@@ -83,10 +83,27 @@
   padding-bottom: 8px;
 }
 
-/* ── Desktop: centered column, like a phone canvas ── */
+/* ── Desktop: right-side panel over the map ── */
 @media (min-width: 820px) {
-  .GamesSheet-content {
+  .GamesSheet-view {
+    top: max(16px, env(safe-area-inset-top));
+    right: 16px;
+    left: auto;
+    bottom: 16px;
     width: 430px;
-    margin-inline: auto;
+    height: auto;
+  }
+
+  .GamesSheet-content {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    height: 100%;
+    border-radius: 22px;
+  }
+
+  .GamesSheet-bleedingBackground {
+    border-radius: 22px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
   }
 }

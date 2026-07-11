@@ -38,8 +38,10 @@ const destructiveActions = {
 
 type Props = {
   event: SportEvent;
+  isSignedIn: boolean;
   presented: boolean;
   onPresentedChange: (presented: boolean) => void;
+  onRequireSignIn: () => void;
 };
 
 const skillLevelLabels: Record<SportEvent["skillLevel"], string> = {
@@ -49,7 +51,13 @@ const skillLevelLabels: Record<SportEvent["skillLevel"], string> = {
   advanced: "Advanced",
 };
 
-export function EventDetailSheet({ event, presented, onPresentedChange }: Props) {
+export function EventDetailSheet({
+  event,
+  isSignedIn,
+  presented,
+  onPresentedChange,
+  onRequireSignIn,
+}: Props) {
   const [confirming, setConfirming] = useState<
     keyof typeof destructiveActions | null
   >(null);
@@ -171,37 +179,41 @@ export function EventDetailSheet({ event, presented, onPresentedChange }: Props)
           {event.hostContact && event.isJoined && !event.isCreatedByCurrentUser ? (
             <>
               <hr className="detail-divider my-6" />
-              <div className="pl-[66px]">
+              <div className="pl-[17px]">
                 <p className="detail-label">Host contact</p>
-                <div className="mt-2 flex items-center gap-3">
+                <p className="detail-caption mt-1.5" style={{ fontWeight: 700 }}>
                   <Icon
-                    className="text-[var(--muted-icon)]"
+                    className="mr-1.5 inline-block align-[-2px] text-[var(--muted-icon)]"
                     icon={
                       event.hostContact.method === "telegram"
                         ? "mdi:telegram"
                         : "mdi:whatsapp"
                     }
-                    width={20}
+                    width={14}
                   />
-                  <div className="min-w-0 flex-1">
-                    <p className="detail-caption" style={{ fontWeight: 700 }}>
-                      {event.hostName ?? "Host"} on{" "}
-                      {event.hostContact.method === "telegram"
-                        ? "Telegram"
-                        : "WhatsApp"}
-                    </p>
-                    <p className="detail-body">{event.hostContact.value}</p>
-                  </div>
-                </div>
+                  {event.hostName ?? "Host"} on{" "}
+                  {event.hostContact.method === "telegram"
+                    ? "Telegram"
+                    : "WhatsApp"}
+                </p>
+                <p className="detail-body">{event.hostContact.value}</p>
               </div>
             </>
+          ) : null}
+
+          {/* Description */}
+          {event.description ? (
+            <div className="mt-6 pl-[17px]">
+              <p className="detail-label">Description</p>
+              <p className="detail-body mt-1.5">{event.description}</p>
+            </div>
           ) : null}
 
           {/* Requests (own games) */}
           {event.isCreatedByCurrentUser && !archived ? (
             <>
               <hr className="detail-divider my-6" />
-              <div>
+              <div className="pl-[17px]">
                 <p className="detail-label">Requests</p>
                 {(event.pendingRequestCount ?? 0) > 0 ? (
                   <PendingRequestRows count={event.pendingRequestCount ?? 0} />
@@ -213,14 +225,6 @@ export function EventDetailSheet({ event, presented, onPresentedChange }: Props)
                 </button>
               </div>
             </>
-          ) : null}
-
-          {/* Description */}
-          {event.description ? (
-            <div className="mt-6 pl-[66px]">
-              <p className="detail-label">Description</p>
-              <p className="detail-body mt-1.5">{event.description}</p>
-            </div>
           ) : null}
 
           {event.isJoined && !event.isCreatedByCurrentUser && !archived ? (
@@ -257,16 +261,24 @@ export function EventDetailSheet({ event, presented, onPresentedChange }: Props)
                     ? "primary-action danger"
                     : "primary-action"
                 }
-                disabled={spots === 0 && !event.hasPendingRequest}
-                onClick={() =>
-                  event.hasPendingRequest ? setConfirming("withdraw") : undefined
-                }
+                disabled={spots === 0 && !event.hasPendingRequest && isSignedIn}
+                onClick={() => {
+                  if (!isSignedIn) {
+                    onRequireSignIn();
+                    return;
+                  }
+                  if (event.hasPendingRequest) {
+                    setConfirming("withdraw");
+                  }
+                }}
               >
-                {event.hasPendingRequest
-                  ? "Withdraw request"
-                  : spots === 0
-                    ? "Game full"
-                    : "Request to join"}
+                {!isSignedIn
+                  ? "Sign in to join"
+                  : event.hasPendingRequest
+                    ? "Withdraw request"
+                    : spots === 0
+                      ? "Game full"
+                      : "Request to join"}
               </button>
             )}
           </div>
