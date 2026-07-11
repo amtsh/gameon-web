@@ -35,7 +35,8 @@ type Props = {
   profile: Profile | null;
   editEvent?: SportEvent;
   prefillFromEvent?: SportEvent;
-  onSaved: () => void | Promise<void>;
+  /** `created` is true for a brand-new game, false for an edit. */
+  onSaved: (created: boolean) => void | Promise<void>;
 };
 
 const skillLevels: Array<{ id: SkillLevel; label: string }> = [
@@ -177,7 +178,7 @@ export function CreateEventSheet({
           profile,
         });
       }
-      await onSaved();
+      await onSaved(!editEvent);
       onPresentedChange(false);
     } catch (error) {
       setSubmitError(

@@ -52,6 +52,9 @@ type Props = {
   onPresentedChange: (presented: boolean) => void;
   onEdit: (event: SportEvent) => void;
   onMutated: () => void | Promise<void>;
+  /** Fired after a successful join/waitlist request — a natural moment to
+      nudge PWA installation, since the user just got value from the app. */
+  onJoinSuccess?: () => void;
 };
 
 const destructiveActions = {
@@ -108,6 +111,7 @@ export function EventDetailSheet({
   onPresentedChange,
   onEdit,
   onMutated,
+  onJoinSuccess,
 }: Props) {
   const [confirming, setConfirming] = useState<
     keyof typeof destructiveActions | null
@@ -209,8 +213,10 @@ export function EventDetailSheet({
       await action();
       await onMutated();
       await loadRequests();
+      return true;
     } catch (error) {
       setActionError(extractErrorMessage(error));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -224,6 +230,8 @@ export function EventDetailSheet({
     void runMutation(async () => {
       const prefs = await sportPreferencesMap();
       await requestToJoin(event.id, profile, event.sport, prefs);
+    }).then((succeeded) => {
+      if (succeeded) onJoinSuccess?.();
     });
   };
 

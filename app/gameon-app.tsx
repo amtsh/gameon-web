@@ -19,6 +19,7 @@ import {
 } from "@/lib/location/discovery.client";
 import { DISCOVERY_RADIUS_KM } from "@/lib/location/constants";
 import { pickLatestHostedEvent } from "@/lib/create-event/prefill";
+import { usePwaInstallPrompt } from "@/lib/pwa/use-install-prompt.client";
 import { createClient } from "@/lib/supabase/client";
 import { AppMap } from "./components/AppMap";
 import { ContactSheet } from "./components/ContactSheet";
@@ -26,6 +27,7 @@ import { CreateEventSheet } from "./components/CreateEventSheet";
 import { EventDetailSheet } from "./components/EventDetailSheet";
 import { FloatingActions } from "./components/FloatingActions";
 import { GamesSheet } from "./components/GamesSheet";
+import { InstallAppNudge } from "./components/InstallAppNudge";
 import { ProfileSheet } from "./components/ProfileSheet";
 import type { Profile } from "@/lib/data/profile.shared";
 import type { SheetName, SportEvent, SportKind } from "./types";
@@ -67,6 +69,8 @@ export default function GameOnApp({
   const [editEvent, setEditEvent] = useState<SportEvent | undefined>();
   const [gamesDetent, setGamesDetent] = useState(1);
   const onboardingShown = useRef(false);
+  const [installNudgeOpen, setInstallNudgeOpen] = useState(false);
+  const pwaInstall = usePwaInstallPrompt();
 
   // true when the URL was /game/[id] but the event does not exist.
   const showingSharedMissing = initialSharedEvent === null;
@@ -99,6 +103,24 @@ export default function GameOnApp({
       return updated ?? current;
     });
   }, [usesSupabase]);
+
+  // Nudge PWA installation only right after the user gets value from the
+  // app (joined a game, or created one) — never on load or mid-flow.
+  // A short delay lets the closing sheet/success state settle first.
+  const maybeShowInstallNudge = useCallback(() => {
+    if (!pwaInstall.requestShow()) return;
+    const timer = setTimeout(() => setInstallNudgeOpen(true), 700);
+    return () => clearTimeout(timer);
+  }, [pwaInstall]);
+
+  const handleInstallNudgeClose = useCallback(() => {
+    setInstallNudgeOpen(false);
+    pwaInstall.dismiss();
+  }, [pwaInstall]);
+
+  const handleInstallNudgeInstall = useCallback(() => {
+    void pwaInstall.promptNativeInstall().finally(() => setInstallNudgeOpen(false));
+  }, [pwaInstall]);
 
   const requireAuth = useCallback(
     (action: () => void) => {
@@ -285,6 +307,7 @@ export default function GameOnApp({
           onPresentedChange={setDetailPresented}
           onEdit={openEdit}
           onMutated={refreshSessionData}
+          onJoinSuccess={maybeShowInstallNudge}
         />
       ) : null}
 
@@ -316,7 +339,10 @@ export default function GameOnApp({
         profile={profile}
         editEvent={editEvent}
         prefillFromEvent={lastHostedEvent}
-        onSaved={refreshSessionData}
+        onSaved={(created) => {
+          void refreshSessionData();
+          if (created) maybeShowInstallNudge();
+        }}
       />
       <ProfileSheet
         presented={activeSheet === "profile"}
@@ -342,6 +368,13 @@ export default function GameOnApp({
         }}
         profile={profile}
         onSaved={refreshSessionData}
+      />
+      <InstallAppNudge
+        canInstallNatively={pwaInstall.canInstallNatively}
+        onClose={handleInstallNudgeClose}
+        onInstallClick={handleInstallNudgeInstall}
+        open={installNudgeOpen}
+        platform={pwaInstall.platform}
       />
     </main>
   );
