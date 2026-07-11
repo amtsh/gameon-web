@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, User } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import {
@@ -22,6 +22,30 @@ type Props = {
   onOpenSheet: (sheet: SheetName) => void;
 };
 
+// Mirrors iOS presentationDetents([.height(180), .fraction(0.62), .large]).
+type Detent = "collapsed" | "half" | "full";
+
+function detentHeight(detent: Detent, viewportHeight: number) {
+  switch (detent) {
+    case "collapsed":
+      return 180;
+    case "half":
+      return viewportHeight * 0.62;
+    case "full":
+      return viewportHeight * 0.94;
+  }
+}
+
+function nearestDetent(height: number, viewportHeight: number): Detent {
+  const detents: Detent[] = ["collapsed", "half", "full"];
+  return detents.reduce((best, candidate) =>
+    Math.abs(detentHeight(candidate, viewportHeight) - height) <
+    Math.abs(detentHeight(best, viewportHeight) - height)
+      ? candidate
+      : best,
+  );
+}
+
 export function GamesSheet({
   events,
   selectedSports,
@@ -32,6 +56,49 @@ export function GamesSheet({
   onSelectEvent,
   onOpenSheet,
 }: Props) {
+  const [detent, setDetent] = useState<Detent>("half");
+  const [dragHeight, setDragHeight] = useState<number | null>(null);
+  const dragStart = useRef<{ y: number; height: number } | null>(null);
+
+  const onHandlePointerDown = (downEvent: React.PointerEvent) => {
+    const sheet = downEvent.currentTarget.closest(".games-sheet");
+    if (!sheet) return;
+    downEvent.currentTarget.setPointerCapture(downEvent.pointerId);
+    dragStart.current = {
+      y: downEvent.clientY,
+      height: sheet.getBoundingClientRect().height,
+    };
+  };
+
+  const onHandlePointerMove = (moveEvent: React.PointerEvent) => {
+    if (!dragStart.current) return;
+    const next = dragStart.current.height + (dragStart.current.y - moveEvent.clientY);
+    setDragHeight(
+      Math.min(Math.max(next, 120), window.innerHeight * 0.94),
+    );
+  };
+
+  const onHandlePointerEnd = () => {
+    if (!dragStart.current) return;
+    dragStart.current = null;
+    if (dragHeight !== null) {
+      setDetent(nearestDetent(dragHeight, window.innerHeight));
+    }
+    setDragHeight(null);
+  };
+
+  const sheetStyle: React.CSSProperties = {
+    height:
+      dragHeight !== null
+        ? dragHeight
+        : detent === "collapsed"
+          ? 180
+          : detent === "half"
+            ? "62svh"
+            : "94svh",
+    transition: dragHeight !== null ? "none" : "height 280ms cubic-bezier(0.32, 0.72, 0, 1)",
+  };
+
   const yourGames = useMemo(() => activeUserEvents(events), [events]);
   const sections = useMemo(
     () => groupedDiscoverableEvents(events, selectedSports),
@@ -40,8 +107,16 @@ export function GamesSheet({
   const pastGames = useMemo(() => archivedUserEvents(events), [events]);
 
   return (
-    <section className="games-sheet" aria-label="Nearby Games">
-      <div className="sheet-grabber" />
+    <section className="games-sheet" aria-label="Nearby Games" style={sheetStyle}>
+      <div
+        className="sheet-drag-zone"
+        onPointerDown={onHandlePointerDown}
+        onPointerMove={onHandlePointerMove}
+        onPointerUp={onHandlePointerEnd}
+        onPointerCancel={onHandlePointerEnd}
+      >
+        <div className="sheet-grabber" />
+      </div>
       <header className="mb-4 flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <h1 className="hero-title">Nearby Games</h1>

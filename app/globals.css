@@ -195,18 +195,31 @@ textarea {
   left: 0;
   display: flex;
   flex-direction: column;
-  max-height: 62svh;
-  padding: 10px 18px max(8px, env(safe-area-inset-bottom));
+  overflow: hidden;
+  height: 62svh;
+  padding: 0 18px max(8px, env(safe-area-inset-bottom));
   border-radius: 22px 22px 0 0;
   background: var(--app-background);
   box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.24);
 }
 
-.sheet-grabber {
+/* Drag handle for detent snapping (grabber hit area) */
+.sheet-drag-zone {
   flex: 0 0 auto;
+  margin: 0 -18px;
+  padding: 10px 18px 12px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.sheet-drag-zone:active {
+  cursor: grabbing;
+}
+
+.sheet-grabber {
   width: 40px;
   height: 5px;
-  margin: 0 auto 16px;
+  margin: 0 auto;
   border-radius: 999px;
   background: rgba(60, 60, 67, 0.3);
 }
