@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { contactUrl } from "@/lib/contact-url";
 import { deleteSportEvent } from "@/lib/data/create-event.client";
 import {
   approveJoinRequest,
@@ -126,6 +127,10 @@ export function EventDetailSheet({
   const contactEligible =
     presented && isSignedIn && Boolean(event.isJoined) &&
     !event.isCreatedByCurrentUser;
+  const hostContactHref =
+    hostContact?.eventId === event.id
+      ? contactUrl(hostContact.contact)
+      : null;
 
   useEffect(() => {
     if (!contactEligible) return;
@@ -305,22 +310,55 @@ export function EventDetailSheet({
             <hr className="detail-divider my-6" />
             <div className="pl-[17px]">
               <p className="detail-label">Host contact</p>
-              <p className="detail-caption mt-1.5" style={{ fontWeight: 700 }}>
-                <Icon
-                  className="mr-1.5 inline-block align-[-2px] text-[var(--muted-icon)]"
-                  icon={
-                    hostContact.contact.method === "telegram"
-                      ? "mdi:telegram"
-                      : "mdi:whatsapp"
-                  }
-                  width={14}
-                />
-                {event.hostName ?? "Host"} on{" "}
-                {hostContact.contact.method === "telegram"
-                  ? "Telegram"
-                  : "WhatsApp"}
-              </p>
-              <p className="detail-body">{hostContact.contact.value}</p>
+              {hostContactHref ? (
+                <a
+                  className="host-contact-link mt-1.5"
+                  href={hostContactHref}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <span
+                    className="detail-caption block"
+                    style={{ fontWeight: 700 }}
+                  >
+                    <Icon
+                      className="mr-1.5 inline-block align-[-2px] text-[var(--muted-icon)]"
+                      icon={
+                        hostContact.contact.method === "telegram"
+                          ? "mdi:telegram"
+                          : "mdi:whatsapp"
+                      }
+                      width={14}
+                    />
+                    {event.hostName ?? "Host"} on{" "}
+                    {hostContact.contact.method === "telegram"
+                      ? "Telegram"
+                      : "WhatsApp"}
+                  </span>
+                  <span className="host-contact-value link-info mt-1 inline-flex">
+                    {hostContact.contact.value}
+                  </span>
+                </a>
+              ) : (
+                <>
+                  <p className="detail-caption mt-1.5" style={{ fontWeight: 700 }}>
+                    <Icon
+                      className="mr-1.5 inline-block align-[-2px] text-[var(--muted-icon)]"
+                      icon={
+                        hostContact.contact.method === "telegram"
+                          ? "mdi:telegram"
+                          : "mdi:whatsapp"
+                      }
+                      width={14}
+                    />
+                    {event.hostName ?? "Host"} on{" "}
+                    {hostContact.contact.method === "telegram"
+                      ? "Telegram"
+                      : "WhatsApp"}
+                  </p>
+                  <p className="detail-body">{hostContact.contact.value}</p>
+                </>
+              )}
             </div>
           </>
         ) : null}
