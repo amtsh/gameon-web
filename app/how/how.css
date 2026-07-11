@@ -1,0 +1,57 @@
+/* Body/html are overflow:hidden for the map app, so this page must be its
+   own scroll container. */
+.how-page {
+  display: block;
+  height: 100svh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 32px 20px 64px;
+  background: var(--app-background);
+}
+
+.how-doc {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-top: 4px;
+  color: var(--primary-text);
+  line-height: 1.6;
+}
+
+.how-doc h1 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.how-doc h2 {
+  margin: 28px 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.how-doc p {
+  margin: 0 0 8px;
+  color: var(--secondary-text);
+  font-size: 14px;
+}
+
+.how-doc ul {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.how-doc li {
+  margin-bottom: 6px;
+  color: var(--secondary-text);
+  font-size: 14px;
+}
+
+.how-doc code {
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--subtle-surface);
+  color: var(--primary-text);
+  font-size: 12.5px;
+}
