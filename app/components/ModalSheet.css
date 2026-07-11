@@ -44,6 +44,11 @@
   cursor: grab;
 }
 
+.ModalSheet-handle-spacer {
+  background-color: transparent;
+  cursor: default;
+}
+
 .ModalSheet-scrollRoot {
   display: flex;
   min-height: 0;

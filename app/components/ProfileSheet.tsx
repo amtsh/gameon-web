@@ -104,11 +104,12 @@ export function ProfileSheet({
   };
 
   const interestedSports = preferences.filter((pref) => pref.isInterested);
+  const showEditProfile = Boolean(user);
 
   return (
     <ModalSheet
-      height={user ? "96svh" : "50svh"}
-      title={user ? "Edit profile" : "Sign in"}
+      height={showEditProfile ? "96svh" : "50svh"}
+      title={showEditProfile ? "Edit profile" : "Sign in"}
       presented={presented}
       onPresentedChange={onPresentedChange}
     >
@@ -118,8 +119,8 @@ export function ProfileSheet({
             <X size={20} />
           </button>
         </SheetDismissTrigger>
-        <h2>{user ? "Edit profile" : "Sign in"}</h2>
-        {user ? (
+        <h2>{showEditProfile ? "Edit profile" : "Sign in"}</h2>
+        {showEditProfile ? (
           <button disabled={authBusy || saving || !name.trim()} onClick={() => void handleSave()} type="button">
             {saving ? "Saving\u2026" : "Save"}
           </button>
@@ -130,7 +131,7 @@ export function ProfileSheet({
 
       {saveError ? <p className="form-error px-4">{saveError}</p> : null}
 
-      {!user ? (
+      {!showEditProfile ? (
         <div className="auth-panel">
           <div className="profile-hero">
             <h1>Welcome to GameOn</h1>
@@ -151,7 +152,7 @@ export function ProfileSheet({
           </button>
         </div>
       ) : (
-        <>
+        <div className="profile-edit-form">
           <div className="profile-hero">
             <h1>Profile</h1>
             <p>Update your name, games, and current level.</p>
@@ -259,7 +260,7 @@ export function ProfileSheet({
 
           <div className="form-section profile-account-footer">
             <p className="form-label">Account</p>
-            {user.email ? (
+            {user?.email ? (
               <p className="profile-email">{user.email}</p>
             ) : null}
             <button
@@ -271,7 +272,7 @@ export function ProfileSheet({
               Sign out
             </button>
           </div>
-        </>
+        </div>
       )}
     </ModalSheet>
   );

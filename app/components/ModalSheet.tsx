@@ -70,8 +70,14 @@ export function ModalSheet({
             <VisuallyHidden.Root asChild>
               <Sheet.Title>{title}</Sheet.Title>
             </VisuallyHidden.Root>
-            {/* Handle is hidden on locked sheets — dragging down is disabled */}
-            {!locked && (
+            {/* Locked sheets keep the handle's spacing (so the scroll area
+                never starts flush against the rounded top corner — that
+                gap is what keeps the scrollbar from poking past the curve)
+                but swap in an invisible, non-draggable spacer since
+                dragging down is disabled. */}
+            {locked ? (
+              <div className="ModalSheet-handle ModalSheet-handle-spacer" aria-hidden="true" />
+            ) : (
               <Sheet.Handle
                 className="ModalSheet-handle"
                 action="dismiss"
