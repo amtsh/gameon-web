@@ -79,3 +79,67 @@ export async function createSportEvent(input: CreateSportEventInput) {
 
   return event.id;
 }
+
+export type UpdateSportEventInput = Omit<
+  CreateSportEventInput,
+  "fillYourSpot" | "profile"
+> & {
+  eventId: string;
+  profile: Profile;
+};
+
+export async function updateSportEvent(input: UpdateSportEventInput) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Sign in required");
+
+  const startsAt = toIsoFromLocalDateTime(input.startsAt);
+  const endsAt = toIsoFromLocalDateTime(input.endsAt);
+
+  if (new Date(endsAt) <= new Date(startsAt)) {
+    throw new Error("End time must be after start time");
+  }
+
+  const { error } = await supabase
+    .from("sport_events")
+    .update({
+      sport: input.sport,
+      title: input.title.trim(),
+      description: input.description?.trim() ?? "",
+      cost: input.cost?.trim() ?? "",
+      skill_level: input.skillLevel,
+      capacity: input.capacity,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      host_contact_method: input.profile.contact_method,
+      host_contact_value: input.profile.contact_value,
+      venue_name: input.venue.name,
+      venue_address: input.venue.address ?? null,
+      venue_city: input.venue.city ?? null,
+      venue_latitude: input.venue.latitude,
+      venue_longitude: input.venue.longitude,
+    })
+    .eq("id", input.eventId)
+    .eq("host_id", user.id);
+
+  if (error) throw error;
+}
+
+export async function deleteSportEvent(eventId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sign in required");
+
+  const { error } = await supabase
+    .from("sport_events")
+    .delete()
+    .eq("id", eventId)
+    .eq("host_id", user.id);
+
+  if (error) throw error;
+}

@@ -1,0 +1,106 @@
+import type { SkillLevel, SportKind, Venue } from "@/app/types";
+import type { Profile } from "@/lib/data/profile.shared";
+import { createClient } from "@/lib/supabase/client";
+
+export type SportPreference = {
+  sport: SportKind;
+  level: SkillLevel;
+  isInterested: boolean;
+};
+
+export async function fetchSportPreferences(): Promise<SportPreference[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("sport_preferences")
+    .select("sport, level, is_interested")
+    .eq("profile_id", user.id)
+    .order("sport");
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    sport: row.sport,
+    level: row.level,
+    isInterested: row.is_interested,
+  }));
+}
+
+export type SaveProfileInput = {
+  name: string;
+  postalCode: string;
+  sportPreferences: SportPreference[];
+  completeOnboarding?: boolean;
+};
+
+export async function saveProfile(input: SaveProfileInput) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sign in required");
+
+  const postalCode = input.postalCode.trim() || null;
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({
+      name: input.name.trim(),
+      postal_code: postalCode,
+      location_mode: postalCode ? "postal_code" : "device_location",
+      is_onboarding_complete: input.completeOnboarding ?? true,
+    })
+    .eq("id", user.id);
+
+  if (profileError) throw profileError;
+
+  const updates = input.sportPreferences.map((pref) =>
+    supabase
+      .from("sport_preferences")
+      .update({
+        level: pref.level,
+        is_interested: pref.isInterested,
+      })
+      .eq("profile_id", user.id)
+      .eq("sport", pref.sport),
+  );
+
+  const results = await Promise.all(updates);
+  const prefError = results.find((result) => result.error)?.error;
+  if (prefError) throw prefError;
+}
+
+export async function saveContact(
+  method: Profile["contact_method"],
+  value: string,
+) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sign in required");
+
+  const trimmed = value.trim();
+  if (!method || !trimmed) {
+    throw new Error("Contact method and value are required");
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      contact_method: method,
+      contact_value: trimmed,
+    })
+    .eq("id", user.id);
+
+  if (error) throw error;
+}
+
+export async function sportPreferencesMap() {
+  const prefs = await fetchSportPreferences();
+  return new Map(prefs.map((pref) => [pref.sport, pref.level]));
+}

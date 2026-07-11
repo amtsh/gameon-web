@@ -1,10 +1,14 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { signInWithGoogle, signOut } from "@/lib/auth/google";
+import { getUserAvatarUrl } from "@/lib/auth/user";
+import {
+  fetchPastSportEventsClient,
+  fetchSportEventsClient,
+} from "@/lib/data/events.client";
 import { fetchProfileClient } from "@/lib/data/profile.client";
-import { fetchSportEventsClient } from "@/lib/data/events.client";
 import { createClient } from "@/lib/supabase/client";
 import { AppMap } from "./components/AppMap";
 import { ContactSheet } from "./components/ContactSheet";
@@ -18,6 +22,7 @@ import type { SheetName, SportEvent, SportKind } from "./types";
 
 type Props = {
   initialEvents: SportEvent[];
+  initialPastEvents: SportEvent[];
   initialUser: User | null;
   initialProfile: Profile | null;
   usesSupabase: boolean;
@@ -25,11 +30,13 @@ type Props = {
 
 export default function GameOnApp({
   initialEvents,
+  initialPastEvents,
   initialUser,
   initialProfile,
   usesSupabase,
 }: Props) {
   const [events, setEvents] = useState(initialEvents);
+  const [pastEvents, setPastEvents] = useState(initialPastEvents);
   const [user, setUser] = useState(initialUser);
   const [profile, setProfile] = useState(initialProfile);
   const [authBusy, setAuthBusy] = useState(false);
@@ -39,6 +46,8 @@ export default function GameOnApp({
   const [locateToken, setLocateToken] = useState(0);
   const [detailEvent, setDetailEvent] = useState<SportEvent | undefined>();
   const [detailPresented, setDetailPresented] = useState(false);
+  const [editEvent, setEditEvent] = useState<SportEvent | undefined>();
+  const onboardingShown = useRef(false);
 
   const refreshSessionData = useCallback(async () => {
     if (!usesSupabase) return;
@@ -54,10 +63,24 @@ export default function GameOnApp({
 
     if (!nextUser) {
       setProfile(null);
+      setPastEvents([]);
       return;
     }
 
-    setProfile(await fetchProfileClient());
+    const [nextProfile, nextPast] = await Promise.all([
+      fetchProfileClient(),
+      fetchPastSportEventsClient(),
+    ]);
+    setProfile(nextProfile);
+    setPastEvents(nextPast);
+
+    setDetailEvent((current) => {
+      if (!current) return current;
+      const updated = [...nextEvents, ...nextPast].find(
+        (event) => event.id === current.id,
+      );
+      return updated ?? current;
+    });
   }, [usesSupabase]);
 
   const requireAuth = useCallback(
@@ -84,6 +107,53 @@ export default function GameOnApp({
     return () => subscription.unsubscribe();
   }, [refreshSessionData, usesSupabase]);
 
+  useEffect(() => {
+    if (!usesSupabase) return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("gameon-public-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "sport_events" },
+        () => {
+          void refreshSessionData();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "event_participants" },
+        () => {
+          void refreshSessionData();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "event_join_requests" },
+        () => {
+          void refreshSessionData();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [refreshSessionData, usesSupabase]);
+
+  useEffect(() => {
+    if (
+      !user ||
+      !profile ||
+      profile.is_onboarding_complete ||
+      onboardingShown.current
+    ) {
+      return;
+    }
+    onboardingShown.current = true;
+    setActiveSheet("profile");
+  }, [profile, user]);
+
   const handleSignIn = useCallback(async () => {
     setAuthBusy(true);
     try {
@@ -98,11 +168,22 @@ export default function GameOnApp({
     try {
       await signOut();
       setActiveSheet(null);
+      setEditEvent(undefined);
       await refreshSessionData();
     } finally {
       setAuthBusy(false);
     }
   }, [refreshSessionData]);
+
+  const openCreate = useCallback(() => {
+    setEditEvent(undefined);
+    setActiveSheet("create");
+  }, []);
+
+  const openEdit = useCallback((event: SportEvent) => {
+    setEditEvent(event);
+    setActiveSheet("create");
+  }, []);
 
   const toggleSport = useCallback((sport: SportKind) => {
     setShowingPast(false);
@@ -138,7 +219,9 @@ export default function GameOnApp({
       />
       <GamesSheet
         events={events}
+        pastEvents={pastEvents}
         isSignedIn={Boolean(user)}
+        avatarUrl={getUserAvatarUrl(user)}
         selectedSports={selectedSports}
         showingPast={showingPast}
         onToggleSport={toggleSport}
@@ -147,7 +230,7 @@ export default function GameOnApp({
         onSelectEvent={selectEvent}
         onOpenSheet={(sheet) => {
           if (sheet === "create") {
-            requireAuth(() => setActiveSheet("create"));
+            requireAuth(openCreate);
             return;
           }
           setActiveSheet(sheet);
@@ -157,19 +240,24 @@ export default function GameOnApp({
       {detailEvent ? (
         <EventDetailSheet
           event={detailEvent}
+          profile={profile}
           isSignedIn={Boolean(user)}
           presented={detailPresented}
           onPresentedChange={setDetailPresented}
           onRequireSignIn={() => setActiveSheet("profile")}
+          onEdit={openEdit}
+          onMutated={refreshSessionData}
         />
       ) : null}
       <CreateEventSheet
         presented={activeSheet === "create"}
-        onPresentedChange={(presented) =>
-          setActiveSheet(presented ? "create" : null)
-        }
+        onPresentedChange={(presented) => {
+          if (!presented) setEditEvent(undefined);
+          setActiveSheet(presented ? "create" : null);
+        }}
         profile={profile}
-        onCreated={refreshSessionData}
+        editEvent={editEvent}
+        onSaved={refreshSessionData}
       />
       <ProfileSheet
         presented={activeSheet === "profile"}
@@ -182,12 +270,15 @@ export default function GameOnApp({
         authBusy={authBusy}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
+        onSaved={refreshSessionData}
       />
       <ContactSheet
         presented={activeSheet === "contact"}
         onPresentedChange={(presented) =>
           setActiveSheet(presented ? "contact" : "profile")
         }
+        profile={profile}
+        onSaved={refreshSessionData}
       />
     </main>
   );

@@ -129,3 +129,47 @@ export async function loadSportEvents(
     toSportEvent(event, hostNames.get(event.host_id) ?? "Host", ctx),
   );
 }
+
+/** Past events the signed-in user hosted or joined. */
+export async function loadPastUserSportEvents(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<SportEvent[]> {
+  const now = new Date().toISOString();
+
+  const { data: participantRows, error: participantError } = await supabase
+    .from("event_participants")
+    .select("event_id")
+    .eq("profile_id", userId);
+
+  if (participantError) throw participantError;
+
+  const joinedIds = (participantRows ?? []).map((row) => row.event_id);
+  const filters = [`host_id.eq.${userId}`];
+  if (joinedIds.length > 0) {
+    filters.push(`id.in.(${joinedIds.join(",")})`);
+  }
+
+  const { data: events, error } = await supabase
+    .from("sport_events")
+    .select("*")
+    .lte("ends_at", now)
+    .or(filters.join(","))
+    .order("ends_at", { ascending: false });
+
+  if (error) throw error;
+  if (!events?.length) return [];
+
+  const hostIds = [...new Set(events.map((event) => event.host_id))];
+  const { data: hosts } = await supabase
+    .from("profiles")
+    .select("id, name")
+    .in("id", hostIds);
+
+  const hostNames = new Map((hosts ?? []).map((host) => [host.id, host.name]));
+  const ctx = await loadEventContext(supabase, userId, events);
+
+  return events.map((event) =>
+    toSportEvent(event, hostNames.get(event.host_id) ?? "Host", ctx),
+  );
+}

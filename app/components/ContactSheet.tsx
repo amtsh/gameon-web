@@ -1,25 +1,66 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { saveContact } from "@/lib/data/profile-mutations.client";
+import type { Profile } from "@/lib/data/profile.shared";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 
 type Props = {
   presented: boolean;
   onPresentedChange: (presented: boolean) => void;
+  profile: Profile | null;
+  onSaved: () => void | Promise<void>;
 };
 
 type Method = "whatsapp" | "telegram";
 
-export function ContactSheet({ presented, onPresentedChange }: Props) {
+export function ContactSheet({
+  presented,
+  onPresentedChange,
+  profile,
+  onSaved,
+}: Props) {
   const [method, setMethod] = useState<Method>("telegram");
-  // Keep a separate value per method so switching tabs doesn't leak
-  // a Telegram handle into the WhatsApp field (mirrors iOS, which
-  // validates each method's format separately).
   const [values, setValues] = useState<Record<Method, string>>({
-    telegram: "@amitplays",
+    telegram: "",
     whatsapp: "",
   });
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!presented) return;
+    const initialMethod = profile?.contact_method ?? "telegram";
+    setMethod(initialMethod);
+    setValues({
+      telegram:
+        profile?.contact_method === "telegram"
+          ? (profile.contact_value ?? "")
+          : "",
+      whatsapp:
+        profile?.contact_method === "whatsapp"
+          ? (profile.contact_value ?? "")
+          : "",
+    });
+    setSaveError(null);
+  }, [presented, profile]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await saveContact(method, values[method]);
+      await onSaved();
+      onPresentedChange(false);
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "Could not save contact",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <ModalSheet
@@ -28,46 +69,52 @@ export function ContactSheet({ presented, onPresentedChange }: Props) {
       presented={presented}
       onPresentedChange={onPresentedChange}
     >
-        <header className="sheet-nav">
-          <SheetDismissTrigger>
-            <button aria-label="Close">
-              <X size={20} />
-            </button>
-          </SheetDismissTrigger>
-          <h2>Contact</h2>
-          <button>Save</button>
-        </header>
+      <header className="sheet-nav">
+        <SheetDismissTrigger>
+          <button aria-label="Close" type="button">
+            <X size={20} />
+          </button>
+        </SheetDismissTrigger>
+        <h2>Contact</h2>
+        <button disabled={saving || !values[method].trim()} onClick={() => void handleSave()} type="button">
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </header>
 
-        <div className="form-section">
-          <div className="segmented-control">
-            <button
-              className={method === "whatsapp" ? "selected" : ""}
-              onClick={() => setMethod("whatsapp")}
-            >
-              WhatsApp
-            </button>
-            <button
-              className={method === "telegram" ? "selected" : ""}
-              onClick={() => setMethod("telegram")}
-            >
-              Telegram
-            </button>
-          </div>
-          <input
-            value={values[method]}
-            inputMode={method === "whatsapp" ? "tel" : "text"}
-            placeholder={method === "telegram" ? "@username" : "+46 phone"}
-            onChange={(changeEvent) =>
-              setValues((current) => ({
-                ...current,
-                [method]: changeEvent.target.value,
-              }))
-            }
-          />
-          <p className="hint">
-            Your contact is shared only after a join request is approved.
-          </p>
+      {saveError ? <p className="form-error px-4">{saveError}</p> : null}
+
+      <div className="form-section">
+        <div className="segmented-control">
+          <button
+            className={method === "whatsapp" ? "selected" : ""}
+            onClick={() => setMethod("whatsapp")}
+            type="button"
+          >
+            WhatsApp
+          </button>
+          <button
+            className={method === "telegram" ? "selected" : ""}
+            onClick={() => setMethod("telegram")}
+            type="button"
+          >
+            Telegram
+          </button>
         </div>
+        <input
+          inputMode={method === "whatsapp" ? "tel" : "text"}
+          onChange={(changeEvent) =>
+            setValues((current) => ({
+              ...current,
+              [method]: changeEvent.target.value,
+            }))
+          }
+          placeholder={method === "telegram" ? "@username" : "+46 phone"}
+          value={values[method]}
+        />
+        <p className="hint">
+          Your contact is shared only after a join request is approved.
+        </p>
+      </div>
     </ModalSheet>
   );
 }

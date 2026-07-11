@@ -14,6 +14,33 @@ export function sectionTitle(date: Date, now = new Date()): [string, string] {
   return [format(date, "d MMMM"), format(date, "EEEE")];
 }
 
+// Mirrors EventRow.relativeLabel in RecommendedEventsSheet.swift
+export function eventRelativeLabel(event: SportEvent, now = new Date()): string {
+  const startsAt = new Date(event.startsAt);
+  const endsAt = new Date(event.endsAt);
+
+  if (endsAt <= now) return "Ended";
+  if (startsAt <= now) return "Now";
+
+  const totalMinutes = Math.ceil(
+    (startsAt.getTime() - now.getTime()) / 60_000,
+  );
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
+
+  if (totalDays >= 1) {
+    return totalDays === 1 ? "In 1 day" : `In ${totalDays} days`;
+  }
+  if (totalHours >= 1) {
+    return totalHours === 1 ? "In 1 hour" : `In ${totalHours} hours`;
+  }
+  if (totalMinutes >= 1) {
+    return totalMinutes === 1 ? "In 1 minute" : `In ${totalMinutes} minutes`;
+  }
+
+  return "Now";
+}
+
 // Mirrors EventRow.durationText in RecommendedEventsSheet.swift
 export function durationText(event: SportEvent): string {
   const totalMinutes = Math.max(

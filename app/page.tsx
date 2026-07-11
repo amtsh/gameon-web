@@ -1,5 +1,6 @@
-import { fetchProfile } from "@/lib/data/profile";
+import { fetchPastSportEvents } from "@/lib/data/events-past";
 import { fetchSportEvents } from "@/lib/data/events";
+import { fetchProfile } from "@/lib/data/profile";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import GameOnApp from "./gameon-app";
@@ -11,6 +12,7 @@ export default async function Home() {
     return (
       <GameOnApp
         initialEvents={mockEvents}
+        initialPastEvents={[]}
         initialProfile={null}
         initialUser={null}
         usesSupabase={false}
@@ -24,9 +26,13 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   let initialProfile: Profile | null = null;
+  let initialPastEvents: Awaited<ReturnType<typeof fetchPastSportEvents>> = [];
 
   if (user) {
-    initialProfile = await fetchProfile();
+    [initialProfile, initialPastEvents] = await Promise.all([
+      fetchProfile(),
+      fetchPastSportEvents(),
+    ]);
   }
 
   const initialEvents = await fetchSportEvents();
@@ -34,6 +40,7 @@ export default async function Home() {
   return (
     <GameOnApp
       initialEvents={initialEvents}
+      initialPastEvents={initialPastEvents}
       initialProfile={initialProfile}
       initialUser={user}
       usesSupabase={true}

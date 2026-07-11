@@ -7,7 +7,6 @@ import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import {
   activeUserEvents,
-  archivedUserEvents,
   groupedDiscoverableEvents,
 } from "../event-feed";
 import type { SheetName, SportEvent, SportKind } from "../types";
@@ -15,7 +14,9 @@ import "./GamesSheet.css";
 
 type Props = {
   events: SportEvent[];
+  pastEvents: SportEvent[];
   isSignedIn: boolean;
+  avatarUrl?: string;
   selectedSports: SportKind[];
   showingPast: boolean;
   onToggleSport: (sport: SportKind) => void;
@@ -27,7 +28,9 @@ type Props = {
 
 export function GamesSheet({
   events,
+  pastEvents,
   isSignedIn,
+  avatarUrl,
   selectedSports,
   showingPast,
   onToggleSport,
@@ -41,7 +44,7 @@ export function GamesSheet({
     () => groupedDiscoverableEvents(events, selectedSports),
     [events, selectedSports],
   );
-  const pastGames = useMemo(() => archivedUserEvents(events), [events]);
+  const pastGames = pastEvents;
 
   // Detent 0 is fully dismissed; 1 = half, 2 = full. Never allow resting
   // below half — this sheet is the app's persistent home surface.
@@ -94,11 +97,25 @@ export function GamesSheet({
                     </p>
                   </div>
                   <button
-                    className="circle-button"
+                    className={
+                      avatarUrl
+                        ? "circle-button circle-button-avatar"
+                        : "circle-button"
+                    }
                     aria-label="Edit profile"
                     onClick={() => onOpenSheet("profile")}
                   >
-                    <User size={20} fill="currentColor" strokeWidth={0} />
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        alt=""
+                        className="circle-button-photo"
+                        referrerPolicy="no-referrer"
+                        src={avatarUrl}
+                      />
+                    ) : (
+                      <User size={20} fill="currentColor" strokeWidth={0} />
+                    )}
                   </button>
                   <button
                     className="circle-button"

@@ -4,7 +4,7 @@ import { Clock, Crown, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { memo } from "react";
 import { sports } from "../data/mock-data";
-import { clockTime, durationText, eventTime, spotsLeft } from "../event-feed";
+import { clockTime, durationText, eventRelativeLabel, eventTime, spotsLeft } from "../event-feed";
 import type { SportEvent } from "../types";
 
 type Props = {
@@ -51,6 +51,8 @@ export const EventRow = memo(function EventRow({
       <span className="min-w-0 flex-1">
         <span className="row-meta">
           {sport?.label}
+          <span style={{ color: "var(--label-text)" }}>·</span>
+          <span>{eventRelativeLabel(event)}</span>
         </span>
 
         <span className="row-title">{event.title}</span>

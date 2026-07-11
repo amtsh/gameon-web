@@ -3,14 +3,17 @@
 import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { createSportEvent } from "@/lib/data/create-event.client";
+import {
+  createSportEvent,
+  updateSportEvent,
+} from "@/lib/data/create-event.client";
 import type { Profile } from "@/lib/data/profile.shared";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 import { VenueSearchField } from "./VenueSearchField";
-import type { SkillLevel, SportKind, Venue } from "../types";
+import type { SkillLevel, SportEvent, SportKind, Venue } from "../types";
 
 type CreateEventValues = {
   title: string;
@@ -25,7 +28,8 @@ type Props = {
   presented: boolean;
   onPresentedChange: (presented: boolean) => void;
   profile: Profile | null;
-  onCreated: () => void | Promise<void>;
+  editEvent?: SportEvent;
+  onSaved: () => void | Promise<void>;
 };
 
 const skillLevels: Array<{ id: SkillLevel; label: string }> = [
@@ -35,12 +39,20 @@ const skillLevels: Array<{ id: SkillLevel; label: string }> = [
   { id: "advanced", label: "Advanced" },
 ];
 
+function toLocalDateTimeInput(iso: string) {
+  const date = new Date(iso);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function CreateEventSheet({
   presented,
   onPresentedChange,
   profile,
-  onCreated,
+  editEvent,
+  onSaved,
 }: Props) {
+  const isEditing = Boolean(editEvent);
   const [sport, setSport] = useState<SportKind>("badminton");
   const [skillLevel, setSkillLevel] = useState<SkillLevel>("any");
   const [venue, setVenue] = useState<Venue | null>(null);
@@ -50,6 +62,7 @@ export function CreateEventSheet({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isValid },
   } = useForm<CreateEventValues>({
     mode: "onChange",
@@ -63,6 +76,39 @@ export function CreateEventSheet({
     },
   });
 
+  useEffect(() => {
+    if (!presented) return;
+
+    if (editEvent) {
+      setSport(editEvent.sport);
+      setSkillLevel(editEvent.skillLevel);
+      setVenue(editEvent.venue);
+      setFillYourSpot(false);
+      reset({
+        title: editEvent.title,
+        startsAt: toLocalDateTimeInput(editEvent.startsAt),
+        endsAt: toLocalDateTimeInput(editEvent.endsAt),
+        capacity: editEvent.capacity,
+        cost: editEvent.cost ?? "",
+        description: editEvent.description ?? "",
+      });
+      return;
+    }
+
+    setSport("badminton");
+    setSkillLevel("any");
+    setVenue(null);
+    setFillYourSpot(true);
+    reset({
+      title: "",
+      startsAt: "2026-07-12T18:00",
+      endsAt: "2026-07-12T19:00",
+      capacity: 8,
+      cost: "",
+      description: "",
+    });
+  }, [editEvent, presented, reset]);
+
   const onSubmit = handleSubmit(async (values) => {
     if (!venue) return;
     if (!profile) {
@@ -73,24 +119,44 @@ export function CreateEventSheet({
     setSubmitError(null);
     setIsSubmitting(true);
     try {
-      await createSportEvent({
-        sport,
-        skillLevel,
-        title: values.title,
-        startsAt: values.startsAt,
-        endsAt: values.endsAt,
-        capacity: values.capacity,
-        cost: values.cost,
-        description: values.description,
-        venue,
-        fillYourSpot,
-        profile,
-      });
-      await onCreated();
+      if (editEvent) {
+        await updateSportEvent({
+          eventId: editEvent.id,
+          sport,
+          skillLevel,
+          title: values.title,
+          startsAt: values.startsAt,
+          endsAt: values.endsAt,
+          capacity: values.capacity,
+          cost: values.cost,
+          description: values.description,
+          venue,
+          profile,
+        });
+      } else {
+        await createSportEvent({
+          sport,
+          skillLevel,
+          title: values.title,
+          startsAt: values.startsAt,
+          endsAt: values.endsAt,
+          capacity: values.capacity,
+          cost: values.cost,
+          description: values.description,
+          venue,
+          fillYourSpot,
+          profile,
+        });
+      }
+      await onSaved();
       onPresentedChange(false);
     } catch (error) {
       setSubmitError(
-        error instanceof Error ? error.message : "Could not create game",
+        error instanceof Error
+          ? error.message
+          : isEditing
+            ? "Could not update game"
+            : "Could not create game",
       );
     } finally {
       setIsSubmitting(false);
@@ -99,11 +165,12 @@ export function CreateEventSheet({
 
   const contactMethod = profile?.contact_method;
   const contactValue = profile?.contact_value;
+  const sheetTitle = isEditing ? "Edit Game" : "Create Game";
 
   return (
     <ModalSheet
       height="96svh"
-      title="Create Game"
+      title={sheetTitle}
       presented={presented}
       onPresentedChange={onPresentedChange}
     >
@@ -114,12 +181,18 @@ export function CreateEventSheet({
               <X size={20} />
             </button>
           </SheetDismissTrigger>
-          <h2>Create Game</h2>
+          <h2>{sheetTitle}</h2>
           <button
             disabled={!isValid || !venue || isSubmitting || !profile}
             type="submit"
           >
-            {isSubmitting ? "Creating…" : "Create"}
+            {isSubmitting
+              ? isEditing
+                ? "Saving…"
+                : "Creating…"
+              : isEditing
+                ? "Save"
+                : "Create"}
           </button>
         </header>
 
@@ -200,14 +273,18 @@ export function CreateEventSheet({
               {...register("capacity", { min: 2, max: 30, valueAsNumber: true })}
             />
           </label>
-          <label className="toggle-row">
-            <span>Fill your spot</span>
-            <input
-              checked={fillYourSpot}
-              onChange={(changeEvent) => setFillYourSpot(changeEvent.target.checked)}
-              type="checkbox"
-            />
-          </label>
+          {!isEditing ? (
+            <label className="toggle-row">
+              <span>Fill your spot</span>
+              <input
+                checked={fillYourSpot}
+                onChange={(changeEvent) =>
+                  setFillYourSpot(changeEvent.target.checked)
+                }
+                type="checkbox"
+              />
+            </label>
+          ) : null}
         </div>
 
         <div className="form-section">

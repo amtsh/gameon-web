@@ -260,7 +260,12 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      approve_join_request: {
+        Args: { request_id: string };
+        Returns: undefined;
+      };
+    };
     Enums: {
       sport_kind: SportKind;
       skill_level: SkillLevel;
