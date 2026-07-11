@@ -2,7 +2,7 @@
 
 import { Sheet, Scroll, type SheetViewProps } from "@silk-hq/components";
 import { Plus, User } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import { activeUserEvents, groupedDiscoverableEvents } from "../event-feed";
@@ -26,6 +26,19 @@ type Props = {
   onOpenSheet: (sheet: SheetName) => void;
 };
 
+/** Returns true once the viewport is ≥820 px wide (matches GamesSheet.css breakpoint). */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 820px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
+
 export function GamesSheet({
   events,
   pastEvents,
@@ -48,11 +61,23 @@ export function GamesSheet({
   );
   const pastGames = pastEvents;
 
+  const isDesktop = useIsDesktop();
+
+  // On desktop: single detent (full), sheet is always open, can't collapse.
+  // On mobile: half (62svh) + full (100%).
+  const detents = isDesktop ? (["100%"] as const) : (["62svh", "100%"] as const);
+
   // Track whether the sheet has reached its topmost (full) detent.
   // When false the list must NOT scroll — every upward finger movement
   // should drag the sheet, not scroll the content.
-  const [atFullDetent, setAtFullDetent] = useState(false);
+  // On desktop we're always at full detent.
+  const [atFullDetent, setAtFullDetent] = useState(isDesktop);
   const viewRef = useRef<HTMLElement>(null);
+
+  // Keep atFullDetent in sync when switching between mobile/desktop.
+  useEffect(() => {
+    if (isDesktop) setAtFullDetent(true);
+  }, [isDesktop]);
 
   // When the sheet starts travelling back down, dismiss the on-screen
   // keyboard (same technique used in SheetWithDetent example).
@@ -73,29 +98,29 @@ export function GamesSheet({
     <Sheet.Root
       license="commercial"
       defaultPresented={true}
-      activeDetent={activeDetent}
-      onActiveDetentChange={onActiveDetentChange}
+      // On desktop always start at the only detent (index 1, i.e. 100%).
+      // On mobile start at half (index 1 in 1-based Silk API = first detent).
+      activeDetent={isDesktop ? 1 : activeDetent}
+      onActiveDetentChange={isDesktop ? undefined : onActiveDetentChange}
     >
       <Sheet.Portal>
         <Sheet.View
           className="GamesSheet-view"
-          // Half and full — full stops at the view top (below status bar).
-          detents={["62svh", "100%"]}
+          detents={detents}
           swipeOvershoot={false}
           swipeDismissal={false}
-          // Non-modal, like iOS presentationBackgroundInteraction(.enabled):
-          // the map and floating actions stay interactive.
+          // Non-modal: map and floating actions stay interactive.
           inertOutside={false}
           onClickOutside={{ dismiss: false, stopOverlayPropagation: true }}
           onEscapeKeyDown={{ dismiss: false, stopOverlayPropagation: true }}
           nativeEdgeSwipePrevention={true}
           onTravelStatusChange={(status) => {
-            // Reset scroll when the sheet collapses back to outside/half.
-            if (status === "idleOutside") setAtFullDetent(false);
+            if (!isDesktop && status === "idleOutside") setAtFullDetent(false);
           }}
           onTravelRangeChange={(range) => {
-            // range.end === 2 means the sheet reached the last (full) detent.
-            if (range.end === 2) setAtFullDetent(true);
+            // On mobile: range.end === 2 means reached the last (full) detent.
+            // On desktop: always at full.
+            if (isDesktop || range.end === 2) setAtFullDetent(true);
           }}
           onTravel={travelHandler}
           ref={setRefs}
@@ -107,12 +132,14 @@ export function GamesSheet({
               <Sheet.SpecialWrapper.Content className="GamesSheet-specialWrapperContent">
                 <Sheet.BleedingBackground className="GamesSheet-bleedingBackground" />
 
-                {/* Grabber — cycles detents at half; dismisses at full */}
-                <Sheet.Handle
-                  className="GamesSheet-handle"
-                  action={atFullDetent ? "dismiss" : "step"}
-                  aria-label="Resize sheet"
-                />
+                {/* Handle: hidden on desktop (nothing to drag between) */}
+                {!isDesktop && (
+                  <Sheet.Handle
+                    className="GamesSheet-handle"
+                    action={atFullDetent ? "dismiss" : "step"}
+                    aria-label="Resize sheet"
+                  />
+                )}
 
                 <header className="GamesSheet-header">
                   <div className="min-w-0 flex-1">
