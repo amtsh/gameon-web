@@ -56,7 +56,6 @@ export default function GameOnApp({
   const [activeSheet, setActiveSheet] = useState<SheetName>(null);
   const contactReturnSheet = useRef<SheetName>(null);
   const [showingPast, setShowingPast] = useState(false);
-  const [locateToken, setLocateToken] = useState(0);
   const [detailEvent, setDetailEvent] = useState<SportEvent | undefined>(
     initialSharedEvent ?? undefined,
   );
