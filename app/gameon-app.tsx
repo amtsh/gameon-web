@@ -18,6 +18,7 @@ import {
   storeDiscoveryCenter,
 } from "@/lib/location/discovery.client";
 import { DISCOVERY_RADIUS_KM } from "@/lib/location/constants";
+import { pickLatestHostedEvent } from "@/lib/create-event/prefill";
 import { createClient } from "@/lib/supabase/client";
 import { AppMap } from "./components/AppMap";
 import { ContactSheet } from "./components/ContactSheet";
@@ -238,6 +239,11 @@ export default function GameOnApp({
     return [...events, detailEvent];
   }, [events, detailEvent]);
 
+  const lastHostedEvent = useMemo(
+    () => pickLatestHostedEvent([...events, ...pastEvents]),
+    [events, pastEvents],
+  );
+
   return (
     <main className="gameon-root">
       <AppMap
@@ -306,6 +312,7 @@ export default function GameOnApp({
         onContact={() => openContact("create")}
         profile={profile}
         editEvent={editEvent}
+        prefillFromEvent={lastHostedEvent}
         onSaved={refreshSessionData}
       />
       <ProfileSheet

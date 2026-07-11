@@ -13,6 +13,10 @@ import type { Profile } from "@/lib/data/profile.shared";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 import { VenueSearchField } from "./VenueSearchField";
+import {
+  buildCreatePrefill,
+  toLocalDateTimeInput,
+} from "@/lib/create-event/prefill";
 import type { SkillLevel, SportEvent, SportKind, Venue } from "../types";
 
 type CreateEventValues = {
@@ -30,6 +34,7 @@ type Props = {
   onContact: () => void;
   profile: Profile | null;
   editEvent?: SportEvent;
+  prefillFromEvent?: SportEvent;
   onSaved: () => void | Promise<void>;
 };
 
@@ -40,18 +45,13 @@ const skillLevels: Array<{ id: SkillLevel; label: string }> = [
   { id: "advanced", label: "Advanced" },
 ];
 
-function toLocalDateTimeInput(iso: string) {
-  const date = new Date(iso);
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 export function CreateEventSheet({
   presented,
   onPresentedChange,
   onContact,
   profile,
   editEvent,
+  prefillFromEvent,
   onSaved,
 }: Props) {
   const isEditing = Boolean(editEvent);
@@ -102,6 +102,24 @@ export function CreateEventSheet({
         return;
       }
 
+      if (prefillFromEvent) {
+        const prefill = buildCreatePrefill(prefillFromEvent);
+        setSport(prefill.sport);
+        setSkillLevel(prefill.skillLevel);
+        setVenue(prefill.venue);
+        setFillYourSpot(true);
+        setAutoApprove(prefill.autoApprove);
+        reset({
+          title: prefill.title,
+          startsAt: prefill.startsAt,
+          endsAt: prefill.endsAt,
+          capacity: prefill.capacity,
+          cost: prefill.cost,
+          description: prefill.description,
+        });
+        return;
+      }
+
       setSport("badminton");
       setSkillLevel("any");
       setVenue(null);
@@ -118,7 +136,7 @@ export function CreateEventSheet({
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [editEvent, presented, reset]);
+  }, [editEvent, prefillFromEvent, presented, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     if (!venue) return;
