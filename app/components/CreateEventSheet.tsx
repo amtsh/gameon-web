@@ -359,7 +359,11 @@ export function CreateEventSheet({
         <div className="form-section">
           <p className="form-label">Description</p>
           <textarea
-            placeholder="Description (optional)"
+            placeholder={
+              "A good description is\n" +
+              "- Greet and tell players what to expect\n" +
+              "- How payment works. (Prefer payment on venue)"
+            }
             rows={4}
             {...register("description")}
           />

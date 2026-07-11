@@ -634,8 +634,11 @@ function MetadataItem({
 }) {
   return (
     <div className="metadata-item">
-      <p className="meta-label">{icon}{label}</p>
-      <p className="meta-value">{value}</p>
+      <p className="meta-label">
+        {icon}
+        {label}
+      </p>
+      <div className="meta-value">{value}</div>
     </div>
   );
 }
