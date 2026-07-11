@@ -14,6 +14,13 @@ type Props = {
   /** If false, children manage their own scrolling
       (e.g. detail sheet's pinned bottom bar). */
   scroll?: boolean;
+  /**
+   * When true the sheet can only be dismissed via an explicit
+   * SheetDismissTrigger (e.g. the X button). Swipe-down and
+   * backdrop-tap are both disabled. Use for Create / Edit forms
+   * where accidental dismissal would lose unsaved work.
+   */
+  locked?: boolean;
   /** Controlled presentation. The sheet stays mounted; toggling this
       animates it in and out. Remounting Sheet.Root instead breaks
       Silk's dismissal/re-presentation lifecycle. */
@@ -27,6 +34,7 @@ export function ModalSheet({
   title,
   variant = "form",
   scroll = true,
+  locked = false,
   presented,
   onPresentedChange,
   children,
@@ -42,10 +50,16 @@ export function ModalSheet({
           className="ModalSheet-view"
           swipeOvershoot={false}
           nativeEdgeSwipePrevention={true}
+          // locked: disable every passive dismissal path
+          swipeDismissal={locked ? false : true}
+          onClickOutside={locked ? { dismiss: false } : { dismiss: true }}
+          onEscapeKeyDown={locked ? { dismiss: false } : { dismiss: true }}
         >
           <Sheet.Backdrop
             className="ModalSheet-backdrop"
             travelAnimation={{ opacity: [0, 1] }}
+            // Locked sheets: tapping the backdrop does nothing
+            tappable={!locked}
           />
           <Sheet.Content
             className={clsx("ModalSheet-content", variant)}
@@ -57,11 +71,14 @@ export function ModalSheet({
             <VisuallyHidden.Root asChild>
               <Sheet.Title>{title}</Sheet.Title>
             </VisuallyHidden.Root>
-            <Sheet.Handle
-              className="ModalSheet-handle"
-              action="dismiss"
-              aria-label="Close sheet"
-            />
+            {/* Handle is hidden on locked sheets — dragging down is disabled */}
+            {!locked && (
+              <Sheet.Handle
+                className="ModalSheet-handle"
+                action="dismiss"
+                aria-label="Close sheet"
+              />
+            )}
             {scroll ? (
               <ModalSheetScroll>{children}</ModalSheetScroll>
             ) : (

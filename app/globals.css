@@ -145,14 +145,11 @@ textarea {
 
 /* ── Sheet scroll areas: native thin scrollbar ── */
 .sheet-scroll-view {
-  /* Firefox: thin track, auto-colour based on surface */
   scrollbar-width: thin;
   scrollbar-color: var(--separator) transparent;
-  /* Reserve gutter so content width doesn't jump when bar appears */
   scrollbar-gutter: stable;
 }
 
-/* Webkit (Chrome, Safari, Edge) */
 .sheet-scroll-view::-webkit-scrollbar {
   width: 6px;
 }
@@ -165,11 +162,9 @@ textarea {
 .sheet-scroll-view::-webkit-scrollbar-thumb {
   background: var(--separator);
   border-radius: 9999px;
-  /* Fade out when not scrolling on desktop */
   transition: background 200ms ease;
 }
 
-/* On desktop: dim the thumb when idle, brighten on hover/active */
 @media (hover: hover) {
   .sheet-scroll-view::-webkit-scrollbar-thumb {
     background: transparent;
@@ -183,6 +178,35 @@ textarea {
   .sheet-scroll-view::-webkit-scrollbar-thumb:active {
     background: var(--label-text);
   }
+}
+
+/* ── Sheet close button (locked sheets: X inside a circle) ──
+   Matches .circle-button visually but is sized slightly smaller (38px)
+   so it sits neatly inside the sheet-nav grid cell. */
+.sheet-close-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--subtle-surface);
+  color: var(--primary-text);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.sheet-close-btn:hover {
+  background: var(--field-surface);
+  border-color: var(--separator);
+}
+
+.sheet-close-btn:active {
+  background: var(--separator);
+  box-shadow: none;
 }
 
 .gameon-root {
@@ -218,7 +242,6 @@ textarea {
   z-index: 2;
 }
 
-/* EventMapMarker.swift: dark circle, white glyph, sport accent ring + glow */
 .map-marker {
   display: grid;
   width: 36px;
@@ -242,7 +265,6 @@ textarea {
   border-width: 4px;
 }
 
-/* MapFloatingActionCluster: blurred capsule, top-left */
 .floating-actions {
   position: absolute;
   z-index: 4;
@@ -315,7 +337,6 @@ textarea {
   object-fit: cover;
 }
 
-/* Interest chips: 12pt bold, selected = primary-action fill */
 .chip {
   display: inline-flex;
   flex: 0 0 auto;
@@ -336,7 +357,6 @@ textarea {
   color: var(--primary-action-fg);
 }
 
-/* Section headers */
 .section-title {
   padding: 18px 0 4px;
   color: var(--primary-text);
@@ -364,7 +384,6 @@ textarea {
   color: var(--tertiary-text);
 }
 
-/* EventRow */
 .event-row {
   position: relative;
   display: flex;
@@ -441,7 +460,6 @@ textarea {
   margin-top: 8px;
 }
 
-/* Status badges (EventStatusBadges.swift) */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -503,7 +521,6 @@ textarea {
   background: var(--app-background);
 }
 
-/* Confirmation dialog (iOS confirmationDialog) */
 .confirm-backdrop {
   position: fixed;
   z-index: 40;
@@ -551,7 +568,6 @@ textarea {
   font-weight: 600;
 }
 
-/* Detail sheet pieces (EventDetailView.swift) */
 .detail-label {
   color: var(--label-text);
   font-size: 13.5px;
@@ -628,7 +644,6 @@ textarea {
   font-weight: 700;
 }
 
-/* Buttons */
 .primary-action {
   width: 100%;
   height: 52px;
@@ -768,7 +783,6 @@ textarea {
   color: var(--warning);
 }
 
-/* Form sheets (iOS grouped Form look) */
 .sheet-nav {
   position: sticky;
   z-index: 1;
@@ -855,7 +869,6 @@ textarea {
   gap: 8px;
 }
 
-/* Floating results overlay under the input */
 .venue-results {
   position: absolute;
   z-index: 30;

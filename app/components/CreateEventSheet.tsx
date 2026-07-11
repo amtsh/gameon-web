@@ -82,8 +82,6 @@ export function CreateEventSheet({
   useEffect(() => {
     if (!presented) return;
 
-    // Deferred one frame: React's lint forbids synchronous setState in
-    // effects, and the reset is invisible behind the sheet-open animation.
     const frame = requestAnimationFrame(() => {
       if (editEvent) {
         setSport(editEvent.sport);
@@ -202,14 +200,20 @@ export function CreateEventSheet({
     <ModalSheet
       height="96svh"
       title={sheetTitle}
+      locked
       presented={presented}
       onPresentedChange={onPresentedChange}
     >
       <form className="create-event-form" onSubmit={onSubmit}>
         <header className="sheet-nav">
+          {/* Circle close button — only way to dismiss this locked sheet */}
           <SheetDismissTrigger>
-            <button aria-label="Close" type="button">
-              <X size={20} />
+            <button
+              aria-label="Close"
+              className="sheet-close-btn"
+              type="button"
+            >
+              <X size={18} strokeWidth={2.5} />
             </button>
           </SheetDismissTrigger>
           <h2>{sheetTitle}</h2>
