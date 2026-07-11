@@ -1,15 +1,6 @@
 import { NextResponse } from "next/server";
+import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { createClient } from "@/lib/supabase/server";
-
-/** Only same-origin paths — "//evil.com" or "https://evil.com" in `next`
-    would otherwise turn this endpoint into an open redirect. */
-function safeNextPath(raw: string | null): string {
-  if (!raw) return "/";
-  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) {
-    return "/";
-  }
-  return raw;
-}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
