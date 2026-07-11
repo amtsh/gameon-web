@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@iconify/react";
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signInWithGoogle } from "@/lib/auth/google";
@@ -30,6 +29,36 @@ type Props = {
 };
 
 type Method = "whatsapp" | "telegram";
+
+// Inline Google "G" logo — avoids external icon dependency
+function GoogleIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      height="18"
+      viewBox="0 0 18 18"
+      width="18"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z"
+        fill="#4285F4"
+      />
+      <path
+        d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332Z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.169 6.656 3.58 9 3.58Z"
+        fill="#EA4335"
+      />
+    </svg>
+  );
+}
 
 export function JoinGuideSheet({
   event,
@@ -65,7 +94,6 @@ export function JoinGuideSheet({
   const executeJoin = useCallback(
     async (profileForJoin: Profile) => {
       const prefs = await sportPreferencesMap();
-      // Full games are routed to the waitlist by the database.
       await requestToJoin(event.id, profileForJoin, event.sport, prefs);
       await onJoined();
       onPresentedChange(false);
@@ -92,7 +120,6 @@ export function JoinGuideSheet({
 
   useEffect(() => {
     if (!presented || step !== null) return;
-    // Deferred: the lint forbids synchronous setState in effects.
     const frame = requestAnimationFrame(() => void completeJoinIfReady());
     return () => cancelAnimationFrame(frame);
   }, [completeJoinIfReady, presented, step]);
@@ -138,7 +165,6 @@ export function JoinGuideSheet({
     }
   };
 
-  const stepIndex = step === "signIn" ? 1 : step === "contact" ? 2 : 3;
   const actionLabel = isWaitlist ? "Join waitlist" : "Request to join";
 
   return (
@@ -149,16 +175,6 @@ export function JoinGuideSheet({
       onPresentedChange={onPresentedChange}
     >
       <div className="join-guide px-4 pb-6">
-        <p className="join-guide-eyebrow">
-          Step {stepIndex} of 2 · {actionLabel}
-        </p>
-
-        <div className="join-guide-steps" aria-hidden="true">
-          <span className={stepIndex >= 1 ? "active" : ""}>Sign in</span>
-          <span className="join-guide-divider" />
-          <span className={stepIndex >= 2 ? "active" : ""}>Contact</span>
-        </div>
-
         {step === "signIn" ? (
           <>
             <h2 className="detail-title mt-4">Sign in to join this game</h2>
@@ -166,12 +182,17 @@ export function JoinGuideSheet({
               We&apos;ll bring you right back here to finish joining.
             </p>
             <button
-              className="primary-action mt-6"
+              className="google-sign-in mt-6"
               disabled={authBusy || busy}
               onClick={() => void handleSignIn()}
               type="button"
             >
-              {authBusy || busy ? "Redirecting\u2026" : "Continue with Google"}
+              <span className="google-sign-in-icon">
+                <GoogleIcon />
+              </span>
+              <span className="google-sign-in-label">
+                {authBusy || busy ? "Redirecting\u2026" : "Continue with Google"}
+              </span>
             </button>
           </>
         ) : null}
@@ -228,11 +249,6 @@ export function JoinGuideSheet({
         ) : null}
 
         {error ? <p className="form-error mt-4">{error}</p> : null}
-
-        <p className="join-guide-footnote mt-4">
-          <Icon icon="mdi:shield-check-outline" width={14} />
-          {event.title}
-        </p>
       </div>
     </ModalSheet>
   );
