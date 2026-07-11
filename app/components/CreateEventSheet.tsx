@@ -27,6 +27,7 @@ type CreateEventValues = {
 type Props = {
   presented: boolean;
   onPresentedChange: (presented: boolean) => void;
+  onContact: () => void;
   profile: Profile | null;
   editEvent?: SportEvent;
   onSaved: () => void | Promise<void>;
@@ -48,6 +49,7 @@ function toLocalDateTimeInput(iso: string) {
 export function CreateEventSheet({
   presented,
   onPresentedChange,
+  onContact,
   profile,
   editEvent,
   onSaved,
@@ -194,8 +196,8 @@ export function CreateEventSheet({
           >
             {isSubmitting
               ? isEditing
-                ? "Saving…"
-                : "Creating…"
+                ? "Saving\u2026"
+                : "Creating\u2026"
               : isEditing
                 ? "Save"
                 : "Create"}
@@ -302,14 +304,17 @@ export function CreateEventSheet({
               }
               width={20}
             />
-            <span className="min-w-0 flex-1">
+            <span className="flex-1">
               <span className="detail-caption block" style={{ fontWeight: 700 }}>
                 Shared after approval
               </span>
               <span className="detail-body">
-                {contactValue ?? "Add contact in profile"}
+                {contactValue ?? "Not set"}
               </span>
             </span>
+            <button className="link-button" onClick={onContact} type="button">
+              Edit
+            </button>
           </div>
         </div>
 

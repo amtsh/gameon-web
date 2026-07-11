@@ -42,6 +42,8 @@ export default function GameOnApp({
   const [authBusy, setAuthBusy] = useState(false);
   const [selectedSports, setSelectedSports] = useState<SportKind[]>([]);
   const [activeSheet, setActiveSheet] = useState<SheetName>(null);
+  // Track which sheet opened ContactSheet so we can return to it on dismiss.
+  const contactReturnSheet = useRef<SheetName>(null);
   const [showingPast, setShowingPast] = useState(false);
   const [locateToken, setLocateToken] = useState(0);
   const [detailEvent, setDetailEvent] = useState<SportEvent | undefined>();
@@ -215,6 +217,11 @@ export default function GameOnApp({
     setGamesDetent(Math.max(1, detent));
   }, []);
 
+  const openContact = useCallback((returnTo: SheetName) => {
+    contactReturnSheet.current = returnTo;
+    setActiveSheet("contact");
+  }, []);
+
   return (
     <main className="gameon-root">
       <AppMap
@@ -266,6 +273,7 @@ export default function GameOnApp({
           if (!presented) setEditEvent(undefined);
           setActiveSheet(presented ? "create" : null);
         }}
+        onContact={() => openContact("create")}
         profile={profile}
         editEvent={editEvent}
         onSaved={refreshSessionData}
@@ -275,7 +283,7 @@ export default function GameOnApp({
         onPresentedChange={(presented) =>
           setActiveSheet(presented ? "profile" : null)
         }
-        onContact={() => setActiveSheet("contact")}
+        onContact={() => openContact("profile")}
         user={user}
         profile={profile}
         authBusy={authBusy}
@@ -285,9 +293,14 @@ export default function GameOnApp({
       />
       <ContactSheet
         presented={activeSheet === "contact"}
-        onPresentedChange={(presented) =>
-          setActiveSheet(presented ? "contact" : "profile")
-        }
+        onPresentedChange={(presented) => {
+          if (presented) {
+            setActiveSheet("contact");
+          } else {
+            // Return to whichever sheet opened the contact editor.
+            setActiveSheet(contactReturnSheet.current);
+          }
+        }}
         profile={profile}
         onSaved={refreshSessionData}
       />
