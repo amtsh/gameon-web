@@ -300,68 +300,35 @@ export function EventDetailSheet({
             icon={<User size={12} />}
             label="Host"
             value={
-              event.isCreatedByCurrentUser ? "You" : event.hostName ?? "Host"
+              event.isCreatedByCurrentUser ? (
+                "You"
+              ) : (
+                <>
+                  <span className="block">{event.hostName ?? "Host"}</span>
+                  {hostContactHref &&
+                  hostContact?.eventId === event.id ? (
+                    <a
+                      className="host-meta-contact link-info mt-1.5 inline-flex"
+                      href={hostContactHref}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <Icon
+                        icon={
+                          hostContact.contact.method === "telegram"
+                            ? "mdi:telegram"
+                            : "mdi:whatsapp"
+                        }
+                        width={12}
+                      />
+                      {hostContact.contact.value}
+                    </a>
+                  ) : null}
+                </>
+              )
             }
           />
         </div>
-
-        {contactEligible && hostContact?.eventId === event.id ? (
-          <>
-            <hr className="detail-divider my-6" />
-            <div className="pl-[17px]">
-              <p className="detail-label">Host contact</p>
-              {hostContactHref ? (
-                <a
-                  className="host-contact-link mt-1.5"
-                  href={hostContactHref}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <span
-                    className="detail-caption block"
-                    style={{ fontWeight: 700 }}
-                  >
-                    <Icon
-                      className="mr-1.5 inline-block align-[-2px] text-[var(--muted-icon)]"
-                      icon={
-                        hostContact.contact.method === "telegram"
-                          ? "mdi:telegram"
-                          : "mdi:whatsapp"
-                      }
-                      width={14}
-                    />
-                    {event.hostName ?? "Host"} on{" "}
-                    {hostContact.contact.method === "telegram"
-                      ? "Telegram"
-                      : "WhatsApp"}
-                  </span>
-                  <span className="host-contact-value link-info mt-1 inline-flex">
-                    {hostContact.contact.value}
-                  </span>
-                </a>
-              ) : (
-                <>
-                  <p className="detail-caption mt-1.5" style={{ fontWeight: 700 }}>
-                    <Icon
-                      className="mr-1.5 inline-block align-[-2px] text-[var(--muted-icon)]"
-                      icon={
-                        hostContact.contact.method === "telegram"
-                          ? "mdi:telegram"
-                          : "mdi:whatsapp"
-                      }
-                      width={14}
-                    />
-                    {event.hostName ?? "Host"} on{" "}
-                    {hostContact.contact.method === "telegram"
-                      ? "Telegram"
-                      : "WhatsApp"}
-                  </p>
-                  <p className="detail-body">{hostContact.contact.value}</p>
-                </>
-              )}
-            </div>
-          </>
-        ) : null}
 
         {event.description ? (
           <div className="mt-6 pl-[17px]">
@@ -501,7 +468,7 @@ function MetadataItem({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="metadata-item">
