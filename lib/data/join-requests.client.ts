@@ -82,18 +82,17 @@ export async function fetchApprovedPlayers(
       .select("id, name")
       .in("id", profileIds),
     supabase
-      .from("event_join_requests")
-      .select("requester_id, requester_level")
+      .from("event_player_levels")
+      .select("profile_id, requester_level")
       .eq("event_id", eventId)
-      .eq("status", "approved")
-      .in("requester_id", profileIds),
+      .in("profile_id", profileIds),
   ]);
 
   if (profileError) throw profileError;
   if (requestError) throw requestError;
 
   const levelByProfile = new Map(
-    (requests ?? []).map((row) => [row.requester_id, row.requester_level]),
+    (requests ?? []).map((row) => [row.profile_id, row.requester_level]),
   );
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));

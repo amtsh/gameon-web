@@ -50,6 +50,7 @@ export function ModalSheet({
           className="ModalSheet-view"
           swipeOvershoot={false}
           nativeEdgeSwipePrevention={true}
+          onPresentAutoFocus={{ focus: false }}
           // locked: disable every passive dismissal path
           swipeDismissal={locked ? false : true}
           onClickOutside={locked ? { dismiss: false } : { dismiss: true }}

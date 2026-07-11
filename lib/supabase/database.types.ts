@@ -270,6 +270,29 @@ export type Database = {
         };
         Relationships: [];
       };
+      event_player_levels: {
+        Row: {
+          event_id: string;
+          profile_id: string;
+          requester_level: SkillLevel;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_join_requests_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "sport_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_join_requests_requester_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
       approve_join_request: {
