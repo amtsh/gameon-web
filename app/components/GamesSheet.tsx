@@ -1,8 +1,8 @@
 "use client";
 
-import { Sheet, Scroll } from "@silk-hq/components";
+import { Sheet, Scroll, type SheetViewProps } from "@silk-hq/components";
 import { Plus, User } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import {
@@ -50,6 +50,31 @@ export function GamesSheet({
   );
   const pastGames = pastEvents;
 
+  // Track whether the sheet has reached its topmost (full) detent.
+  // When false the list must NOT scroll — every upward finger movement
+  // should drag the sheet, not scroll the content.
+  const [atFullDetent, setAtFullDetent] = useState(false);
+  const viewRef = useRef<HTMLElement>(null);
+
+  // When the sheet starts travelling back down, dismiss the on-screen
+  // keyboard (same technique used in SheetWithDetent example).
+  const travelHandler = useMemo<SheetViewProps["onTravel"]>(() => {
+    if (!atFullDetent) return undefined;
+    return ({ progress, ...rest }) => {
+      if (viewRef.current && progress < 0.999) {
+        viewRef.current.focus();
+      }
+    };
+  }, [atFullDetent]);
+
+  const setRefs = useCallback(
+    (node: HTMLElement | null) => {
+      // @ts-ignore
+      viewRef.current = node;
+    },
+    [],
+  );
+
   return (
     <Sheet.Root
       license="commercial"
@@ -70,6 +95,16 @@ export function GamesSheet({
           onClickOutside={{ dismiss: false, stopOverlayPropagation: true }}
           onEscapeKeyDown={{ dismiss: false, stopOverlayPropagation: true }}
           nativeEdgeSwipePrevention={true}
+          onTravelStatusChange={(status) => {
+            // Reset scroll when the sheet collapses back to outside/half.
+            if (status === "idleOutside") setAtFullDetent(false);
+          }}
+          onTravelRangeChange={(range) => {
+            // range.end === 2 means the sheet reached the last (full) detent.
+            if (range.end === 2) setAtFullDetent(true);
+          }}
+          onTravel={travelHandler}
+          ref={setRefs}
         >
           <Sheet.Content className="GamesSheet-content">
             {/* Required for swipe to work in Safari when the sheet is
@@ -78,10 +113,10 @@ export function GamesSheet({
               <Sheet.SpecialWrapper.Content className="GamesSheet-specialWrapperContent">
                 <Sheet.BleedingBackground className="GamesSheet-bleedingBackground" />
 
-                {/* Grabber — action="step" cycles through detents */}
+                {/* Grabber — cycles detents at half; dismisses at full */}
                 <Sheet.Handle
                   className="GamesSheet-handle"
-                  action="step"
+                  action={atFullDetent ? "dismiss" : "step"}
                   aria-label="Resize sheet"
                 />
 
@@ -133,11 +168,16 @@ export function GamesSheet({
                 />
 
                 {/* Silk Scroll handles the gesture boundary between
-                    scrolling the list and dragging the sheet up/down */}
+                    scrolling the list and dragging the sheet up/down.
+                    scrollGesture is disabled until the sheet is fully
+                    expanded — prevents the list scroll from stealing
+                    the upward swipe at the half detent. */}
                 <Scroll.Root className="GamesSheet-scrollRoot">
                   <Scroll.View
                     className="GamesSheet-scrollView no-scrollbar"
                     scrollGestureTrap={{ yEnd: true }}
+                    scrollGesture={atFullDetent ? "auto" : false}
+                    safeArea="layout-viewport"
                     onScrollStart={{ dismissKeyboard: true }}
                   >
                     <Scroll.Content className="GamesSheet-scrollContent">
