@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { downloadSportEventIcs } from "@/lib/calendar/download-ics.client";
 import { contactUrl } from "@/lib/contact-url";
 import { deleteSportEvent } from "@/lib/data/create-event.client";
 import {
@@ -122,6 +123,8 @@ export function EventDetailSheet({
   const sport = sports.find((candidate) => candidate.id === event.sport);
   const spots = spotsLeft(event);
   const archived = isArchived(event);
+  const canAddToCalendar =
+    !archived && (event.isJoined || event.isCreatedByCurrentUser);
 
   const shareUrl = useMemo(() => {
     if (typeof window === "undefined") return `/game/${event.id}`;
@@ -216,6 +219,10 @@ export function EventDetailSheet({
     }
   }, [event.title, shareUrl]);
 
+  const handleAddToCalendar = useCallback(() => {
+    downloadSportEventIcs(event, shareUrl);
+  }, [event, shareUrl]);
+
   const handleConfirm = async () => {
     if (!confirming) return;
     const kind = confirming;
@@ -296,6 +303,21 @@ export function EventDetailSheet({
           <div className="min-w-0 flex-1">
             <p className="detail-label">When</p>
             <p className="detail-body mt-1.5">{dateTimeText}</p>
+            {canAddToCalendar ? (
+              <>
+                <button
+                  className="link-info mt-1.5"
+                  onClick={handleAddToCalendar}
+                  type="button"
+                >
+                  Add to calendar
+                  <ChevronRight size={14} strokeWidth={3} />
+                </button>
+                <p className="detail-caption mt-1">
+                  Reminders 24h and 1h before
+                </p>
+              </>
+            ) : null}
           </div>
         </div>
 
