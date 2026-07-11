@@ -72,6 +72,22 @@ const skillLevelLabels: Record<SportEvent["skillLevel"], string> = {
   advanced: "Advanced",
 };
 
+/** Extract the most useful message from a Supabase or generic error. */
+function extractErrorMessage(error: unknown): string {
+  if (!error) return "Something went wrong";
+  if (error instanceof Error && error.message) return error.message;
+  // Supabase errors: { message, details, hint, code }
+  if (typeof error === "object") {
+    const e = error as Record<string, unknown>;
+    const msg = [e.message, e.details, e.hint]
+      .filter((v) => typeof v === "string" && v.trim())
+      .join(" — ");
+    if (msg) return msg;
+    if (e.code) return `Error ${String(e.code)}`;
+  }
+  return "Something went wrong";
+}
+
 export function EventDetailSheet({
   event,
   profile,
@@ -109,9 +125,7 @@ export function EventDetailSheet({
     try {
       setPendingRequests(await fetchPendingJoinRequests(event.id));
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "Could not load requests",
-      );
+      setActionError(extractErrorMessage(error));
     }
   }, [archived, event.id, event.isCreatedByCurrentUser]);
 
@@ -121,9 +135,6 @@ export function EventDetailSheet({
     return () => cancelAnimationFrame(frame);
   }, [loadRequests, presented]);
 
-  // Host contact is never in the event payload — the DB releases it only to
-  // the host, approved participants, or approved requesters via RPC. The
-  // result is tagged with its event id so a stale value never renders.
   const contactEligible =
     presented && isSignedIn && Boolean(event.isJoined) &&
     !event.isCreatedByCurrentUser;
@@ -157,23 +168,24 @@ export function EventDetailSheet({
       await onMutated();
       await loadRequests();
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "Something went wrong",
-      );
+      setActionError(extractErrorMessage(error));
     } finally {
       setBusy(false);
     }
   };
 
-  const handleJoin = async () => {
+  const handleJoin = () => {
     if (!profile) {
       setActionError("Profile not loaded");
       return;
     }
-    const prefs = await sportPreferencesMap();
-    await runMutation(() =>
-      requestToJoin(event.id, profile, event.sport, prefs),
-    );
+    // sportPreferencesMap is fetched inside runMutation so any error
+    // it throws is caught and shown — previously it ran outside and
+    // errors were silently swallowed.
+    void runMutation(async () => {
+      const prefs = await sportPreferencesMap();
+      await requestToJoin(event.id, profile, event.sport, prefs);
+    });
   };
 
   const handleConfirm = async () => {
@@ -197,7 +209,7 @@ export function EventDetailSheet({
     }
   };
 
-  const dateTimeText = `${detailDate(new Date(event.startsAt))} · ${clockTime(
+  const dateTimeText = `${detailDate(new Date(event.startsAt))} \u00b7 ${clockTime(
     new Date(event.startsAt),
   )} - ${clockTime(new Date(event.endsAt))}`;
 
@@ -205,7 +217,7 @@ export function EventDetailSheet({
     [event.venue.address, event.venue.city].filter(Boolean).join(", "),
   ]
     .filter(Boolean)
-    .join(" · ");
+    .join(" \u00b7 ");
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${event.venue.name}, ${event.venue.city ?? ""}`,
@@ -353,11 +365,7 @@ export function EventDetailSheet({
                       await onMutated();
                       await loadRequests();
                     } catch (error) {
-                      setActionError(
-                        error instanceof Error
-                          ? error.message
-                          : "Could not approve request",
-                      );
+                      setActionError(extractErrorMessage(error));
                     } finally {
                       setApprovingId(null);
                     }
@@ -432,14 +440,14 @@ export function EventDetailSheet({
                   setConfirming("withdraw");
                   return;
                 }
-                void handleJoin();
+                handleJoin();
               }}
               type="button"
             >
               {!isSignedIn
                 ? "Sign in to join"
                 : busy
-                  ? "Working…"
+                  ? "Working\u2026"
                   : event.hasPendingRequest
                     ? "Withdraw request"
                     : spots === 0
@@ -502,7 +510,7 @@ function PendingRequestRows({
               {requester.requesterName}
             </p>
             <p className="detail-caption mt-1">
-              {skillLevelLabels[requester.requesterLevel]} · Pending
+              {skillLevelLabels[requester.requesterLevel]} \u00b7 Pending
             </p>
           </div>
           <button
@@ -511,7 +519,7 @@ function PendingRequestRows({
             onClick={() => onApprove(requester.id)}
             type="button"
           >
-            {approvingId === requester.id ? "…" : "Approve"}
+            {approvingId === requester.id ? "\u2026" : "Approve"}
           </button>
         </div>
       ))}
