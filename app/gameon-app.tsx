@@ -132,6 +132,7 @@ export default function GameOnApp({
       .on("postgres_changes", { event: "*", schema: "public", table: "sport_events" }, () => { void refreshSessionData(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "event_participants" }, () => { void refreshSessionData(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "event_join_requests" }, () => { void refreshSessionData(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_waitlist" }, () => { void refreshSessionData(); })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [refreshSessionData, usesSupabase]);

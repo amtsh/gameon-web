@@ -46,6 +46,7 @@ type UserEventContext = {
   hostedEventIds: Set<string>;
   participantEventIds: Set<string>;
   pendingRequestEventIds: Set<string>;
+  waitlistEventIds: Set<string>;
 };
 
 export function isUserRelatedEvent(
@@ -55,7 +56,8 @@ export function isUserRelatedEvent(
   return (
     ctx.hostedEventIds.has(eventId) ||
     ctx.participantEventIds.has(eventId) ||
-    ctx.pendingRequestEventIds.has(eventId)
+    ctx.pendingRequestEventIds.has(eventId) ||
+    ctx.waitlistEventIds.has(eventId)
   );
 }
 

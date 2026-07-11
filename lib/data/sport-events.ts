@@ -22,6 +22,7 @@ type PublicSportEventRow = Omit<
 type EventContext = {
   participantEventIds: Set<string>;
   pendingRequestEventIds: Set<string>;
+  waitlistEventIds: Set<string>;
   hostedEventIds: Set<string>;
   pendingRequestCounts: Map<string, number>;
 };
@@ -35,6 +36,7 @@ export function toSportEvent(
   const isHosted = ctx.hostedEventIds.has(row.id);
   const isJoined = ctx.participantEventIds.has(row.id);
   const hasPendingRequest = ctx.pendingRequestEventIds.has(row.id);
+  const isOnWaitlist = ctx.waitlistEventIds.has(row.id);
 
   const venueCoords = {
     latitude: row.venue_latitude,
@@ -63,6 +65,7 @@ export function toSportEvent(
     isCreatedByCurrentUser: isHosted,
     isJoined,
     hasPendingRequest,
+    isOnWaitlist,
     pendingRequestCount: ctx.pendingRequestCounts.get(row.id),
     autoApprove: row.auto_approve,
     distanceKm: discovery
@@ -81,7 +84,7 @@ async function loadEventContext(
     .filter((event) => event.host_id === userId)
     .map((event) => event.id);
 
-  const [participants, requests, hostedPending] = await Promise.all([
+  const [participants, requests, waitlist, hostedPending] = await Promise.all([
     supabase
       .from("event_participants")
       .select("event_id")
@@ -92,6 +95,11 @@ async function loadEventContext(
       .select("event_id")
       .eq("requester_id", userId)
       .eq("status", "pending")
+      .in("event_id", eventIds),
+    supabase
+      .from("event_waitlist")
+      .select("event_id")
+      .eq("profile_id", userId)
       .in("event_id", eventIds),
     hostedEventIds.length > 0
       ? supabase
@@ -108,6 +116,9 @@ async function loadEventContext(
     ),
     pendingRequestEventIds: new Set(
       (requests.data ?? []).map((row) => row.event_id),
+    ),
+    waitlistEventIds: new Set(
+      (waitlist.data ?? []).map((row) => row.event_id),
     ),
     hostedEventIds: new Set(hostedEventIds),
     pendingRequestCounts: (hostedPending.data ?? []).reduce((map, row) => {
@@ -145,6 +156,7 @@ export async function loadSportEvents(
     : {
         participantEventIds: new Set<string>(),
         pendingRequestEventIds: new Set<string>(),
+        waitlistEventIds: new Set<string>(),
         hostedEventIds: new Set<string>(),
         pendingRequestCounts: new Map<string, number>(),
       };
@@ -191,6 +203,7 @@ export async function loadSportEvent(
     : {
         participantEventIds: new Set<string>(),
         pendingRequestEventIds: new Set<string>(),
+        waitlistEventIds: new Set<string>(),
         hostedEventIds: new Set<string>(),
         pendingRequestCounts: new Map<string, number>(),
       };

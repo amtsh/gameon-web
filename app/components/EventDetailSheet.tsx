@@ -18,7 +18,9 @@ import {
   approveJoinRequest,
   fetchHostContact,
   fetchPendingJoinRequests,
+  joinWaitlist,
   leaveEvent,
+  leaveWaitlist,
   requestToJoin,
   withdrawJoinRequest,
   type PendingJoinRequest,
@@ -58,6 +60,11 @@ const destructiveActions = {
     title: "Withdraw request?",
     message: "The host will no longer see your join request.",
     confirmLabel: "Withdraw Request",
+  },
+  leaveWaitlist: {
+    title: "Leave waitlist?",
+    message: "You will lose your spot in line if a place opens up.",
+    confirmLabel: "Leave Waitlist",
   },
   delete: {
     title: "Delete this game?",
@@ -182,6 +189,10 @@ export function EventDetailSheet({
     }
     void runMutation(async () => {
       const prefs = await sportPreferencesMap();
+      if (spots === 0) {
+        await joinWaitlist(event.id, profile, event.sport, prefs);
+        return;
+      }
       await requestToJoin(event.id, profile, event.sport, prefs);
     });
   };
@@ -211,6 +222,7 @@ export function EventDetailSheet({
     setConfirming(null);
     if (kind === "leave") { await runMutation(() => leaveEvent(event.id)); return; }
     if (kind === "withdraw") { await runMutation(() => withdrawJoinRequest(event.id)); return; }
+    if (kind === "leaveWaitlist") { await runMutation(() => leaveWaitlist(event.id)); return; }
     if (kind === "delete") {
       await runMutation(async () => {
         await deleteSportEvent(event.id);
@@ -268,6 +280,9 @@ export function EventDetailSheet({
               ) : null}
               {event.hasPendingRequest ? (
                 <span className="status-badge warning">Pending request</span>
+              ) : null}
+              {event.isOnWaitlist ? (
+                <span className="status-badge warning">On waitlist</span>
               ) : null}
             </div>
             {shareFeedback ? (
@@ -444,12 +459,15 @@ export function EventDetailSheet({
           ) : (
             <button
               className={
-                event.hasPendingRequest ? "primary-action danger" : "primary-action"
+                event.hasPendingRequest || event.isOnWaitlist
+                  ? "primary-action danger"
+                  : "primary-action"
               }
-              disabled={busy || (spots === 0 && !event.hasPendingRequest && isSignedIn)}
+              disabled={busy}
               onClick={() => {
                 if (!isSignedIn) { onRequireSignIn(); return; }
                 if (event.hasPendingRequest) { setConfirming("withdraw"); return; }
+                if (event.isOnWaitlist) { setConfirming("leaveWaitlist"); return; }
                 handleJoin();
               }}
               type="button"
@@ -460,9 +478,11 @@ export function EventDetailSheet({
                   ? "Working\u2026"
                   : event.hasPendingRequest
                     ? "Withdraw request"
-                    : spots === 0
-                      ? "Game full"
-                      : "Request to join"}
+                    : event.isOnWaitlist
+                      ? "Leave waitlist"
+                      : spots === 0
+                        ? "Join waitlist"
+                        : "Request to join"}
             </button>
           )}
         </div>

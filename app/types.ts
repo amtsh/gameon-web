@@ -39,6 +39,7 @@ export type SportEvent = {
   isCreatedByCurrentUser?: boolean;
   isJoined?: boolean;
   hasPendingRequest?: boolean;
+  isOnWaitlist?: boolean;
   pendingRequestCount?: number;
   hostName?: string;
   hostContact?: ContactInfo;

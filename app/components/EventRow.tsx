@@ -136,6 +136,12 @@ function rowBadges(event: SportEvent, isArchived: boolean) {
         Waiting for approval
       </span>,
     );
+  } else if (event.isOnWaitlist) {
+    badges.push(
+      <span className="status-badge warning" key="waitlist">
+        On waitlist
+      </span>,
+    );
   }
 
   if (badges.length === 0) return null;

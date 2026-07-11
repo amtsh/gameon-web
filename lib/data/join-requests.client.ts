@@ -76,6 +76,54 @@ export async function requestToJoin(
   if (error) throw error;
 }
 
+export async function joinWaitlist(
+  eventId: string,
+  profile: Profile,
+  sport: string,
+  sportPreferences: Map<string, SkillLevel>,
+) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Sign in to join the waitlist");
+  if (!profile.contact_method || !profile.contact_value?.trim()) {
+    throw new Error("Add contact info in your profile before joining");
+  }
+
+  const requesterLevel = sportPreferences.get(sport) ?? "beginner";
+
+  const { error } = await supabase.from("event_waitlist").upsert(
+    {
+      event_id: eventId,
+      profile_id: user.id,
+      requester_level: requesterLevel,
+      contact_method: profile.contact_method,
+      contact_value: profile.contact_value.trim(),
+    },
+    { onConflict: "event_id,profile_id" },
+  );
+
+  if (error) throw error;
+}
+
+export async function leaveWaitlist(eventId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sign in required");
+
+  const { error } = await supabase
+    .from("event_waitlist")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("profile_id", user.id);
+
+  if (error) throw error;
+}
+
 export async function withdrawJoinRequest(eventId: string) {
   const supabase = createClient();
   const {

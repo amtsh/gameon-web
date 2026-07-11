@@ -261,6 +261,48 @@ export type Database = {
           },
         ];
       };
+      event_waitlist: {
+        Row: {
+          event_id: string;
+          profile_id: string;
+          requester_level: SkillLevel;
+          contact_method: ContactMethod;
+          contact_value: string;
+          joined_at: string;
+        };
+        Insert: {
+          event_id: string;
+          profile_id: string;
+          requester_level?: SkillLevel;
+          contact_method: ContactMethod;
+          contact_value: string;
+          joined_at?: string;
+        };
+        Update: {
+          event_id?: string;
+          profile_id?: string;
+          requester_level?: SkillLevel;
+          contact_method?: ContactMethod;
+          contact_value?: string;
+          joined_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_waitlist_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "sport_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_waitlist_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       public_profiles: {

@@ -68,7 +68,10 @@ export const isArchived = (event: SportEvent, now = new Date()) =>
 
 export const isUserRelated = (event: SportEvent) =>
   Boolean(
-    event.isCreatedByCurrentUser || event.isJoined || event.hasPendingRequest,
+    event.isCreatedByCurrentUser ||
+      event.isJoined ||
+      event.hasPendingRequest ||
+      event.isOnWaitlist,
   );
 
 const byStart = (a: SportEvent, b: SportEvent) => {
