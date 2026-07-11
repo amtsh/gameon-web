@@ -298,7 +298,7 @@ export function EventDetailSheet({
               <Icon icon={sport?.icon ?? "mdi:trophy"} width={12} />
               {sport?.label}
             </p>
-            <div className="mt-2 flex items-start gap-3">
+            <div className="mt-1 flex items-start gap-3">
               <h2 className="detail-title flex-1">{event.title}</h2>
               <button
                 aria-label="Share game"
@@ -309,7 +309,7 @@ export function EventDetailSheet({
                 <Share2 size={18} />
               </button>
             </div>
-            <div className="row-badges">
+            <div className="row-badges mt-2">
               {event.isCreatedByCurrentUser ? <HostedByYouBadge /> : null}
               {event.isJoined && !event.isCreatedByCurrentUser ? (
                 <span className="status-badge success">You are going</span>
