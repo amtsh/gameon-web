@@ -13,6 +13,7 @@ export type CreateSportEventInput = {
   description?: string;
   venue: Venue;
   fillYourSpot: boolean;
+  autoApprove: boolean;
   profile: Profile;
 };
 
@@ -60,6 +61,7 @@ export async function createSportEvent(input: CreateSportEventInput) {
       venue_city: input.venue.city ?? null,
       venue_latitude: input.venue.latitude,
       venue_longitude: input.venue.longitude,
+      auto_approve: input.autoApprove,
     })
     .select("id")
     .single();
@@ -87,6 +89,7 @@ export type UpdateSportEventInput = Omit<
   eventId: string;
   profile: Profile;
 };
+
 
 export async function updateSportEvent(input: UpdateSportEventInput) {
   const supabase = createClient();
@@ -121,6 +124,7 @@ export async function updateSportEvent(input: UpdateSportEventInput) {
       venue_city: input.venue.city ?? null,
       venue_latitude: input.venue.latitude,
       venue_longitude: input.venue.longitude,
+      auto_approve: input.autoApprove,
     })
     .eq("id", input.eventId)
     .eq("host_id", user.id);

@@ -59,6 +59,7 @@ export function CreateEventSheet({
   const [skillLevel, setSkillLevel] = useState<SkillLevel>("any");
   const [venue, setVenue] = useState<Venue | null>(null);
   const [fillYourSpot, setFillYourSpot] = useState(true);
+  const [autoApprove, setAutoApprove] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
@@ -89,6 +90,7 @@ export function CreateEventSheet({
         setSkillLevel(editEvent.skillLevel);
         setVenue(editEvent.venue);
         setFillYourSpot(false);
+        setAutoApprove(editEvent.autoApprove ?? false);
         reset({
           title: editEvent.title,
           startsAt: toLocalDateTimeInput(editEvent.startsAt),
@@ -104,6 +106,7 @@ export function CreateEventSheet({
       setSkillLevel("any");
       setVenue(null);
       setFillYourSpot(true);
+      setAutoApprove(false);
       reset({
         title: "",
         startsAt: "2026-07-12T18:00",
@@ -139,6 +142,7 @@ export function CreateEventSheet({
           cost: values.cost,
           description: values.description,
           venue,
+          autoApprove,
           profile,
         });
       } else {
@@ -153,6 +157,7 @@ export function CreateEventSheet({
           description: values.description,
           venue,
           fillYourSpot,
+          autoApprove,
           profile,
         });
       }
@@ -293,6 +298,16 @@ export function CreateEventSheet({
               />
             </label>
           ) : null}
+          <label className="toggle-row">
+            <span>Auto approve requests</span>
+            <input
+              checked={autoApprove}
+              onChange={(changeEvent) =>
+                setAutoApprove(changeEvent.target.checked)
+              }
+              type="checkbox"
+            />
+          </label>
         </div>
 
         <div className="form-section">

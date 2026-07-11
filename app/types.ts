@@ -42,6 +42,7 @@ export type SportEvent = {
   pendingRequestCount?: number;
   hostName?: string;
   hostContact?: ContactInfo;
+  autoApprove?: boolean;
 };
 
 export type SheetName = "create" | "profile" | "contact" | "detail" | null;

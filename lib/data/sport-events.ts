@@ -5,7 +5,7 @@ import type { Database, SportEventRow } from "@/lib/supabase/database.types";
 const EVENT_COLUMNS =
   "id, host_id, sport, title, description, cost, skill_level, capacity, " +
   "attendee_count, starts_at, ends_at, venue_name, venue_address, venue_city, " +
-  "venue_country, venue_latitude, venue_longitude, created_at";
+  "venue_country, venue_latitude, venue_longitude, created_at, auto_approve";
 
 type PublicSportEventRow = Omit<
   SportEventRow,
@@ -51,6 +51,7 @@ export function toSportEvent(
     isJoined,
     hasPendingRequest,
     pendingRequestCount: ctx.pendingRequestCounts.get(row.id),
+    autoApprove: row.auto_approve,
   };
 }
 
