@@ -15,6 +15,7 @@ type Props = {
   pastEvents: SportEvent[];
   isSignedIn: boolean;
   avatarUrl?: string;
+  discoveryLocationLabel: string;
   selectedSports: SportKind[];
   showingPast: boolean;
   activeDetent: number;
@@ -44,6 +45,7 @@ export function GamesSheet({
   pastEvents,
   isSignedIn,
   avatarUrl,
+  discoveryLocationLabel,
   selectedSports,
   showingPast,
   activeDetent,
@@ -150,6 +152,8 @@ export function GamesSheet({
                       Nearby Games
                     </Sheet.Title>
                     <p className="hero-subtitle">
+                      {discoveryLocationLabel}
+                      <span style={{ color: "var(--label-text)" }}> · </span>
                       Within {DISCOVERY_RADIUS_KM} km radius around you
                     </p>
                   </div>

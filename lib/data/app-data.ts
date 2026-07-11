@@ -6,7 +6,7 @@ import {
   loadSportEvents,
 } from "@/lib/data/sport-events";
 import { loadProfile, type Profile } from "@/lib/data/profile.shared";
-import { resolveDiscoveryFilter } from "@/lib/location/discovery";
+import { initialDiscoveryFilter } from "@/lib/location/discovery";
 import type { Coordinates } from "@/lib/location/geo";
 import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
 import { createClient } from "@/lib/supabase/server";
@@ -33,7 +33,7 @@ export async function loadAppData(sharedEventId?: string): Promise<AppData> {
 
   const profile = user ? await loadProfile(supabase, user.id) : null;
   const ipLocation = readIpCoordinatesFromHeaderMap(await headers());
-  const discovery = resolveDiscoveryFilter(profile, null, ipLocation);
+  const discovery = initialDiscoveryFilter(profile, ipLocation);
 
   const [events, pastEvents, sharedEvent] = await Promise.all([
     loadSportEvents(supabase, user?.id, discovery),

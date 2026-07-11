@@ -23,7 +23,7 @@ export function getSiteMetadata(): Metadata {
     applicationName: siteName,
     keywords: [
       "local sports",
-      "pickup games",
+      "local games",
       "join sports events",
       "host sports games",
       "badminton",

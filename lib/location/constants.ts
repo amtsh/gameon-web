@@ -7,3 +7,6 @@ export const DEFAULT_DISCOVERY_CENTER: Coordinates = {
 };
 
 export const DISCOVERY_RADIUS_KM = 25;
+
+/** Human-readable label for the default discovery center. */
+export const DEFAULT_DISCOVERY_CITY = "Stockholm";

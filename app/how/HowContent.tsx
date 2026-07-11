@@ -3,8 +3,8 @@ export function HowContent() {
     <article className="how-doc">
       <h1>How GameOn works</h1>
       <p>
-        GameOn is a map-based app for discovering and joining local pickup
-        sports games, or hosting your own. Here is how the key behaviors work.
+        GameOn is a map-based app for discovering and joining local sports
+        games, or hosting your own. Here is how the key behaviors work.
       </p>
 
       <h2>Finding games near you</h2>
