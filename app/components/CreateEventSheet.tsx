@@ -61,6 +61,7 @@ export function CreateEventSheet({
   const [venue, setVenue] = useState<Venue | null>(null);
   const [fillYourSpot, setFillYourSpot] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
@@ -90,6 +91,7 @@ export function CreateEventSheet({
         setVenue(editEvent.venue);
         setFillYourSpot(false);
         setAutoApprove(editEvent.autoApprove ?? false);
+        setIsPrivate(editEvent.isPrivate ?? false);
         reset({
           title: editEvent.title,
           startsAt: toLocalDateTimeInput(editEvent.startsAt),
@@ -108,6 +110,7 @@ export function CreateEventSheet({
         setVenue(prefill.venue);
         setFillYourSpot(true);
         setAutoApprove(prefill.autoApprove);
+        setIsPrivate(prefill.isPrivate);
         reset({
           title: prefill.title,
           startsAt: prefill.startsAt,
@@ -124,6 +127,7 @@ export function CreateEventSheet({
       setVenue(null);
       setFillYourSpot(true);
       setAutoApprove(false);
+      setIsPrivate(false);
       reset({
         title: "",
         startsAt: "2026-07-12T18:00",
@@ -160,6 +164,7 @@ export function CreateEventSheet({
           description: values.description,
           venue,
           autoApprove,
+          isPrivate,
           profile,
         });
       } else {
@@ -175,6 +180,7 @@ export function CreateEventSheet({
           venue,
           fillYourSpot,
           autoApprove,
+          isPrivate,
           profile,
         });
       }
@@ -331,6 +337,21 @@ export function CreateEventSheet({
               type="checkbox"
             />
           </label>
+          <label className="toggle-row">
+            <span>Private game</span>
+            <input
+              checked={isPrivate}
+              onChange={(changeEvent) =>
+                setIsPrivate(changeEvent.target.checked)
+              }
+              type="checkbox"
+            />
+          </label>
+          {isPrivate ? (
+            <p className="detail-caption px-0">
+              Only people with the shared link can join.
+            </p>
+          ) : null}
         </div>
 
         <div className="form-section">

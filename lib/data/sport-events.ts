@@ -12,7 +12,7 @@ import { haversineDistanceKm } from "@/lib/location/geo";
 const EVENT_COLUMNS =
   "id, host_id, sport, title, description, cost, skill_level, capacity, " +
   "attendee_count, starts_at, ends_at, venue_name, venue_address, venue_city, " +
-  "venue_country, venue_latitude, venue_longitude, created_at, auto_approve";
+  "venue_country, venue_latitude, venue_longitude, created_at, auto_approve, is_private";
 
 type PublicSportEventRow = Omit<
   SportEventRow,
@@ -77,6 +77,7 @@ export function toSportEvent(
     isOnWaitlist,
     pendingRequestCount: ctx.pendingRequestCounts.get(row.id),
     autoApprove: row.auto_approve,
+    isPrivate: row.is_private,
     distanceKm: discovery
       ? haversineDistanceKm(discovery.center, venueCoords)
       : undefined,

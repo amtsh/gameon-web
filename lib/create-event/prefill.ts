@@ -46,6 +46,7 @@ export function buildCreatePrefill(source: SportEvent) {
     skillLevel: source.skillLevel,
     venue: source.venue,
     autoApprove: source.autoApprove ?? false,
+    isPrivate: source.isPrivate ?? false,
     title: source.title,
     startsAt: toLocalDateTimeInput(dates.startsAt),
     endsAt: toLocalDateTimeInput(dates.endsAt),

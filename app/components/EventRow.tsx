@@ -93,6 +93,13 @@ function rowBadges(event: SportEvent, isArchived: boolean) {
   if (event.isCreatedByCurrentUser) {
     badges.push(<HostedByYouBadge key="host" />);
   }
+  if (event.isPrivate && !event.isCreatedByCurrentUser) {
+    badges.push(
+      <span className="status-badge" key="private">
+        Private
+      </span>,
+    );
+  }
   if (isArchived) {
     badges.push(
       <span className="status-badge archived" key="archived">

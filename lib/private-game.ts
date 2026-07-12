@@ -24,7 +24,12 @@ export function canJoinFromDetail(
 export function canSeePlayers(
   event: Pick<
     SportEvent,
-    "isPrivate" | "isCreatedByCurrentUser" | "isJoined" | "joinedCount"
+    | "isPrivate"
+    | "isCreatedByCurrentUser"
+    | "isJoined"
+    | "joinedCount"
+    | "hasPendingRequest"
+    | "isOnWaitlist"
   >,
   context: PrivateGameContext = {},
 ): boolean {
@@ -33,6 +38,8 @@ export function canSeePlayers(
   return Boolean(
     event.isCreatedByCurrentUser ||
       event.isJoined ||
+      event.hasPendingRequest ||
+      event.isOnWaitlist ||
       context.openedViaShareLink,
   );
 }

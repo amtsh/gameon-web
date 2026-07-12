@@ -40,6 +40,7 @@ import { JoinGuideSheet } from "./JoinGuideSheet";
 import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
 import { PlayersSheet } from "./PlayersSheet";
 import { getJoinGuideStep } from "@/lib/join/requirements";
+import { canJoinFromDetail, canSeePlayers } from "@/lib/private-game";
 import type { SportEvent } from "../types";
 
 type Props = {
@@ -55,6 +56,8 @@ type Props = {
   /** Fired after a successful join/waitlist request — a natural moment to
       nudge PWA installation, since the user just got value from the app. */
   onJoinSuccess?: () => void;
+  /** True when detail was opened from /game/[id] for this event. */
+  openedViaShareLink?: boolean;
 };
 
 const destructiveActions = {
@@ -112,6 +115,7 @@ export function EventDetailSheet({
   onEdit,
   onMutated,
   onJoinSuccess,
+  openedViaShareLink = false,
 }: Props) {
   const [confirming, setConfirming] = useState<
     keyof typeof destructiveActions | null
@@ -138,6 +142,13 @@ export function EventDetailSheet({
     if (typeof window === "undefined") return `/game/${event.id}`;
     return new URL(`/game/${event.id}`, window.location.origin).toString();
   }, [event.id]);
+
+  const privateGameContext = useMemo(
+    () => ({ openedViaShareLink }),
+    [openedViaShareLink],
+  );
+  const showPlayers = canSeePlayers(event, privateGameContext);
+  const canJoin = canJoinFromDetail(event, privateGameContext);
 
   const loadRequests = useCallback(async () => {
     setActionError(null);
@@ -350,6 +361,9 @@ export function EventDetailSheet({
               </button>
             </div>
             <div className="row-badges mt-2">
+              {event.isPrivate ? (
+                <span className="status-badge">Private</span>
+              ) : null}
               {event.isCreatedByCurrentUser ? <HostedByYouBadge /> : null}
               {event.isJoined && !event.isCreatedByCurrentUser ? (
                 <span className="status-badge success">You are going</span>
@@ -419,7 +433,7 @@ export function EventDetailSheet({
               Players
             </p>
             <p className="meta-value">{playersText}</p>
-            {event.joinedCount > 0 ? (
+            {event.joinedCount > 0 && showPlayers ? (
               <button
                 className="link-info mt-1.5"
                 onClick={() => setPlayersOpen(true)}
@@ -562,7 +576,7 @@ export function EventDetailSheet({
             >
               Get Directions
             </a>
-          ) : (
+          ) : event.hasPendingRequest || event.isOnWaitlist ? (
             <button
               className={
                 event.hasPendingRequest || event.isOnWaitlist
@@ -581,15 +595,30 @@ export function EventDetailSheet({
                 ? "Working\u2026"
                 : event.hasPendingRequest
                   ? "Withdraw request"
-                  : event.isOnWaitlist
-                    ? "Leave waitlist"
-                    : !isSignedIn
-                      ? "Sign in to join"
-                      : getJoinGuideStep(isSignedIn, profile) === "contact"
-                      ? "Add contact to join"
-                      : spots === 0
-                        ? "Join waitlist"
-                        : "Request to join"}
+                  : "Leave waitlist"}
+            </button>
+          ) : !canJoin ? (
+            <p className="empty-state pb-3 pt-0 text-center">
+              Invite-only — open the shared link to join.
+            </p>
+          ) : (
+            <button
+              className="primary-action"
+              disabled={busy}
+              onClick={() => {
+                startJoinFlow();
+              }}
+              type="button"
+            >
+              {busy
+                ? "Working\u2026"
+                : !isSignedIn
+                  ? "Sign in to join"
+                  : getJoinGuideStep(isSignedIn, profile) === "contact"
+                    ? "Add contact to join"
+                    : spots === 0
+                      ? "Join waitlist"
+                      : "Request to join"}
             </button>
           )}
         </div>

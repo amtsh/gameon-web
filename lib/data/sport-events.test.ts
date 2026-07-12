@@ -44,6 +44,22 @@ describe("toSportEvent", () => {
     expect(event.pendingRequestCount).toBe(3);
   });
 
+  it("maps isPrivate from the row", () => {
+    const event = toSportEvent(
+      makeSportEventRow({ is_private: true }),
+      "Host",
+      {
+        participantEventIds: new Set(),
+        pendingRequestEventIds: new Set(),
+        waitlistEventIds: new Set(),
+        hostedEventIds: new Set(),
+        pendingRequestCounts: new Map(),
+      },
+    );
+
+    expect(event.isPrivate).toBe(true);
+  });
+
   it("omits empty optional strings", () => {
     const sparse = makeSportEventRow({
       cost: "",

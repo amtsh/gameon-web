@@ -83,6 +83,8 @@ export default function GameOnApp({
 
   // true when the URL was /game/[id] but the event does not exist.
   const showingSharedMissing = initialSharedEvent === null;
+  const shareLinkEventId =
+    initialSharedEvent != null ? initialSharedEvent.id : undefined;
 
   const refreshSessionData = useCallback(async () => {
     if (!usesSupabase) return;
@@ -297,6 +299,9 @@ export default function GameOnApp({
           onEdit={openEdit}
           onMutated={refreshSessionData}
           onJoinSuccess={maybeShowInstallNudge}
+          openedViaShareLink={
+            shareLinkEventId != null && detailEvent.id === shareLinkEventId
+          }
         />
       ) : null}
 

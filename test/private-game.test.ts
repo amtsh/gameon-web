@@ -84,6 +84,32 @@ describe("canSeePlayers", () => {
     ).toBe(true);
   });
 
+  it("private game — players visible for pending request without share link", () => {
+    expect(
+      canSeePlayers(
+        makeEvent({
+          isPrivate: true,
+          joinedCount: 3,
+          hasPendingRequest: true,
+        }),
+        { openedViaShareLink: false },
+      ),
+    ).toBe(true);
+  });
+
+  it("private game — players visible for waitlisted user without share link", () => {
+    expect(
+      canSeePlayers(
+        makeEvent({
+          isPrivate: true,
+          joinedCount: 3,
+          isOnWaitlist: true,
+        }),
+        { openedViaShareLink: false },
+      ),
+    ).toBe(true);
+  });
+
   it("private game — players visible for host without share link", () => {
     expect(
       canSeePlayers(

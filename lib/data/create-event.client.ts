@@ -14,6 +14,7 @@ export type CreateSportEventInput = {
   venue: Venue;
   fillYourSpot: boolean;
   autoApprove: boolean;
+  isPrivate: boolean;
   profile: Profile;
 };
 
@@ -62,6 +63,7 @@ export async function createSportEvent(input: CreateSportEventInput) {
       venue_latitude: input.venue.latitude,
       venue_longitude: input.venue.longitude,
       auto_approve: input.autoApprove,
+      is_private: input.isPrivate,
     })
     .select("id")
     .single();
@@ -125,6 +127,7 @@ export async function updateSportEvent(input: UpdateSportEventInput) {
       venue_latitude: input.venue.latitude,
       venue_longitude: input.venue.longitude,
       auto_approve: input.autoApprove,
+      is_private: input.isPrivate,
     })
     .eq("id", input.eventId)
     .eq("host_id", user.id);
