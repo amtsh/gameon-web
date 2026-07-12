@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_DISCOVERY_FILTER,
   discoveryLocationLabelSync,
@@ -10,8 +10,10 @@ import {
   resolveDiscoveryCenterFromProfile,
   resolveDiscoveryCenterSource,
   resolveDiscoveryFilter,
+  resolveInitialDiscoveryLocationLabel,
 } from "./discovery";
 import { DEFAULT_DISCOVERY_CENTER, DEFAULT_DISCOVERY_CITY, DISCOVERY_RADIUS_KM } from "./constants";
+import * as geocode from "./geocode";
 import { makeProfile } from "@/test/factories";
 
 describe("resolveDiscoveryCenterFromProfile", () => {
@@ -131,6 +133,35 @@ describe("initialDiscoveryLocationLabel", () => {
 
   it("returns Stockholm when no profile or IP", () => {
     expect(initialDiscoveryLocationLabel(null)).toBe(DEFAULT_DISCOVERY_CITY);
+  });
+});
+
+describe("resolveInitialDiscoveryLocationLabel", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns postal code for profile without geocoding", async () => {
+    await expect(resolveInitialDiscoveryLocationLabel(makeProfile())).resolves.toBe(
+      "112 20",
+    );
+  });
+
+  it("reverse-geocodes IP on the server for first paint", async () => {
+    vi.spyOn(geocode, "reverseGeocodeCity").mockResolvedValue("Berlin");
+    const ip = { latitude: 52.52, longitude: 13.405 };
+
+    await expect(resolveInitialDiscoveryLocationLabel(null, ip)).resolves.toBe(
+      "Berlin",
+    );
+  });
+
+  it("falls back to Stockholm when reverse geocode fails", async () => {
+    vi.spyOn(geocode, "reverseGeocodeCity").mockResolvedValue(null);
+
+    await expect(resolveInitialDiscoveryLocationLabel(null)).resolves.toBe(
+      DEFAULT_DISCOVERY_CITY,
+    );
   });
 });
 

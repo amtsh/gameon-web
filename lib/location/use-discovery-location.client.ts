@@ -24,19 +24,24 @@ type Options = {
   profile: Profile | null | undefined;
   initialProfile: Profile | null | undefined;
   initialIpLocation?: Coordinates | null;
+  /** SSR-resolved city label (avoids a Stockholm flash before reverse geocode). */
+  initialLabel?: string;
 };
 
 export function useDiscoveryLocation({
   profile,
   initialProfile,
   initialIpLocation = null,
+  initialLabel,
 }: Options) {
   const [gpsLocation, setGpsLocation] = useState<Coordinates | null>(null);
   const [ipLocation, setIpLocation] = useState<Coordinates | null>(
     initialIpLocation,
   );
-  const [label, setLabel] = useState(() =>
-    initialDiscoveryLocationLabel(initialProfile, initialIpLocation),
+  const [label, setLabel] = useState(
+    () =>
+      initialLabel ??
+      initialDiscoveryLocationLabel(initialProfile, initialIpLocation),
   );
   const [locateToken, setLocateToken] = useState(0);
 

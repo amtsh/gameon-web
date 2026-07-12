@@ -4,6 +4,7 @@ import {
   DEFAULT_DISCOVERY_CITY,
   DISCOVERY_RADIUS_KM,
 } from "./constants";
+import { reverseGeocodeCity } from "./geocode";
 import { haversineDistanceKm, type Coordinates } from "./geo";
 
 export type DiscoveryFilter = {
@@ -103,6 +104,20 @@ export function initialDiscoveryLocationLabel(
 ): string {
   const source = resolveDiscoveryCenterSource(profile, null, initialIpLocation);
   return discoveryLocationLabelSync(source, profile) ?? DEFAULT_DISCOVERY_CITY;
+}
+
+/** SSR label: postal code synchronously, or reverse-geocoded city for IP/GPS centers. */
+export async function resolveInitialDiscoveryLocationLabel(
+  profile: Profile | null | undefined,
+  initialIpLocation?: Coordinates | null,
+): Promise<string> {
+  const source = resolveDiscoveryCenterSource(profile, null, initialIpLocation);
+  const sync = discoveryLocationLabelSync(source, profile);
+  if (sync) return sync;
+
+  const center = resolveDiscoveryFilter(profile, null, initialIpLocation).center;
+  const city = await reverseGeocodeCity(center);
+  return city ?? DEFAULT_DISCOVERY_CITY;
 }
 
 /** Discovery filter matching SSR (profile + IP, no session GPS). */

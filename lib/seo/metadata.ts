@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteUrl } from "./site";
 
-export const siteName = "GameOn";
+export const siteName = "Game On";
 
 export const siteDescription =
   "Find and join local sports games nearby. Discover badminton, football, running, and more on the map, then request to join or host your own game.";
