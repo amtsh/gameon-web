@@ -35,6 +35,10 @@
   ],
   "workers_dev": false,
   "preview_urls": false,
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://byvfiqshsclydlvhfrim.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_VCVpll2kxCZ3LF7Ckk2GKQ_LWhOaKb5"
+  },
   "observability": {
     "enabled": true,
     "logs": {
