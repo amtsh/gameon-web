@@ -388,6 +388,38 @@ export function EventDetailSheet({
           </div>
         </div>
 
+        {event.isCreatedByCurrentUser && !archived ? (
+          <>
+            <div className="mt-6 pl-[17px]">
+              <p className="detail-label">Requests</p>
+              {pendingRequests.length > 0 ? (
+                <JoinRequestRows
+                  approvingId={approvingId}
+                  canApprove={spots > 0}
+                  onApprove={(requestId) => void handleApproveRequest(requestId)}
+                  requests={pendingRequests}
+                />
+              ) : (
+                <p className="detail-body mt-2">No pending requests</p>
+              )}
+
+              <p className="detail-label mt-5">Waitlist</p>
+              {waitlistedRequests.length > 0 ? (
+                <JoinRequestRows
+                  approvingId={approvingId}
+                  canApprove={spots > 0}
+                  onApprove={(requestId) => void handleApproveRequest(requestId)}
+                  requests={waitlistedRequests}
+                  waitlist
+                />
+              ) : (
+                <p className="detail-body mt-2">No one on the waitlist</p>
+              )}
+            </div>
+            <hr className="detail-divider my-6" />
+          </>
+        ) : null}
+
         <div className="mt-6 flex items-center gap-3.5">
           <span className="detail-icon-tile"><Calendar size={22} /></span>
           <div className="min-w-0 flex-1">
@@ -508,48 +540,20 @@ export function EventDetailSheet({
 
         {event.isCreatedByCurrentUser && !archived ? (
           <>
-            <hr className="detail-divider my-6" />
-            <div className="pl-[17px]">
-              <p className="detail-label">Requests</p>
-              {pendingRequests.length > 0 ? (
-                <JoinRequestRows
-                  approvingId={approvingId}
-                  canApprove={spots > 0}
-                  onApprove={(requestId) => void handleApproveRequest(requestId)}
-                  requests={pendingRequests}
-                />
-              ) : (
-                <p className="detail-body mt-2">No pending requests</p>
-              )}
-
-              <p className="detail-label mt-5">Waitlist</p>
-              {waitlistedRequests.length > 0 ? (
-                <JoinRequestRows
-                  approvingId={approvingId}
-                  canApprove={spots > 0}
-                  onApprove={(requestId) => void handleApproveRequest(requestId)}
-                  requests={waitlistedRequests}
-                  waitlist
-                />
-              ) : (
-                <p className="detail-body mt-2">No one on the waitlist</p>
-              )}
-
-              <button
-                className="outline-action mt-4"
-                onClick={() => onEdit(event)}
-                type="button"
-              >
-                Edit game details
-              </button>
-              <button
-                className="text-danger-action mt-3"
-                onClick={() => setConfirming("delete")}
-                type="button"
-              >
-                Delete game
-              </button>
-            </div>
+            <button
+              className="outline-action mt-4"
+              onClick={() => onEdit(event)}
+              type="button"
+            >
+              Edit game details
+            </button>
+            <button
+              className="text-danger-action mt-3"
+              onClick={() => setConfirming("delete")}
+              type="button"
+            >
+              Delete game
+            </button>
           </>
         ) : null}
 
