@@ -8,7 +8,7 @@ export async function signInWithGoogle(returnPath?: string) {
     returnPath ??
     (typeof window !== "undefined"
       ? `${window.location.pathname}${window.location.search}`
-      : "/");
+      : "/home");
   const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
   const { error } = await supabase.auth.signInWithOAuth({
