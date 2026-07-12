@@ -358,10 +358,6 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   background: var(--lp-muted);
 }
 
-.lp-band-muted {
-  background: var(--lp-muted);
-}
-
 .lp-band h2,
 .lp-split h2,
 .lp-compare-section h2,
