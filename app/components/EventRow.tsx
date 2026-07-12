@@ -5,7 +5,7 @@ import { Clock, Crown, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { memo } from "react";
 import { sports } from "../data/mock-data";
-import { clockTime, durationText, eventRelativeLabel, eventTime, isCancelled, spotsLeft } from "../event-feed";
+import { clockTime, countdownUrgency, durationText, eventRelativeLabel, eventTime, isCancelled, spotsLeft } from "../event-feed";
 import { formatDistanceKm } from "@/lib/location/geo";
 import type { SportEvent } from "../types";
 
@@ -36,6 +36,11 @@ export function HostedByYouBadge() {
   );
 }
 
+const URGENCY_COLOR: Record<"urgent" | "hours", string> = {
+  urgent: "var(--danger)",
+  hours: "var(--warning)",
+};
+
 export const EventRow = memo(function EventRow({
   event,
   isArchived = false,
@@ -46,6 +51,9 @@ export const EventRow = memo(function EventRow({
     ? `Ended ${clockTime(new Date(event.endsAt))}`
     : eventTime(new Date(event.startsAt));
 
+  const urgency = isArchived ? null : countdownUrgency(event);
+  const countdownColor = urgency ? URGENCY_COLOR[urgency] : undefined;
+
   return (
     <button className="event-row" onClick={onSelect}>
       <SpotsLeftBadge count={spotsLeft(event)} />
@@ -54,7 +62,9 @@ export const EventRow = memo(function EventRow({
         <span className="row-meta">
           {sport?.label}
           <span style={{ color: "var(--label-text)" }}>·</span>
-          <span>{eventRelativeLabel(event)}</span>
+          <span style={{ color: countdownColor, fontWeight: urgency ? 600 : undefined }}>
+            {eventRelativeLabel(event)}
+          </span>
         </span>
 
         <span className="row-title">{event.title}</span>

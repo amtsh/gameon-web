@@ -41,6 +41,30 @@ export function eventRelativeLabel(event: SportEvent, now = new Date()): string 
   return "Now";
 }
 
+/**
+ * Returns the urgency level of the countdown for styling purposes:
+ * - "urgent"  → under 3 hours  → red
+ * - "hours"   → 3 h or more, but less than 1 day  → yellow
+ * - null      → 1 day or more away (or already started/ended) → no colour
+ */
+export function countdownUrgency(
+  event: SportEvent,
+  now = new Date(),
+): "urgent" | "hours" | null {
+  const startsAt = new Date(event.startsAt);
+  const endsAt = new Date(event.endsAt);
+
+  // Started or ended — no countdown colouring
+  if (endsAt <= now || startsAt <= now) return null;
+
+  const minutesUntilStart = (startsAt.getTime() - now.getTime()) / 60_000;
+  const hoursUntilStart = minutesUntilStart / 60;
+
+  if (hoursUntilStart >= 24) return null;
+  if (hoursUntilStart < 3) return "urgent";
+  return "hours";
+}
+
 // Mirrors EventRow.durationText in RecommendedEventsSheet.swift
 export function durationText(event: SportEvent): string {
   const totalMinutes = Math.max(
