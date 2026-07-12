@@ -6,6 +6,17 @@ export type PrivateGameContext = {
 };
 
 /**
+ * Whether the viewer can copy or share the game link.
+ * Private games are shareable by the host only.
+ */
+export function canShareGame(
+  event: Pick<SportEvent, "isPrivate" | "isCreatedByCurrentUser">,
+): boolean {
+  if (!event.isPrivate) return true;
+  return Boolean(event.isCreatedByCurrentUser);
+}
+
+/**
  * Whether the viewer is allowed to request to join (or join the waitlist).
  * Private games can only be joined from a shared link.
  */

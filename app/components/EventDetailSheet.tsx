@@ -40,7 +40,11 @@ import { JoinGuideSheet } from "./JoinGuideSheet";
 import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
 import { PlayersSheet } from "./PlayersSheet";
 import { getJoinGuideStep } from "@/lib/join/requirements";
-import { canJoinFromDetail, canSeePlayers } from "@/lib/private-game";
+import {
+  canJoinFromDetail,
+  canSeePlayers,
+  canShareGame,
+} from "@/lib/private-game";
 import type { SportEvent } from "../types";
 
 type Props = {
@@ -149,6 +153,7 @@ export function EventDetailSheet({
   );
   const showPlayers = canSeePlayers(event, privateGameContext);
   const canJoin = canJoinFromDetail(event, privateGameContext);
+  const canShare = canShareGame(event);
 
   const loadRequests = useCallback(async () => {
     setActionError(null);
@@ -351,14 +356,16 @@ export function EventDetailSheet({
             </p>
             <div className="mt-1 flex items-start gap-3">
               <h2 className="detail-title flex-1">{event.title}</h2>
-              <button
-                aria-label="Share game"
-                className="circle-button flex-shrink-0"
-                onClick={() => void handleShare()}
-                type="button"
-              >
-                <Share2 size={18} />
-              </button>
+              {canShare ? (
+                <button
+                  aria-label="Share game"
+                  className="circle-button flex-shrink-0"
+                  onClick={() => void handleShare()}
+                  type="button"
+                >
+                  <Share2 size={18} />
+                </button>
+              ) : null}
             </div>
             <div className="row-badges mt-2">
               {event.isPrivate ? (
@@ -375,7 +382,7 @@ export function EventDetailSheet({
                 <span className="status-badge warning">On waitlist</span>
               ) : null}
             </div>
-            {shareFeedback ? (
+            {canShare && shareFeedback ? (
               <p className="detail-caption mt-2">{shareFeedback}</p>
             ) : null}
           </div>

@@ -1,6 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { canJoinFromDetail, canSeePlayers } from "@/lib/private-game";
+import {
+  canJoinFromDetail,
+  canSeePlayers,
+  canShareGame,
+} from "@/lib/private-game";
 import { makeEvent } from "@/test/factories";
+
+describe("canShareGame", () => {
+  it("public game — anyone can share", () => {
+    expect(canShareGame(makeEvent({ isPrivate: false }))).toBe(true);
+    expect(
+      canShareGame(
+        makeEvent({ isPrivate: false, isCreatedByCurrentUser: false }),
+      ),
+    ).toBe(true);
+  });
+
+  it("private game — host can share", () => {
+    expect(
+      canShareGame(
+        makeEvent({ isPrivate: true, isCreatedByCurrentUser: true }),
+      ),
+    ).toBe(true);
+  });
+
+  it("private game — non-host cannot share", () => {
+    expect(
+      canShareGame(
+        makeEvent({
+          isPrivate: true,
+          isCreatedByCurrentUser: false,
+          isJoined: true,
+        }),
+      ),
+    ).toBe(false);
+  });
+});
 
 describe("canJoinFromDetail", () => {
   it("public game — allowed from home feed", () => {
