@@ -3,40 +3,33 @@ import { NextRequest, NextResponse } from "next/server";
 /**
  * Rejects requests that didn't originate from the same host as the app.
  *
- * Strategy:
- *  1. Browsers always send an `Origin` header on cross-origin fetches.
- *     Same-origin fetches MAY omit it (e.g. form GETs) — we allow those.
- *  2. When Origin IS present it must match the app host.
- *  3. The app host is derived from the `host` / `x-forwarded-host` header
- *     that Next.js / the reverse-proxy populates — never from env alone
- *     so this works on any deployment URL automatically.
+ * Host resolution order (spoof-safe on Cloudflare):
+ *  - `host` is always set by the runtime itself (CF Workers / Pages / Node)
+ *    and cannot be injected by an upstream caller once inside the runtime.
+ *  - `x-forwarded-host` is a client-controlled header and is intentionally
+ *    NOT used — a bad actor hitting the origin directly could set it to
+ *    anything. Cloudflare already rewrites `host` to the canonical domain.
  *
- * Returns null if the request is allowed, or a 403 NextResponse if not.
+ * Flow:
+ *  1. No Origin header  → allow (same-origin browser requests may omit it;
+ *     unauthenticated server callers are caught by route-level auth).
+ *  2. Origin present    → parse its host and compare against `host` header.
+ *     Mismatch → 403.
  */
 export function assertSameOrigin(req: NextRequest): NextResponse | null {
   const origin = req.headers.get("origin");
 
-  // No Origin header → direct server-to-server call without a browser,
-  // or a same-origin request that the browser chose not to attach it to.
-  // We treat "no origin" as trusted only when there is also no Referer
-  // pointing at a foreign host. Curl / Postman will have neither.
-  // To block non-browser callers entirely you'd need an API secret instead;
-  // this guard is specifically about cross-origin browser requests.
   if (!origin) {
-    return null; // allow — handled by auth checks in the route itself
+    return null;
   }
 
-  const appHost =
-    req.headers.get("x-forwarded-host") ??
-    req.headers.get("host") ??
-    "";
+  // Use `host` only — never `x-forwarded-host` (spoofable by bypassing CF).
+  const appHost = req.headers.get("host") ?? "";
 
-  // Normalise: strip port for comparison when both sides are same port
   let originHost: string;
   try {
     originHost = new URL(origin).host;
   } catch {
-    // Malformed origin — reject
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
