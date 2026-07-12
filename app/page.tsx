@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +14,8 @@ import {
 } from "lucide-react";
 import { siteName } from "@/lib/seo/metadata";
 import { sports } from "./data/mock-data";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { loadAppData } from "@/lib/data/app-data";
 import "./landing.css";
 
 export const metadata: Metadata = {
@@ -62,7 +65,16 @@ const compareRows = [
   { label: "Requires everyone to reply", chat: true, gameon: false },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Signed-in users have no reason to see the landing page — take them
+  // straight to the app.
+  if (hasSupabaseEnv()) {
+    const { user } = await loadAppData();
+    if (user) {
+      redirect("/home");
+    }
+  }
+
   return (
     <div className="lp">
       <div className="lp-container">
