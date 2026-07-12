@@ -33,6 +33,7 @@ export function makeSportEventRow(
     venue_longitude: 18.0764,
     created_at: "2026-07-01T00:00:00Z",
     auto_approve: false,
+    is_private: false,
     ...overrides,
   };
 }

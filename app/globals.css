@@ -682,8 +682,35 @@ textarea {
 .auth-panel {
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding: 8px 2px 24px;
+  align-items: center;
+  padding: 8px 12px max(28px, env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.auth-panel-title {
+  margin: 0;
+  max-width: 280px;
+  color: var(--primary-text);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.auth-panel-copy {
+  margin: 12px 0 32px;
+  max-width: 34ch;
+  color: var(--tertiary-text);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.auth-panel-action {
+  width: 100%;
+  max-width: 320px;
+  border: none;
+  background: var(--primary-action-bg);
+  color: var(--primary-action-fg);
 }
 
 .join-guide-eyebrow {

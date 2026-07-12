@@ -13,6 +13,7 @@ import {
 import type { Profile } from "@/lib/data/profile.shared";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
+import { SignInPanel } from "./SignInPanel";
 import type { SkillLevel, SportKind } from "../types";
 
 type Props = {
@@ -132,25 +133,12 @@ export function ProfileSheet({
       {saveError ? <p className="form-error px-4">{saveError}</p> : null}
 
       {!showEditProfile ? (
-        <div className="auth-panel">
-          <div className="profile-hero">
-            <h1>Welcome to GameOn</h1>
-            <p>
-              Sign in to create games, join events, and manage your profile.
-            </p>
-          </div>
-          <button
-            className="google-sign-in"
-            disabled={authBusy}
-            onClick={onSignIn}
-            type="button"
-          >
-            <span aria-hidden="true" className="google-sign-in-icon">
-              <Icon icon="logos:google-icon" width={20} />
-            </span>
-            <span className="google-sign-in-label">Continue with Google</span>
-          </button>
-        </div>
+        <SignInPanel
+          busy={authBusy}
+          description="Sign in to create games, join events, and manage your profile."
+          onSignIn={onSignIn}
+          title="Welcome to Game On"
+        />
       ) : (
         <div className="profile-edit-form">
           <div className="profile-hero">
