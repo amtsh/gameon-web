@@ -13,6 +13,7 @@ import { loadAppData } from "@/lib/data/app-data";
 import { LandingCity, LandingLocationProvider } from "./landing/LandingCity";
 import { CompareMark } from "./landing/CompareMark";
 import { LandingSportPills } from "./landing/LandingSportPills";
+import { HeroBackground } from "./landing/HeroBackground";
 import "./landing.css";
 
 export const metadata: Metadata = {
@@ -101,6 +102,7 @@ export default async function LandingPage() {
 
         <main>
           <section className="lp-hero">
+            <HeroBackground />
             <div className="lp-container lp-hero-grid">
               <div className="lp-hero-copy">
                 <h1>Find a game near you</h1>

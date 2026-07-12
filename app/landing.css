@@ -175,11 +175,126 @@ button.lp-btn-light:focus-visible {
   text-underline-offset: 3px;
 }
 
-/* Hero */
+/* ─────────────────────────────────────────
+   HERO ANIMATED BACKGROUND
+   Three @property-driven radial orbs rendered
+   fully on the GPU compositing layer.
+   backdrop-filter on the content frost pane.
+───────────────────────────────────────── */
+
+/* Register animatable custom properties — enables GPU-composited tween */
+@property --orb-a-x { syntax: "<percentage>"; inherits: false; initial-value: 18%; }
+@property --orb-a-y { syntax: "<percentage>"; inherits: false; initial-value: 22%; }
+@property --orb-b-x { syntax: "<percentage>"; inherits: false; initial-value: 75%; }
+@property --orb-b-y { syntax: "<percentage>"; inherits: false; initial-value: 55%; }
+@property --orb-c-x { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
+@property --orb-c-y { syntax: "<percentage>"; inherits: false; initial-value: 80%; }
 
 .lp-hero {
+  position: relative;
   padding: clamp(28px, 5vw, 56px) 0 clamp(40px, 7vw, 72px);
+  isolation: isolate;
+  overflow: hidden;
 }
+
+/* Background canvas — sits behind all hero content */
+.lp-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  /* Frosted glass wash over the whole hero */
+  backdrop-filter: blur(0px);
+}
+
+/* White frosted glass overlay — the actual frost lives here */
+.lp-hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(40px) saturate(1.4);
+  -webkit-backdrop-filter: blur(40px) saturate(1.4);
+}
+
+/* Each orb is a radial gradient that moves via @property animation.
+   will-change: transform keeps them on their own GPU layer. */
+.lp-hero-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.lp-hero-bg-orb--a {
+  width: 680px;
+  height: 680px;
+  top: -160px;
+  left: -120px;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(0.80 0.14 38 / 0.55) 0%,
+    oklch(0.80 0.14 38 / 0.0) 70%
+  );
+  animation: orb-drift-a 18s ease-in-out infinite;
+}
+
+.lp-hero-bg-orb--b {
+  width: 560px;
+  height: 560px;
+  top: 20%;
+  right: -100px;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(0.78 0.16 5 / 0.45) 0%,
+    oklch(0.78 0.16 5 / 0.0) 70%
+  );
+  animation: orb-drift-b 22s ease-in-out infinite;
+}
+
+.lp-hero-bg-orb--c {
+  width: 500px;
+  height: 500px;
+  bottom: -80px;
+  left: 30%;
+  background: radial-gradient(
+    ellipse at center,
+    oklch(0.82 0.12 25 / 0.38) 0%,
+    oklch(0.82 0.12 25 / 0.0) 70%
+  );
+  animation: orb-drift-c 26s ease-in-out infinite;
+}
+
+@keyframes orb-drift-a {
+  0%   { transform: translate(0px, 0px) scale(1); }
+  33%  { transform: translate(60px, 40px) scale(1.08); }
+  66%  { transform: translate(-30px, 70px) scale(0.96); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes orb-drift-b {
+  0%   { transform: translate(0px, 0px) scale(1); }
+  40%  { transform: translate(-70px, -50px) scale(1.1); }
+  75%  { transform: translate(40px, 30px) scale(0.93); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes orb-drift-c {
+  0%   { transform: translate(0px, 0px) scale(1); }
+  30%  { transform: translate(50px, -60px) scale(1.06); }
+  70%  { transform: translate(-60px, 20px) scale(1.0); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+/* Respect reduced-motion — freeze orbs, keep gradient visible but static */
+@media (prefers-reduced-motion: reduce) {
+  .lp-hero-bg-orb {
+    animation: none;
+    will-change: auto;
+  }
+}
+
+/* Hero grid — unchanged */
 
 .lp-hero-grid {
   display: grid;
@@ -222,7 +337,9 @@ button.lp-btn-light:focus-visible {
   padding: 14px;
   border: 1px solid var(--lp-line);
   border-radius: 16px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(12px) saturate(1.6);
+  -webkit-backdrop-filter: blur(12px) saturate(1.6);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
 }
 
