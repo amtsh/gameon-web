@@ -120,6 +120,7 @@ export type Database = {
           venue_longitude: number;
           created_at: string;
           auto_approve: boolean;
+          is_private: boolean;
         };
         Insert: {
           id?: string;
@@ -143,6 +144,7 @@ export type Database = {
           venue_longitude: number;
           created_at?: string;
           auto_approve?: boolean;
+          is_private?: boolean;
         };
         Update: {
           id?: string;
@@ -166,6 +168,7 @@ export type Database = {
           venue_longitude?: number;
           created_at?: string;
           auto_approve?: boolean;
+          is_private?: boolean;
         };
         Relationships: [
           {
