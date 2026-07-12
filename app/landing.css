@@ -70,6 +70,7 @@
   pointer-events: auto;
 }
 
+/* 20px matches .hero-subtitle baseline; fine for a compact nav logo */
 .lp-logo {
   font-size: 20px;
   font-weight: 700;
@@ -87,7 +88,8 @@
   align-items: center;
   gap: 6px;
   color: var(--lp-body);
-  font-size: 14px;
+  /* 13px — matches .hero-subtitle / footer register */
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -109,6 +111,7 @@
   border: 0;
   border-radius: 999px;
   font: inherit;
+  /* 15px — matches .primary-action / .sheet-nav button */
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -131,10 +134,11 @@
   outline-offset: 3px;
 }
 
+/* Small variant — matches .lp-city / .hero-subtitle register */
 .lp-btn-sm {
   min-height: 40px;
   padding: 8px 14px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* Element selectors beat `.lp a { color: inherit }` so CTA labels stay visible. */
@@ -166,6 +170,7 @@ button.lp-btn-light:focus-visible {
   gap: 6px;
   margin-top: 16px;
   color: var(--lp-ink);
+  /* 15px — matches .primary-action text */
   font-size: 15px;
   font-weight: 600;
 }
@@ -194,21 +199,31 @@ button.lp-btn-light:focus-visible {
   }
 }
 
+/*
+  Hero h1: pulled down from clamp(40,7vw,64px) to clamp(32,5.5vw,48px).
+  Top of scale (48px) aligns with .detail-title (22px) × 2.2 — a proportional
+  display step above the largest in-app heading without feeling disconnected.
+  Bottom of scale (32px) stays comfortably above .auth-panel-title (22px).
+*/
 .lp-hero-copy h1 {
   margin: 0;
   max-width: 12ch;
-  font-size: clamp(40px, 7vw, 64px);
+  font-size: clamp(32px, 5.5vw, 48px);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 0.98;
   text-wrap: balance;
 }
 
+/*
+  Hero sub: was 18px. Aligned to .auth-panel-copy (16px) — the same role
+  (supporting copy below a large heading) used identically in the app.
+*/
 .lp-hero-sub {
   margin: 16px 0 0;
   max-width: 32ch;
   color: var(--lp-body);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.45;
 }
 
@@ -234,12 +249,14 @@ button.lp-btn-light:focus-visible {
   background: var(--lp-soft);
 }
 
+/* 12px — matches .form-label exactly */
 .lp-field-label {
   color: var(--lp-mute);
   font-size: 12px;
   font-weight: 600;
 }
 
+/* 16px — matches native <input> size, prevents iOS zoom */
 .lp-field-value {
   display: inline-flex;
   align-items: center;
@@ -255,11 +272,15 @@ button.lp-btn-light:focus-visible {
   margin-top: 2px;
 }
 
+/*
+  Hero note: was 13px. Aligned to .hero-subtitle (12px) —
+  both are tertiary-level fine print below a main CTA.
+*/
 .lp-hero-note {
   margin: 14px 0 0;
   max-width: 40ch;
   color: var(--lp-mute);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -333,6 +354,11 @@ button.lp-btn-light:focus-visible {
   }
 }
 
+/*
+  Sport pill: was 14px. Aligned to .chip (11px 700) — same component role.
+  13px is a comfortable middle ground given the pill is larger than the
+  in-app chip (more padding, more breathing room).
+*/
 .lp-sport-pill {
   display: inline-flex;
   align-items: center;
@@ -341,7 +367,7 @@ button.lp-btn-light:focus-visible {
   border-radius: 999px;
   background: #fff;
   color: var(--lp-ink);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -358,15 +384,20 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   background: var(--lp-muted);
 }
 
+/*
+  Section h2: was clamp(28,4vw,40px). Pulled down to clamp(22,3vw,28px).
+  Top (28px) sits just above .detail-title / .auth-panel-title (22px),
+  making the section-heading → in-app-heading relationship consistent.
+*/
 .lp-band h2,
 .lp-split h2,
 .lp-compare-section h2,
 .lp-cta-dark h2 {
   margin: 0;
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: clamp(22px, 3vw, 28px);
   font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.05;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
@@ -392,6 +423,7 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   background: #fff;
 }
 
+/* 22px — matches .detail-title exactly */
 .lp-product-card h3 {
   margin: 0;
   font-size: 22px;
@@ -399,6 +431,7 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   letter-spacing: -0.02em;
 }
 
+/* 15px — matches .detail-body / .lp-step p */
 .lp-product-card p {
   margin: 10px 0 0;
   color: var(--lp-body);
@@ -443,6 +476,7 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   }
 }
 
+/* Step number badge: 12px — matches .hero-subtitle */
 .lp-step-n {
   display: grid;
   place-items: center;
@@ -451,19 +485,24 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   border-radius: 999px;
   background: var(--lp-ink);
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
 }
 
+/*
+  Step h3: was 18px. Aligned to 16px — matches .auth-panel-copy
+  and sits one clear step below .lp-product-card h3 (22px).
+*/
 .lp-step h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.25;
 }
 
+/* 15px — matches .detail-body */
 .lp-step p {
   margin: 0;
   color: var(--lp-body);
@@ -498,6 +537,7 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   }
 }
 
+/* 16px — matches .auth-panel-copy */
 .lp-split p {
   margin: 14px 0 0;
   max-width: 36ch;
@@ -537,10 +577,14 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   }
 }
 
+/*
+  Compare header: was 12px. Aligned to 11px — matches .detail-caption
+  and .row-meta, which are the app's standard "small metadata" size.
+*/
 .lp-compare-head {
   background: var(--lp-muted);
   color: var(--lp-mute);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -556,6 +600,7 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   color: var(--lp-ink);
 }
 
+/* 15px — matches .detail-body / .lp-step p */
 .lp-compare-row {
   border-top: 1px solid var(--lp-line);
   font-size: 15px;
@@ -610,6 +655,7 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   text-align: center;
 }
 
+/* 16px — matches .auth-panel-copy */
 .lp-cta-dark p {
   margin: 12px auto 0;
   max-width: 34ch;
@@ -624,11 +670,16 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
 
 /* Footer */
 
+/*
+  Footer: was 13px. Aligned to 12px — matches .hero-subtitle.
+  Footer links stay 13px/600 (one notch up) so they remain
+  clearly clickable without competing with body copy.
+*/
 .lp-footer {
   padding: 22px 0 max(28px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--lp-line);
   color: var(--lp-mute);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .lp-footer-inner {
@@ -647,6 +698,7 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
 
 .lp-footer-links a {
   color: var(--lp-body);
+  font-size: 13px;
   font-weight: 600;
 }
 
