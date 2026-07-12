@@ -63,6 +63,8 @@ export default function GameOnApp({
     Boolean(initialSharedEvent),
   );
   const [editEvent, setEditEvent] = useState<SportEvent | undefined>();
+  // Start at detent 1 (half-height) on mobile; GamesSheet maps this to the
+  // first detent ("62svh"). Detent 2 is full-height.
   const [gamesDetent, setGamesDetent] = useState(1);
   const onboardingShown = useRef(false);
   const skippedSsrDiscoveryRefetch = useRef(false);
@@ -224,6 +226,8 @@ export default function GameOnApp({
   const selectEvent = useCallback((event: SportEvent) => {
     setDetailEvent(event);
     setDetailPresented(true);
+    // Collapse GamesSheet to half when opening event detail, so the
+    // detail sheet has visual room to present above it.
     setGamesDetent(1);
   }, []);
 

@@ -2,7 +2,7 @@
 
 import { Sheet, Scroll, type SheetViewProps } from "@silk-hq/components";
 import { Plus, User } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import { activeUserEvents, groupedDiscoverableEvents } from "../event-feed";
@@ -70,41 +70,32 @@ export function GamesSheet({
   // On mobile: half (62svh) + full (100%).
   const detents: string[] = isDesktop ? ["100%"] : ["62svh", "100%"];
 
-  // Track whether the sheet has reached its topmost (full) detent.
-  // When false the list must NOT scroll — every upward finger movement
-  // should drag the sheet, not scroll the content.
+  // fullDetentIndex is the 1-based index of the topmost detent.
+  // Desktop has only one detent (index 1); mobile has two (index 2 = full).
+  const fullDetentIndex = isDesktop ? 1 : 2;
+
+  // atFullDetent controls whether the scroll list is interactive.
+  // We derive it directly from activeDetent so it is always in sync —
+  // no separate travel-status tracking needed.
   // On desktop we're always at full detent.
-  const [atFullDetent, setAtFullDetent] = useState(isDesktop);
-  const viewRef = useRef<HTMLElement>(null);
+  const atFullDetent = isDesktop || activeDetent === fullDetentIndex;
 
-  // Keep atFullDetent in sync when switching between mobile/desktop.
-  useEffect(() => {
-    if (isDesktop) setAtFullDetent(true);
-  }, [isDesktop]);
-
-  // When the sheet starts travelling back down, dismiss the on-screen
-  // keyboard (same technique used in SheetWithDetent example).
-  const travelHandler = useMemo<SheetViewProps["onTravel"]>(() => {
-    if (!atFullDetent) return undefined;
-    return ({ progress }) => {
-      if (viewRef.current && progress < 0.999) {
-        viewRef.current.focus();
-      }
-    };
-  }, [atFullDetent]);
-
-  const setRefs = useCallback((node: HTMLElement | null) => {
-    viewRef.current = node;
-  }, []);
+  // Single handler: keeps parent gamesDetent in sync and is the sole
+  // source of truth for atFullDetent (via the activeDetent prop above).
+  const handleDetentChange = useCallback(
+    (detent: number) => {
+      // Prevent accidental collapse below the first detent on mobile.
+      onActiveDetentChange(Math.max(1, detent));
+    },
+    [onActiveDetentChange],
+  );
 
   return (
     <Sheet.Root
       license="commercial"
       defaultPresented={true}
-      // On desktop always start at the only detent (index 1, i.e. 100%).
-      // On mobile start at half (index 1 in 1-based Silk API = first detent).
       activeDetent={isDesktop ? 1 : activeDetent}
-      onActiveDetentChange={isDesktop ? undefined : onActiveDetentChange}
+      onActiveDetentChange={isDesktop ? undefined : handleDetentChange}
     >
       <Sheet.Portal>
         <Sheet.View
@@ -116,18 +107,9 @@ export function GamesSheet({
           inertOutside={false}
           onClickOutside={{ dismiss: false, stopOverlayPropagation: true }}
           onEscapeKeyDown={{ dismiss: false, stopOverlayPropagation: true }}
-          // Non-modal sheet: don't steal focus into it (e.g. onto the
-          // profile button) just because it's presented on page load.
+          // Non-modal sheet: don't steal focus into it on page load.
           onPresentAutoFocus={{ focus: false }}
           nativeEdgeSwipePrevention={true}
-          onTravelStatusChange={(status) => {
-            if (!isDesktop && status === "idleOutside") setAtFullDetent(false);
-          }}
-          onTravelRangeChange={(range) => {
-            if (isDesktop || range.end === 2) setAtFullDetent(true);
-          }}
-          onTravel={travelHandler}
-          ref={setRefs}
         >
           <Sheet.Content className="GamesSheet-content">
             <Sheet.SpecialWrapper.Root className="GamesSheet-specialWrapperRoot">
