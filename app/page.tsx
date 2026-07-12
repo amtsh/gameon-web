@@ -250,6 +250,8 @@ export default async function LandingPage() {
             <span>© 2026 {siteName}</span>
             <nav className="lp-footer-links" aria-label="Footer">
               <Link href="/home">Open map</Link>
+              <Link href="/privacy">Privacy</Link>
+              <Link href="/terms">Terms</Link>
               <a
                 href="https://gameon.userjot.com"
                 rel="noopener noreferrer"
