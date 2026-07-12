@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
+  deleteAccount,
   fetchSportPreferences,
   saveProfile,
   type SportPreference,
@@ -46,6 +47,9 @@ export function ProfileSheet({
   const [preferences, setPreferences] = useState<SportPreference[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!presented || !user) return;
@@ -61,6 +65,8 @@ export function ProfileSheet({
       );
       setPostalCode(profile?.postal_code ?? "");
       setSaveError(null);
+      setShowDeleteConfirm(false);
+      setDeleteError(null);
     };
 
     void load();
@@ -101,6 +107,21 @@ export function ProfileSheet({
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteConfirmed = async () => {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount();
+      // Hard-navigate to home; session is gone server-side
+      window.location.href = "/";
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "Could not delete account",
+      );
+      setDeleting(false);
     }
   };
 
@@ -259,6 +280,50 @@ export function ProfileSheet({
             >
               Sign out
             </button>
+
+            {/* ── Delete account ── */}
+            {!showDeleteConfirm ? (
+              <button
+                className="delete-account-trigger"
+                disabled={deleting}
+                onClick={() => setShowDeleteConfirm(true)}
+                type="button"
+              >
+                Delete account
+              </button>
+            ) : (
+              <div className="delete-account-confirm">
+                <p className="delete-account-warning">
+                  <strong>This cannot be undone.</strong> Your profile, sport
+                  preferences, hosted games, and join requests (including stored
+                  contact handles) will be permanently deleted.
+                </p>
+                {deleteError ? (
+                  <p className="form-error">{deleteError}</p>
+                ) : null}
+                <div className="delete-account-actions">
+                  <button
+                    className="delete-account-cancel"
+                    disabled={deleting}
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setDeleteError(null);
+                    }}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="delete-account-confirm-btn"
+                    disabled={deleting}
+                    onClick={() => void handleDeleteConfirmed()}
+                    type="button"
+                  >
+                    {deleting ? "Deleting\u2026" : "Yes, delete my account"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

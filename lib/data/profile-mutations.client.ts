@@ -109,7 +109,7 @@ export async function saveContact(
   if (error) throw error;
 }
 
-/** Persist device GPS as the user's discovery center. */
+/** Persist device GPS as the user\'s discovery center. */
 export async function saveDiscoveryCoordinates(center: Coordinates) {
   const supabase = createClient();
   const {
@@ -132,4 +132,13 @@ export async function saveDiscoveryCoordinates(center: Coordinates) {
 export async function sportPreferencesMap() {
   const prefs = await fetchSportPreferences();
   return new Map(prefs.map((pref) => [pref.sport, pref.level]));
+}
+
+/** Permanently delete the current user\'s account and all their data. */
+export async function deleteAccount(): Promise<void> {
+  const res = await fetch("/api/account/delete", { method: "DELETE" });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? "Could not delete account");
+  }
 }
