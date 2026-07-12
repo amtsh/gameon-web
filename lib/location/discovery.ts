@@ -110,13 +110,14 @@ export function initialDiscoveryLocationLabel(
 export async function resolveInitialDiscoveryLocationLabel(
   profile: Profile | null | undefined,
   initialIpLocation?: Coordinates | null,
+  options?: { cityOnly?: boolean },
 ): Promise<string> {
   const source = resolveDiscoveryCenterSource(profile, null, initialIpLocation);
   const sync = discoveryLocationLabelSync(source, profile);
   if (sync) return sync;
 
   const center = resolveDiscoveryFilter(profile, null, initialIpLocation).center;
-  const city = await reverseGeocodeCity(center);
+  const city = await reverseGeocodeCity(center, options);
   return city ?? DEFAULT_DISCOVERY_CITY;
 }
 

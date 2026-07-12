@@ -76,6 +76,7 @@ export default async function LandingPage() {
   const initialCityLabel = await resolveInitialDiscoveryLocationLabel(
     null,
     ipLocation,
+    { cityOnly: true },
   );
 
   return (

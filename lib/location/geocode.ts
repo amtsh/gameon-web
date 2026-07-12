@@ -30,6 +30,22 @@ export async function geocodePlace(query: string): Promise<Coordinates | null> {
 }
 
 /** Build a human-readable discovery label from Photon reverse-geocode properties. */
+export function formatReverseGeocodeCity(
+  props: Record<string, string | undefined>,
+): string | null {
+  const city = props.city?.trim();
+  if (city) return city;
+
+  const locality = props.locality?.trim();
+  if (locality) return locality;
+
+  const name = props.name?.trim();
+  if (name) return name;
+
+  return null;
+}
+
+/** Area + city when both are available (e.g. Södermalm, Stockholm). */
 export function formatReverseGeocodeLabel(
   props: Record<string, string | undefined>,
 ): string | null {
@@ -56,6 +72,7 @@ export function formatReverseGeocodeLabel(
 /** Resolve a city or locality name from coordinates via Photon reverse geocoding. */
 export async function reverseGeocodeCity(
   coords: Coordinates,
+  options?: { cityOnly?: boolean },
 ): Promise<string | null> {
   const params = new URLSearchParams({
     lat: String(coords.latitude),
@@ -69,5 +86,7 @@ export async function reverseGeocodeCity(
   const props = data.features?.[0]?.properties;
   if (!props) return null;
 
-  return formatReverseGeocodeLabel(props);
+  return options?.cityOnly
+    ? formatReverseGeocodeCity(props)
+    : formatReverseGeocodeLabel(props);
 }

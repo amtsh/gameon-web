@@ -26,6 +26,8 @@ type Options = {
   initialIpLocation?: Coordinates | null;
   /** SSR-resolved city label (avoids a Stockholm flash before reverse geocode). */
   initialLabel?: string;
+  /** Show city name only — no district/suburb prefix (landing page). */
+  cityOnly?: boolean;
 };
 
 export function useDiscoveryLocation({
@@ -33,6 +35,7 @@ export function useDiscoveryLocation({
   initialProfile,
   initialIpLocation = null,
   initialLabel,
+  cityOnly = false,
 }: Options) {
   const [gpsLocation, setGpsLocation] = useState<Coordinates | null>(null);
   const [ipLocation, setIpLocation] = useState<Coordinates | null>(
@@ -88,7 +91,12 @@ export function useDiscoveryLocation({
     }
 
     let cancelled = false;
-    void resolveDiscoveryLocationLabel(profile, gpsLocation, ipLocation).then(
+    void resolveDiscoveryLocationLabel(
+      profile,
+      gpsLocation,
+      ipLocation,
+      { cityOnly },
+    ).then(
       (nextLabel) => {
         if (!cancelled) setLabel(nextLabel);
       },
@@ -102,6 +110,7 @@ export function useDiscoveryLocation({
     profile?.postal_longitude,
     gpsLocation,
     ipLocation,
+    cityOnly,
   ]);
 
   const locate = useCallback(() => {

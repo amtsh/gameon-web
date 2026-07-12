@@ -31,13 +31,14 @@ export async function resolveDiscoveryLocationLabel(
   profile: Profile | null | undefined,
   gpsCenter?: Coordinates | null,
   ipCenter?: Coordinates | null,
+  options?: { cityOnly?: boolean },
 ): Promise<string> {
   const source = resolveDiscoveryCenterSource(profile, gpsCenter, ipCenter);
   const sync = discoveryLocationLabelSync(source, profile);
   if (sync) return sync;
 
   const filter = resolveDiscoveryFilter(profile, gpsCenter, ipCenter);
-  const city = await reverseGeocodeCity(filter.center);
+  const city = await reverseGeocodeCity(filter.center, options);
   return city ?? DEFAULT_DISCOVERY_CITY;
 }
 

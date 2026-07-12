@@ -1,5 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { formatReverseGeocodeLabel } from "./geocode";
+import {
+  formatReverseGeocodeCity,
+  formatReverseGeocodeLabel,
+} from "./geocode";
+
+describe("formatReverseGeocodeCity", () => {
+  it("returns city only when district is also present", () => {
+    expect(
+      formatReverseGeocodeCity({
+        district: "Norrmalm",
+        city: "Stockholm",
+      }),
+    ).toBe("Stockholm");
+  });
+
+  it("falls back to locality when city is missing", () => {
+    expect(formatReverseGeocodeCity({ locality: "Klara" })).toBe("Klara");
+  });
+});
 
 describe("formatReverseGeocodeLabel", () => {
   it("prefers district and city when both are present", () => {

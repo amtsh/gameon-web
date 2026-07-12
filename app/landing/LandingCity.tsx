@@ -29,6 +29,7 @@ export function LandingLocationProvider({
     initialProfile: null,
     initialIpLocation,
     initialLabel,
+    cityOnly: true,
   });
 
   return (
