@@ -1,8 +1,12 @@
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { NextResponse } from "next/server";
+import { assertSameOrigin } from "@/lib/api/same-origin";
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  const forbidden = assertSameOrigin(req);
+  if (forbidden) return forbidden;
+
   const supabase = await createClient();
   const {
     data: { user },
