@@ -62,11 +62,14 @@ export function JoinGuideSheet({
   const executeJoin = useCallback(
     async (profileForJoin: Profile) => {
       const prefs = await sportPreferencesMap();
-      await requestToJoin(event.id, profileForJoin, event.sport, prefs);
+      await requestToJoin(event.id, profileForJoin, event.sport, prefs, {
+        isPrivate: event.isPrivate,
+        shareToken: event.isPrivate ? event.shareToken : undefined,
+      });
       await onJoined();
       onPresentedChange(false);
     },
-    [event.id, event.sport, onJoined, onPresentedChange],
+    [event.id, event.isPrivate, event.shareToken, event.sport, onJoined, onPresentedChange],
   );
 
   // User is fully ready — they tap the button to explicitly request.
@@ -89,7 +92,9 @@ export function JoinGuideSheet({
     setError(null);
     setBusy(true);
     try {
-      await signInWithGoogle(joinGuideReturnPath(event.id));
+      await signInWithGoogle(
+        joinGuideReturnPath(event.shareToken, event.isPrivate),
+      );
     } catch (signInError) {
       setError(
         signInError instanceof Error

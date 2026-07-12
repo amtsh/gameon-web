@@ -7,7 +7,10 @@ describe("buildSportEventIcs", () => {
     title: "Evening doubles; bring shoes, ok",
     description: "Line one\nLine two",
   });
-  const ics = buildSportEventIcs(event, "https://gameon.app/game/event-1");
+  const ics = buildSportEventIcs(
+    event,
+    "https://gameon.app/g/brave-ladybug-90",
+  );
 
   it("is a valid single-event calendar with CRLF line endings", () => {
     expect(ics.startsWith("BEGIN:VCALENDAR\r\n")).toBe(true);
@@ -34,7 +37,7 @@ describe("buildSportEventIcs", () => {
 
   it("includes venue and share link", () => {
     expect(ics).toContain("LOCATION:Eriksdalshallen\\, Ringvagen 70\\, Stockholm");
-    expect(ics).toContain("URL:https://gameon.app/game/event-1");
+    expect(ics).toContain("URL:https://gameon.app/g/brave-ladybug-90");
   });
 });
 

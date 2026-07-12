@@ -19,13 +19,13 @@ export type AppData = {
   pastEvents: SportEvent[];
   /** Session IP fix from edge headers — passed to client, not persisted. */
   ipLocation: Coordinates | null;
-  /** Only set when sharedEventId was passed; null = not found. */
+  /** Only set when sharedEventSlug was passed; null = not found. */
   sharedEvent?: SportEvent | null;
 };
 
 /** Everything the app shell needs for SSR — one client, one auth lookup,
     one profile load, instead of each fetcher redoing all three. */
-export async function loadAppData(sharedEventId?: string): Promise<AppData> {
+export async function loadAppData(sharedEventSlug?: string): Promise<AppData> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -38,8 +38,8 @@ export async function loadAppData(sharedEventId?: string): Promise<AppData> {
   const [events, pastEvents, sharedEvent] = await Promise.all([
     loadSportEvents(supabase, user?.id, discovery),
     user ? loadPastUserSportEvents(supabase, user.id) : Promise.resolve([]),
-    sharedEventId
-      ? loadSportEvent(supabase, sharedEventId, user?.id, discovery)
+    sharedEventSlug
+      ? loadSportEvent(supabase, sharedEventSlug, user?.id, discovery)
       : Promise.resolve(undefined),
   ]);
 

@@ -34,6 +34,7 @@ export function makeSportEventRow(
     created_at: "2026-07-01T00:00:00Z",
     auto_approve: false,
     is_private: false,
+    share_token: "swift-hawk-42",
     ...overrides,
   };
 }
@@ -55,6 +56,7 @@ export function makeEvent(overrides: Partial<SportEvent> = {}): SportEvent {
     },
     capacity: 8,
     joinedCount: 5,
+    shareToken: "swift-hawk-42",
     ...overrides,
   };
 }

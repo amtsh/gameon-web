@@ -121,6 +121,7 @@ export type Database = {
           created_at: string;
           auto_approve: boolean;
           is_private: boolean;
+          share_token: string | null;
         };
         Insert: {
           id?: string;
@@ -145,6 +146,7 @@ export type Database = {
           created_at?: string;
           auto_approve?: boolean;
           is_private?: boolean;
+          share_token?: string | null;
         };
         Update: {
           id?: string;
@@ -169,6 +171,7 @@ export type Database = {
           created_at?: string;
           auto_approve?: boolean;
           is_private?: boolean;
+          share_token?: string | null;
         };
         Relationships: [
           {
@@ -308,6 +311,51 @@ export type Database = {
           method: ContactMethod;
           value: string;
         }[];
+      };
+      get_sport_event_by_share_token: {
+        Args: { p_share_token: string };
+        Returns: {
+          id: string;
+          host_id: string;
+          sport: SportKind;
+          title: string;
+          description: string;
+          cost: string;
+          skill_level: SkillLevel;
+          capacity: number;
+          attendee_count: number;
+          starts_at: string;
+          ends_at: string;
+          venue_name: string;
+          venue_address: string | null;
+          venue_city: string | null;
+          venue_country: string | null;
+          venue_latitude: number;
+          venue_longitude: number;
+          created_at: string;
+          auto_approve: boolean;
+          is_private: boolean;
+          share_token: string;
+        }[];
+      };
+      get_sport_event_roster: {
+        Args: { p_event_id: string; p_share_token?: string | null };
+        Returns: {
+          profile_id: string;
+          name: string;
+          requester_level: SkillLevel;
+          is_host: boolean;
+        }[];
+      };
+      request_to_join_sport_event: {
+        Args: {
+          p_event_id: string;
+          p_share_token: string | null;
+          p_requester_level: SkillLevel;
+          p_contact_method: ContactMethod;
+          p_contact_value: string;
+        };
+        Returns: undefined;
       };
     };
     Enums: {

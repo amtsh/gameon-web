@@ -58,8 +58,34 @@ export async function fetchHostJoinRequests(
 export async function fetchApprovedPlayers(
   eventId: string,
   hostId?: string,
+  options: { shareToken?: string } = {},
 ): Promise<ApprovedPlayer[]> {
   const supabase = createClient();
+
+  if (options.shareToken) {
+    const { data, error } = await supabase.rpc("get_sport_event_roster", {
+      p_event_id: eventId,
+      p_share_token: options.shareToken,
+    });
+
+    if (error) throw error;
+    if (!data?.length) return [];
+
+    return data.map((row) => {
+      const fullName = row.name ?? "Player";
+      const firstName = fullName.split(" ")[0] ?? fullName;
+      return {
+        id: row.profile_id,
+        name: fullName,
+        firstName,
+        level: row.is_host
+          ? null
+          : ((row.requester_level ?? "beginner") as SkillLevel),
+        isHost: row.is_host,
+        avatarUrl: null,
+      };
+    });
+  }
 
   // event_participants holds the approved/joined rows.
   const { data: participants, error } = await supabase
@@ -120,6 +146,7 @@ export async function requestToJoin(
   profile: Profile,
   sport: string,
   sportPreferences: Map<string, SkillLevel>,
+  options: { isPrivate?: boolean; shareToken?: string } = {},
 ) {
   const supabase = createClient();
   const {
@@ -132,6 +159,19 @@ export async function requestToJoin(
   }
 
   const requesterLevel = sportPreferences.get(sport) ?? "beginner";
+
+  if (options.isPrivate) {
+    const { error } = await supabase.rpc("request_to_join_sport_event", {
+      p_event_id: eventId,
+      p_share_token: options.shareToken ?? null,
+      p_requester_level: requesterLevel,
+      p_contact_method: profile.contact_method,
+      p_contact_value: profile.contact_value.trim(),
+    });
+
+    if (error) throw error;
+    return;
+  }
 
   const { error } = await supabase.from("event_join_requests").upsert(
     {

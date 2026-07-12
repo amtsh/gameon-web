@@ -21,6 +21,7 @@ export const sports: Array<{
 export const mockEvents: SportEvent[] = [
   {
     id: "1",
+    shareToken: "brave-ladybug-12",
     title: "Evening doubles",
     sport: "badminton",
     skillLevel: "beginner",
@@ -43,6 +44,7 @@ export const mockEvents: SportEvent[] = [
   },
   {
     id: "2",
+    shareToken: "quick-cobra-37",
     title: "Five-a-side football",
     sport: "football",
     skillLevel: "intermediate",
@@ -63,6 +65,7 @@ export const mockEvents: SportEvent[] = [
   },
   {
     id: "3",
+    shareToken: "tricky-chicken-23",
     title: "Morning 5K loop",
     sport: "running",
     skillLevel: "any",
@@ -82,6 +85,7 @@ export const mockEvents: SportEvent[] = [
   },
   {
     id: "4",
+    shareToken: "silly-goose-90",
     title: "Host court session",
     sport: "tennis",
     skillLevel: "advanced",
@@ -103,6 +107,7 @@ export const mockEvents: SportEvent[] = [
   },
   {
     id: "5",
+    shareToken: "calm-otter-15",
     title: "Sunday pickup basketball",
     sport: "basketball",
     skillLevel: "intermediate",
@@ -121,6 +126,7 @@ export const mockEvents: SportEvent[] = [
   },
   {
     id: "6",
+    shareToken: "bold-fox-68",
     title: "Weekday smash night",
     sport: "badminton",
     skillLevel: "intermediate",

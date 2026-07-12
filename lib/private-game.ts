@@ -1,7 +1,7 @@
 import type { SportEvent } from "@/app/types";
 
 export type PrivateGameContext = {
-  /** True when the event detail was opened via /game/[id] (shared link). */
+  /** True when the event detail was opened via /g/[shareToken] (shared link). */
   openedViaShareLink?: boolean;
 };
 

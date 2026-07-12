@@ -1,5 +1,6 @@
 import type { SkillLevel, SportKind, Venue } from "@/app/types";
 import type { Profile } from "@/lib/data/profile.shared";
+import { generateShareToken } from "@/lib/share-token";
 import { createClient } from "@/lib/supabase/client";
 
 export type CreateSportEventInput = {
@@ -26,6 +27,12 @@ function toIsoFromLocalDateTime(value: string) {
   return date.toISOString();
 }
 
+const SHARE_TOKEN_MAX_ATTEMPTS = 8;
+
+function isUniqueViolation(error: { code?: string } | null): boolean {
+  return error?.code === "23505";
+}
+
 export async function createSportEvent(input: CreateSportEventInput) {
   const supabase = createClient();
   const {
@@ -43,32 +50,55 @@ export async function createSportEvent(input: CreateSportEventInput) {
     throw new Error("End time must be after start time");
   }
 
-  const { data: event, error } = await supabase
-    .from("sport_events")
-    .insert({
-      host_id: user.id,
-      sport: input.sport,
-      title: input.title.trim(),
-      description: input.description?.trim() ?? "",
-      cost: input.cost?.trim() ?? "",
-      skill_level: input.skillLevel,
-      capacity: input.capacity,
-      starts_at: startsAt,
-      ends_at: endsAt,
-      host_contact_method: input.profile.contact_method,
-      host_contact_value: input.profile.contact_value,
-      venue_name: input.venue.name,
-      venue_address: input.venue.address ?? null,
-      venue_city: input.venue.city ?? null,
-      venue_latitude: input.venue.latitude,
-      venue_longitude: input.venue.longitude,
-      auto_approve: input.autoApprove,
-      is_private: input.isPrivate,
-    })
-    .select("id")
-    .single();
+  const baseRow = {
+    host_id: user.id,
+    sport: input.sport,
+    title: input.title.trim(),
+    description: input.description?.trim() ?? "",
+    cost: input.cost?.trim() ?? "",
+    skill_level: input.skillLevel,
+    capacity: input.capacity,
+    starts_at: startsAt,
+    ends_at: endsAt,
+    host_contact_method: input.profile.contact_method,
+    host_contact_value: input.profile.contact_value,
+    venue_name: input.venue.name,
+    venue_address: input.venue.address ?? null,
+    venue_city: input.venue.city ?? null,
+    venue_latitude: input.venue.latitude,
+    venue_longitude: input.venue.longitude,
+    auto_approve: input.autoApprove,
+    is_private: input.isPrivate,
+  };
 
-  if (error) throw error;
+  let event: { id: string } | null = null;
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < SHARE_TOKEN_MAX_ATTEMPTS; attempt += 1) {
+    const { data, error } = await supabase
+      .from("sport_events")
+      .insert({
+        ...baseRow,
+        share_token: generateShareToken(),
+      })
+      .select("id")
+      .single();
+
+    if (!error) {
+      event = data;
+      break;
+    }
+
+    if (!isUniqueViolation(error)) {
+      throw error;
+    }
+
+    lastError = error;
+  }
+
+  if (!event) {
+    throw lastError ?? new Error("Could not allocate a share link");
+  }
 
   if (input.fillYourSpot) {
     const { error: participantError } = await supabase

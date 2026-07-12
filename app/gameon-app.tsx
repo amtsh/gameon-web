@@ -81,7 +81,7 @@ export default function GameOnApp({
     initialIpLocation,
   });
 
-  // true when the URL was /game/[id] but the event does not exist.
+  // true when the URL was /g/[token] but the event does not exist.
   const showingSharedMissing = initialSharedEvent === null;
   const shareLinkEventId =
     initialSharedEvent != null ? initialSharedEvent.id : undefined;

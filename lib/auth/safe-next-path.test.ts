@@ -3,7 +3,7 @@ import { safeNextPath } from "./safe-next-path";
 
 describe("safeNextPath", () => {
   it("keeps same-origin paths", () => {
-    expect(safeNextPath("/game/abc?join=1")).toBe("/game/abc?join=1");
+    expect(safeNextPath("/g/abc?join=1")).toBe("/g/abc?join=1");
     expect(safeNextPath("/")).toBe("/");
   });
 

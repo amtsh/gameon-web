@@ -60,6 +60,38 @@ describe("toSportEvent", () => {
     expect(event.isPrivate).toBe(true);
   });
 
+  it("maps shareToken from the row", () => {
+    const event = toSportEvent(
+      makeSportEventRow({ share_token: "brave-ladybug-90" }),
+      "Host",
+      {
+        participantEventIds: new Set(),
+        pendingRequestEventIds: new Set(),
+        waitlistEventIds: new Set(),
+        hostedEventIds: new Set(),
+        pendingRequestCounts: new Map(),
+      },
+    );
+
+    expect(event.shareToken).toBe("brave-ladybug-90");
+  });
+
+  it("falls back to id when share_token is null", () => {
+    const event = toSportEvent(
+      makeSportEventRow({ id: "event-legacy", share_token: null }),
+      "Host",
+      {
+        participantEventIds: new Set(),
+        pendingRequestEventIds: new Set(),
+        waitlistEventIds: new Set(),
+        hostedEventIds: new Set(),
+        pendingRequestCounts: new Map(),
+      },
+    );
+
+    expect(event.shareToken).toBe("event-legacy");
+  });
+
   it("omits empty optional strings", () => {
     const sparse = makeSportEventRow({
       cost: "",

@@ -8,11 +8,14 @@ import {
   type DiscoveryFilter,
 } from "@/lib/location/discovery";
 import { haversineDistanceKm } from "@/lib/location/geo";
+import { isUuid } from "@/lib/share-token";
 
-const EVENT_COLUMNS =
+const EVENT_COLUMNS_PUBLIC =
   "id, host_id, sport, title, description, cost, skill_level, capacity, " +
   "attendee_count, starts_at, ends_at, venue_name, venue_address, venue_city, " +
   "venue_country, venue_latitude, venue_longitude, created_at, auto_approve, is_private";
+
+const EVENT_COLUMNS_WITH_TOKEN = `${EVENT_COLUMNS_PUBLIC}, share_token`;
 
 type PublicSportEventRow = Omit<
   SportEventRow,
@@ -78,6 +81,7 @@ export function toSportEvent(
     pendingRequestCount: ctx.pendingRequestCounts.get(row.id),
     autoApprove: row.auto_approve,
     isPrivate: row.is_private,
+    shareToken: row.share_token ?? row.id,
     distanceKm: discovery
       ? haversineDistanceKm(discovery.center, venueCoords)
       : undefined,
@@ -144,9 +148,10 @@ export async function loadSportEvents(
   userId?: string,
   discovery: DiscoveryFilter = DEFAULT_DISCOVERY_FILTER,
 ): Promise<SportEvent[]> {
+  const columns = userId ? EVENT_COLUMNS_WITH_TOKEN : EVENT_COLUMNS_PUBLIC;
   const { data: events, error } = await supabase
     .from("sport_events")
-    .select(EVENT_COLUMNS)
+    .select(columns)
     .gt("ends_at", new Date().toISOString())
     .order("starts_at", { ascending: true })
     .overrideTypes<PublicSportEventRow[], { merge: false }>();
@@ -179,22 +184,36 @@ export async function loadSportEvents(
   );
 }
 
-/** Load a single upcoming sport event by ID (no radius filter — for share links). */
+/** Load a single upcoming sport event by share token or legacy UUID. */
 export async function loadSportEvent(
   supabase: SupabaseClient<Database>,
-  eventId: string,
+  slug: string,
   userId?: string,
   discovery?: DiscoveryFilter,
 ): Promise<SportEvent | null> {
-  const { data: event, error } = await supabase
-    .from("sport_events")
-    .select(EVENT_COLUMNS)
-    .eq("id", eventId)
-    .gt("ends_at", new Date().toISOString())
-    .maybeSingle()
-    .overrideTypes<PublicSportEventRow | null, { merge: false }>();
+  let event: PublicSportEventRow | null = null;
 
-  if (error) throw error;
+  if (isUuid(slug)) {
+    const columns = userId ? EVENT_COLUMNS_WITH_TOKEN : EVENT_COLUMNS_PUBLIC;
+    const { data, error } = await supabase
+      .from("sport_events")
+      .select(columns)
+      .eq("id", slug)
+      .gt("ends_at", new Date().toISOString())
+      .maybeSingle()
+      .overrideTypes<PublicSportEventRow | null, { merge: false }>();
+
+    if (error) throw error;
+    event = data;
+  } else {
+    const { data, error } = await supabase.rpc("get_sport_event_by_share_token", {
+      p_share_token: slug,
+    });
+
+    if (error) throw error;
+    event = (data?.[0] as PublicSportEventRow | undefined) ?? null;
+  }
+
   if (!event) return null;
 
   const { data: host } = await supabase
@@ -237,7 +256,7 @@ export async function loadPastUserSportEvents(
 
   const { data: events, error } = await supabase
     .from("sport_events")
-    .select(EVENT_COLUMNS)
+    .select(EVENT_COLUMNS_WITH_TOKEN)
     .lte("ends_at", now)
     .or(filters.join(","))
     .order("ends_at", { ascending: false })

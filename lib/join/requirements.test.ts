@@ -36,6 +36,14 @@ describe("hasJoinContact", () => {
 
 describe("joinGuideReturnPath", () => {
   it("returns the share URL with the join flag", () => {
-    expect(joinGuideReturnPath("abc")).toBe("/game/abc?join=1");
+    expect(joinGuideReturnPath("brave-ladybug-90")).toBe(
+      "/g/brave-ladybug-90?join=1",
+    );
+  });
+
+  it("uses the private invite path for private games", () => {
+    expect(joinGuideReturnPath("brave-ladybug-90", true)).toBe(
+      "/g/private/brave-ladybug-90?join=1",
+    );
   });
 });

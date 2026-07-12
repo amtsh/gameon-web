@@ -57,6 +57,7 @@ function PlayerAvatar({ player }: { player: ApprovedPlayer }) {
 type Props = {
   eventId: string;
   hostId?: string;
+  shareToken?: string;
   totalCount: number;
   presented: boolean;
   onPresentedChange: (v: boolean) => void;
@@ -65,6 +66,7 @@ type Props = {
 export function PlayersSheet({
   eventId,
   hostId,
+  shareToken,
   totalCount,
   presented,
   onPresentedChange,
@@ -78,7 +80,7 @@ export function PlayersSheet({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchApprovedPlayers(eventId, hostId)
+    fetchApprovedPlayers(eventId, hostId, { shareToken })
       .then((data) => { if (!cancelled) { setPlayers(data); setLoading(false); } })
       .catch((err) => {
         if (!cancelled) {
@@ -87,7 +89,7 @@ export function PlayersSheet({
         }
       });
     return () => { cancelled = true; };
-  }, [eventId, hostId, presented]);
+  }, [eventId, hostId, presented, shareToken]);
 
   return (
     <ModalSheet

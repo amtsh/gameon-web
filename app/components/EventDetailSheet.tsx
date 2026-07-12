@@ -25,7 +25,7 @@ import {
   withdrawJoinRequest,
   type HostJoinRequest,
 } from "@/lib/data/join-requests.client";
-import type { ContactInfo } from "../types";
+import type { ContactInfo, SportEvent } from "../types";
 import type { Profile } from "@/lib/data/profile.shared";
 import { sportPreferencesMap } from "@/lib/data/profile-mutations.client";
 import { sports } from "../data/mock-data";
@@ -45,7 +45,7 @@ import {
   canSeePlayers,
   canShareGame,
 } from "@/lib/private-game";
-import type { SportEvent } from "../types";
+import { sportEventSharePath, sportEventShareUrl } from "@/lib/share-token";
 
 type Props = {
   event: SportEvent;
@@ -60,7 +60,7 @@ type Props = {
   /** Fired after a successful join/waitlist request — a natural moment to
       nudge PWA installation, since the user just got value from the app. */
   onJoinSuccess?: () => void;
-  /** True when detail was opened from /game/[id] for this event. */
+  /** True when detail was opened from /g/[shareToken] for this event. */
   openedViaShareLink?: boolean;
 };
 
@@ -143,9 +143,15 @@ export function EventDetailSheet({
     !archived && (event.isJoined || event.isCreatedByCurrentUser);
 
   const shareUrl = useMemo(() => {
-    if (typeof window === "undefined") return `/game/${event.id}`;
-    return new URL(`/game/${event.id}`, window.location.origin).toString();
-  }, [event.id]);
+    const shareOptions = { isPrivate: event.isPrivate };
+    const path = sportEventSharePath(event.shareToken, shareOptions);
+    if (typeof window === "undefined") return path;
+    return sportEventShareUrl(
+      event.shareToken,
+      window.location.origin,
+      shareOptions,
+    );
+  }, [event.isPrivate, event.shareToken]);
 
   const privateGameContext = useMemo(
     () => ({ openedViaShareLink }),
@@ -245,7 +251,10 @@ export function EventDetailSheet({
     }
     void runMutation(async () => {
       const prefs = await sportPreferencesMap();
-      await requestToJoin(event.id, profile, event.sport, prefs);
+      await requestToJoin(event.id, profile, event.sport, prefs, {
+        isPrivate: event.isPrivate,
+        shareToken: openedViaShareLink ? event.shareToken : undefined,
+      });
     }).then((succeeded) => {
       if (succeeded) onJoinSuccess?.();
     });
@@ -658,6 +667,9 @@ export function EventDetailSheet({
       <PlayersSheet
         eventId={event.id}
         hostId={event.hostId}
+        shareToken={
+          event.isPrivate && openedViaShareLink ? event.shareToken : undefined
+        }
         totalCount={event.joinedCount}
         presented={playersOpen}
         onPresentedChange={setPlayersOpen}

@@ -1,4 +1,5 @@
 import type { Profile } from "@/lib/data/profile.shared";
+import { sportEventSharePath } from "@/lib/share-token";
 
 export type JoinGuideStep = "signIn" | "contact";
 
@@ -15,6 +16,9 @@ export function getJoinGuideStep(
   return null;
 }
 
-export function joinGuideReturnPath(eventId: string): string {
-  return `/game/${eventId}?join=1`;
+export function joinGuideReturnPath(
+  shareToken: string,
+  isPrivate = false,
+): string {
+  return `${sportEventSharePath(shareToken, { isPrivate })}?join=1`;
 }

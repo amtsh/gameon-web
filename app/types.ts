@@ -46,6 +46,8 @@ export type SportEvent = {
   hostContact?: ContactInfo;
   autoApprove?: boolean;
   isPrivate?: boolean;
+  /** Human-readable share slug, e.g. brave-ladybug-90. */
+  shareToken: string;
   /** Distance from the viewer's discovery center, in km. */
   distanceKm?: number;
 };
