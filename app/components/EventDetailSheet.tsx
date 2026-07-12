@@ -316,6 +316,11 @@ export function EventDetailSheet({
     `${event.venue.name}, ${event.venue.city ?? ""}`,
   )}`;
 
+  const playersText =
+    event.joinedCount < event.capacity
+      ? `${event.joinedCount} / ${event.capacity} joined`
+      : `${event.joinedCount} joined`;
+
   return (
     <ModalSheet
       height="80svh"
@@ -413,9 +418,7 @@ export function EventDetailSheet({
               <Users size={12} />
               Players
             </p>
-            <p className="meta-value">
-              {event.joinedCount} / {event.capacity} players
-            </p>
+            <p className="meta-value">{playersText}</p>
             {event.joinedCount > 0 ? (
               <button
                 className="link-info mt-1.5"
