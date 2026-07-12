@@ -45,6 +45,7 @@ export type SportEvent = {
   hostName?: string;
   hostContact?: ContactInfo;
   autoApprove?: boolean;
+  isPrivate?: boolean;
   /** Distance from the viewer's discovery center, in km. */
   distanceKm?: number;
 };
