@@ -62,8 +62,7 @@ export function GamesSheet({
     [events, selectedSports],
   );
   const pastGames = pastEvents;
-  const showNearbyEmpty =
-    sections.length === 0 && yourGames.length === 0;
+  const showNearbyEmpty = sections.length === 0 && yourGames.length === 0;
 
   const isDesktop = useIsDesktop();
 
@@ -156,7 +155,7 @@ export function GamesSheet({
                     <p className="hero-subtitle">
                       {discoveryLocationLabel}
                       <span style={{ color: "var(--label-text)" }}> · </span>
-                      Within {DISCOVERY_RADIUS_KM} km radius around you
+                      Within {DISCOVERY_RADIUS_KM} km radius
                     </p>
                   </div>
                   <button
