@@ -62,6 +62,8 @@ export function GamesSheet({
     [events, selectedSports],
   );
   const pastGames = pastEvents;
+  const showNearbyEmpty =
+    sections.length === 0 && yourGames.length === 0;
 
   const isDesktop = useIsDesktop();
 
@@ -224,6 +226,25 @@ export function GamesSheet({
                             ))
                           )}
                         </>
+                      ) : showNearbyEmpty ? (
+                        <div className="empty-state-block">
+                          <p className="empty-state-title">
+                            No games within {DISCOVERY_RADIUS_KM} km of{" "}
+                            {discoveryLocationLabel}
+                          </p>
+                          <p className="empty-state">
+                            Nothing posted nearby yet.
+                          </p>
+                          <div className="empty-state-actions">
+                            <button
+                              className="primary-action"
+                              onClick={() => onOpenSheet("create")}
+                              type="button"
+                            >
+                              Host a game
+                            </button>
+                          </div>
+                        </div>
                       ) : (
                         <>
                           {yourGames.length > 0 ? (
@@ -236,14 +257,6 @@ export function GamesSheet({
                               onSelect={() => onSelectEvent(event)}
                             />
                           ))}
-
-                          {sections.length === 0 && yourGames.length === 0 ? (
-                            <p className="empty-state">
-                              No games within {DISCOVERY_RADIUS_KM} km. Set your
-                              postal code in profile, or open a shared game
-                              link.
-                            </p>
-                          ) : null}
 
                           {sections.map((section) => (
                             <div key={section.key}>

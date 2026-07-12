@@ -83,6 +83,25 @@
   padding-bottom: 8px;
 }
 
+.empty-state-block {
+  padding: 48px 0 18px;
+}
+
+.empty-state-title {
+  color: var(--primary-text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.empty-state-block .empty-state {
+  padding: 6px 0 16px;
+}
+
+.empty-state-actions {
+  display: grid;
+  gap: 10px;
+}
+
 /* ── Desktop: right-side panel over the map ── */
 @media (min-width: 820px) {
   .GamesSheet-view {
