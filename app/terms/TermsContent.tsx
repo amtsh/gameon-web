@@ -6,7 +6,6 @@ export function TermsContent() {
 
       <h2>Using GameOn</h2>
       <ul>
-        <li>You must be 16 or older to use GameOn.</li>
         <li>
           You need a Google account to sign in and a contact handle (WhatsApp
           or Telegram) to join or host games.
@@ -31,6 +30,13 @@ export function TermsContent() {
           <a href="/how">How GameOn works</a>.
         </li>
       </ul>
+
+      <h2>Public visibility</h2>
+      <p>
+        Game listings and player rosters (name and skill level) for upcoming
+        games are publicly visible, including to signed-out visitors. Contact
+        details are never part of public rosters.
+      </p>
 
       <h2>Acceptable use</h2>
       <ul>
@@ -73,15 +79,7 @@ export function TermsContent() {
 
       <h2>Contact</h2>
       <p>
-        Questions? Open an issue on our{" "}
-        <a
-          href="https://github.com/amtsh/gameon-web"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          GitHub repository
-        </a>
-        .
+        Questions: <a href="mailto:amtsh@pm.me">amtsh@pm.me</a>
       </p>
     </article>
   );
