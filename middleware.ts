@@ -1,7 +1,9 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function proxy(request: NextRequest) {
+// Cloudflare (@opennextjs/cloudflare) supports Edge middleware only, not
+// Next.js 16's Node.js proxy.ts. Keep middleware.ts until proxy lands there.
+export async function middleware(request: NextRequest) {
   return updateSession(request);
 }
 
