@@ -48,6 +48,8 @@ export type SportEvent = {
   isPrivate?: boolean;
   /** Human-readable share slug, e.g. brave-ladybug-90. */
   shareToken: string;
+  /** Set when the host cancels the game before it ends. */
+  isCancelled?: boolean;
   /** Distance from the viewer's discovery center, in km. */
   distanceKm?: number;
 };

@@ -15,7 +15,7 @@ import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { downloadSportEventIcs } from "@/lib/calendar/download-ics.client";
 import { contactUrl } from "@/lib/contact-url";
-import { deleteSportEvent } from "@/lib/data/create-event.client";
+import { cancelSportEvent } from "@/lib/data/create-event.client";
 import {
   approveJoinRequest,
   fetchHostContact,
@@ -33,6 +33,7 @@ import {
   clockTime,
   detailDate,
   isArchived,
+  isCancelled,
   spotsLeft,
 } from "../event-feed";
 import { HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
@@ -80,10 +81,10 @@ const destructiveActions = {
     message: "You will lose your spot in line if a place opens up.",
     confirmLabel: "Leave Waitlist",
   },
-  delete: {
-    title: "Delete this game?",
-    message: "This cannot be undone. All join requests will be removed.",
-    confirmLabel: "Delete Game",
+  cancel: {
+    title: "Cancel this game?",
+    message: "Players who joined will be notified. The game will leave the public feed.",
+    confirmLabel: "Cancel Game",
   },
 } as const;
 
@@ -139,6 +140,7 @@ export function EventDetailSheet({
   const sport = sports.find((candidate) => candidate.id === event.sport);
   const spots = spotsLeft(event);
   const archived = isArchived(event);
+  const cancelled = isCancelled(event);
   const canAddToCalendar =
     !archived && (event.isJoined || event.isCreatedByCurrentUser);
 
@@ -158,12 +160,13 @@ export function EventDetailSheet({
     [openedViaShareLink],
   );
   const showPlayers = canSeePlayers(event, privateGameContext);
-  const canJoin = canJoinFromDetail(event, privateGameContext);
-  const canShare = canShareGame(event);
+  const canJoin =
+    !cancelled && canJoinFromDetail(event, privateGameContext);
+  const canShare = !cancelled && canShareGame(event);
 
   const loadRequests = useCallback(async () => {
     setActionError(null);
-    if (!event.isCreatedByCurrentUser || archived) {
+    if (!event.isCreatedByCurrentUser || archived || cancelled) {
       setHostRequests([]);
       return;
     }
@@ -319,9 +322,9 @@ export function EventDetailSheet({
       await runMutation(() => withdrawJoinRequest(event.id));
       return;
     }
-    if (kind === "delete") {
+    if (kind === "cancel") {
       await runMutation(async () => {
-        await deleteSportEvent(event.id);
+        await cancelSportEvent(event.id);
         onPresentedChange(false);
       });
     }
@@ -377,11 +380,14 @@ export function EventDetailSheet({
               ) : null}
             </div>
             <div className="row-badges mt-2">
+              {cancelled ? (
+                <span className="status-badge cancelled">Cancelled</span>
+              ) : null}
               {event.isPrivate ? (
                 <span className="status-badge">Private</span>
               ) : null}
               {event.isCreatedByCurrentUser ? <HostedByYouBadge /> : null}
-              {event.isJoined && !event.isCreatedByCurrentUser ? (
+              {event.isJoined && !event.isCreatedByCurrentUser && !cancelled ? (
                 <span className="status-badge success">You are going</span>
               ) : null}
               {event.hasPendingRequest ? (
@@ -547,7 +553,7 @@ export function EventDetailSheet({
           </div>
         ) : null}
 
-        {event.isCreatedByCurrentUser && !archived ? (
+        {event.isCreatedByCurrentUser && !archived && !cancelled ? (
           <>
             <button
               className="outline-action mt-4"
@@ -558,10 +564,10 @@ export function EventDetailSheet({
             </button>
             <button
               className="text-danger-action mt-3"
-              onClick={() => setConfirming("delete")}
+              onClick={() => setConfirming("cancel")}
               type="button"
             >
-              Delete game
+              Cancel game
             </button>
           </>
         ) : null}
@@ -582,10 +588,13 @@ export function EventDetailSheet({
         ) : null}
       </ModalSheetScroll>
 
-      {archived || !event.isCreatedByCurrentUser ? (
+      {archived || cancelled || !event.isCreatedByCurrentUser ? (
         <div className="detail-bottom">
           {archived ? (
             <p className="empty-state pb-3 pt-0 text-center">Archived game</p>
+          ) : null}
+          {cancelled ? (
+            <p className="empty-state pb-3 pt-0 text-center">This game was cancelled</p>
           ) : null}
           {archived || event.isJoined ? (
             <a
@@ -596,7 +605,7 @@ export function EventDetailSheet({
             >
               Get Directions
             </a>
-          ) : event.hasPendingRequest || event.isOnWaitlist ? (
+          ) : cancelled ? null : event.hasPendingRequest || event.isOnWaitlist ? (
             <button
               className={
                 event.hasPendingRequest || event.isOnWaitlist

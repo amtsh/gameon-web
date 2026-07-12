@@ -66,6 +66,8 @@ export const spotsLeft = (event: SportEvent) =>
 export const isArchived = (event: SportEvent, now = new Date()) =>
   new Date(event.endsAt) <= now;
 
+export const isCancelled = (event: SportEvent) => Boolean(event.isCancelled);
+
 export const isUserRelated = (event: SportEvent) =>
   Boolean(
     event.isCreatedByCurrentUser ||
@@ -109,7 +111,10 @@ export function groupedDiscoverableEvents(
   now = new Date(),
 ): EventSection[] {
   const visible = events
-    .filter((event) => !isUserRelated(event) && !isArchived(event, now))
+    .filter(
+      (event) =>
+        !isUserRelated(event) && !isArchived(event, now) && !isCancelled(event),
+    )
     .filter(
       (event) =>
         selectedSports.length === 0 || selectedSports.includes(event.sport),

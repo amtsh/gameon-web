@@ -35,6 +35,7 @@ export function makeSportEventRow(
     auto_approve: false,
     is_private: false,
     share_token: "swift-hawk-42",
+    cancelled_at: null,
     ...overrides,
   };
 }

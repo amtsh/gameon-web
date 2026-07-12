@@ -165,7 +165,7 @@ export async function updateSportEvent(input: UpdateSportEventInput) {
   if (error) throw error;
 }
 
-export async function deleteSportEvent(eventId: string) {
+export async function cancelSportEvent(eventId: string) {
   const supabase = createClient();
   const {
     data: { user },
@@ -174,9 +174,10 @@ export async function deleteSportEvent(eventId: string) {
 
   const { error } = await supabase
     .from("sport_events")
-    .delete()
+    .update({ cancelled_at: new Date().toISOString() })
     .eq("id", eventId)
-    .eq("host_id", user.id);
+    .eq("host_id", user.id)
+    .is("cancelled_at", null);
 
   if (error) throw error;
 }

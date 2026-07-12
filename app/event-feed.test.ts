@@ -6,6 +6,7 @@ import {
   eventRelativeLabel,
   groupedDiscoverableEvents,
   isArchived,
+  isCancelled,
   isUserRelated,
   sectionTitle,
   spotsLeft,
@@ -100,6 +101,11 @@ describe("isArchived / isUserRelated", () => {
     expect(isUserRelated(makeEvent({ hasPendingRequest: true }))).toBe(true);
     expect(isUserRelated(makeEvent({ isOnWaitlist: true }))).toBe(true);
   });
+
+  it("detects cancelled games", () => {
+    expect(isCancelled(makeEvent())).toBe(false);
+    expect(isCancelled(makeEvent({ isCancelled: true }))).toBe(true);
+  });
 });
 
 describe("feed sections", () => {
@@ -156,5 +162,36 @@ describe("feed sections", () => {
   it("excludes user-related events from discovery even when sport matches", () => {
     const sections = groupedDiscoverableEvents(all, ["badminton"], NOW);
     expect(sections).toEqual([]);
+  });
+
+  it("excludes cancelled games from public discovery", () => {
+    const cancelled = makeEvent({
+      id: "cancelled",
+      sport: "football",
+      isCancelled: true,
+      startsAt: "2026-07-11T18:00:00Z",
+      endsAt: "2026-07-11T19:00:00Z",
+    });
+    const sections = groupedDiscoverableEvents(
+      [...all, cancelled],
+      [],
+      NOW,
+    );
+    expect(sections.flatMap((s) => s.events.map((e) => e.id))).not.toContain(
+      "cancelled",
+    );
+  });
+
+  it("keeps cancelled joined games in active user events", () => {
+    const cancelledJoined = makeEvent({
+      id: "cancelled-joined",
+      isJoined: true,
+      isCancelled: true,
+      startsAt: "2026-07-12T10:00:00Z",
+      endsAt: "2026-07-12T11:00:00Z",
+    });
+    expect(activeUserEvents([cancelledJoined], NOW).map((e) => e.id)).toEqual([
+      "cancelled-joined",
+    ]);
   });
 });

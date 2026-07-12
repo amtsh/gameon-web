@@ -92,6 +92,22 @@ describe("toSportEvent", () => {
     expect(event.shareToken).toBe("event-legacy");
   });
 
+  it("maps isCancelled from the row", () => {
+    const event = toSportEvent(
+      makeSportEventRow({ cancelled_at: "2026-07-11T12:00:00Z" }),
+      "Host",
+      {
+        participantEventIds: new Set(),
+        pendingRequestEventIds: new Set(),
+        waitlistEventIds: new Set(),
+        hostedEventIds: new Set(),
+        pendingRequestCounts: new Map(),
+      },
+    );
+
+    expect(event.isCancelled).toBe(true);
+  });
+
   it("omits empty optional strings", () => {
     const sparse = makeSportEventRow({
       cost: "",

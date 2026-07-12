@@ -5,7 +5,7 @@ import { Clock, Crown, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { memo } from "react";
 import { sports } from "../data/mock-data";
-import { clockTime, durationText, eventRelativeLabel, eventTime, spotsLeft } from "../event-feed";
+import { clockTime, durationText, eventRelativeLabel, eventTime, isCancelled, spotsLeft } from "../event-feed";
 import { formatDistanceKm } from "@/lib/location/geo";
 import type { SportEvent } from "../types";
 
@@ -108,6 +108,14 @@ function rowBadges(event: SportEvent, isArchived: boolean) {
     );
   }
 
+  if (isCancelled(event)) {
+    badges.push(
+      <span className="status-badge cancelled" key="cancelled">
+        Cancelled
+      </span>,
+    );
+  }
+
   if (event.isCreatedByCurrentUser) {
     if ((event.pendingRequestCount ?? 0) > 0) {
       badges.push(
@@ -117,12 +125,14 @@ function rowBadges(event: SportEvent, isArchived: boolean) {
       );
     }
   } else if (event.isJoined) {
-    badges.push(
-      <span className="status-badge success" key="going">
-        You are going
-      </span>,
-    );
-    if (!isArchived) {
+    if (!isCancelled(event)) {
+      badges.push(
+        <span className="status-badge success" key="going">
+          You are going
+        </span>,
+      );
+    }
+    if (!isArchived && !isCancelled(event)) {
       const contactIcon =
         event.hostContact?.method === "telegram"
           ? "mdi:telegram"

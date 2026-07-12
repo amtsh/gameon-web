@@ -13,7 +13,8 @@ import { isUuid } from "@/lib/share-token";
 const EVENT_COLUMNS_PUBLIC =
   "id, host_id, sport, title, description, cost, skill_level, capacity, " +
   "attendee_count, starts_at, ends_at, venue_name, venue_address, venue_city, " +
-  "venue_country, venue_latitude, venue_longitude, created_at, auto_approve, is_private";
+  "venue_country, venue_latitude, venue_longitude, created_at, auto_approve, is_private, " +
+  "cancelled_at";
 
 const EVENT_COLUMNS_WITH_TOKEN = `${EVENT_COLUMNS_PUBLIC}, share_token`;
 
@@ -82,6 +83,7 @@ export function toSportEvent(
     autoApprove: row.auto_approve,
     isPrivate: row.is_private,
     shareToken: row.share_token ?? row.id,
+    isCancelled: row.cancelled_at != null,
     distanceKm: discovery
       ? haversineDistanceKm(discovery.center, venueCoords)
       : undefined,

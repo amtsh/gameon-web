@@ -122,6 +122,7 @@ export type Database = {
           auto_approve: boolean;
           is_private: boolean;
           share_token: string | null;
+          cancelled_at: string | null;
         };
         Insert: {
           id?: string;
@@ -147,6 +148,7 @@ export type Database = {
           auto_approve?: boolean;
           is_private?: boolean;
           share_token?: string | null;
+          cancelled_at?: string | null;
         };
         Update: {
           id?: string;
@@ -172,6 +174,7 @@ export type Database = {
           auto_approve?: boolean;
           is_private?: boolean;
           share_token?: string | null;
+          cancelled_at?: string | null;
         };
         Relationships: [
           {

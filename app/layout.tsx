@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "@silk-hq/components/layered-styles";
+import { ThemeInitScript } from "@/app/components/ThemeInitScript";
 import { getSiteMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
@@ -17,9 +18,6 @@ export const viewport: Viewport = {
   ],
 };
 
-// Apply the saved (or system) theme before paint to avoid a light-mode flash.
-const themeInitScript = `try{var t=localStorage.getItem("gameon-theme");if(t!=="dark"&&t!=="light"){t=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.dataset.theme=t}catch(e){}`;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,8 +25,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <ThemeInitScript />
+      </head>
       <body className="min-h-full flex flex-col">
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {children}
       </body>
     </html>

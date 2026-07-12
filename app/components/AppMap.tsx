@@ -11,7 +11,7 @@ import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef } from "react";
 import { sports } from "../data/mock-data";
-import { isArchived } from "../event-feed";
+import { isArchived, isCancelled } from "../event-feed";
 import type { SportEvent } from "../types";
 
 // Keep the light basemap in both themes so dark mode only affects the UI.
@@ -32,7 +32,7 @@ export function AppMap({ events, selectedEvent, locateToken, onSelect }: Props) 
   const mapRef = useRef<MapRef>(null);
 
   const activeEvents = useMemo(
-    () => events.filter((event) => !isArchived(event)),
+    () => events.filter((event) => !isArchived(event) && !isCancelled(event)),
     [events],
   );
 
