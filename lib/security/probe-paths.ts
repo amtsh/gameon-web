@@ -5,7 +5,7 @@ const PROBE_PREFIXES = [
   "/.vscode",
   "/.svn",
   "/.hg",
-  "/.DS_Store",
+  "/.ds_store",
   "/wp-",
   "/wordpress",
   "/phpmyadmin",
@@ -37,7 +37,6 @@ const PROBE_EXACT = new Set([
 ]);
 
 const PROBE_SUBSTRINGS = [
-  "/.env",
   "/config/common.js",
   "/config.js",
   "/credentials",
@@ -55,11 +54,14 @@ export function isProbePath(pathname: string): boolean {
   const path = pathname.toLowerCase();
 
   if (PROBE_EXACT.has(path)) return true;
-  if (PROBE_PREFIXES.some((prefix) => path.startsWith(prefix.toLowerCase()))) {
-    return true;
-  }
-  if (PROBE_SUBSTRINGS.some((part) => path.includes(part))) return true;
-  if (PROBE_EXTENSIONS.test(path)) return true;
 
-  return false;
+  for (const prefix of PROBE_PREFIXES) {
+    if (path.startsWith(prefix)) return true;
+  }
+
+  for (const part of PROBE_SUBSTRINGS) {
+    if (path.includes(part)) return true;
+  }
+
+  return PROBE_EXTENSIONS.test(path);
 }

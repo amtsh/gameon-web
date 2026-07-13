@@ -14,6 +14,9 @@ importers:
       '@opennextjs/cloudflare':
         specifier: ^1.20.1
         version: 1.20.1(next@16.2.6(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(wrangler@4.110.0)
+      '@photostructure/tz-lookup':
+        specifier: ^11.6.0
+        version: 11.6.0
       '@silk-hq/components':
         specifier: ^0.10.1
         version: 0.10.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1161,6 +1164,9 @@ packages:
     peerDependenciesMeta:
       rclone.js:
         optional: true
+
+  '@photostructure/tz-lookup@11.6.0':
+    resolution: {integrity: sha512-AHXaBp/bY9nd2pyGi7ldtzXYEZ3ARf7p4EG0XsizmmCxLYMbq+yITj7Z1etO29BiA3YW7aqrcrfToDcBD0grbA==}
 
   '@poppinss/colors@4.1.6':
     resolution: {integrity: sha512-H9xkIdFswbS8n1d6vmRd8+c10t2Qe+rZITbbDHHkQixH5+2x1FDGmi/0K+WgWiqQFKPSlIYB7jlH6Kpfn6Fleg==}
@@ -5236,6 +5242,8 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  '@photostructure/tz-lookup@11.6.0': {}
 
   '@poppinss/colors@4.1.6':
     dependencies:

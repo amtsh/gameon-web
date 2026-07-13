@@ -1,7 +1,12 @@
-import { format, isSameDay } from "date-fns";
 import { sports } from "@/app/data/mock-data";
 import type { SportEvent } from "@/app/types";
-import { wallClockDateFromIso } from "@/lib/date/wall-clock";
+import { timeZoneForVenue } from "@/lib/date/event-timezone";
+import {
+  calendarDayKey,
+  formatDateLabel,
+  formatTimeLabel,
+  formatWeekdayLabel,
+} from "@/lib/date/format-in-timezone";
 import { siteName } from "@/lib/seo/metadata";
 
 function getSportLabel(event: SportEvent, sportLabel?: string): string {
@@ -10,6 +15,15 @@ function getSportLabel(event: SportEvent, sportLabel?: string): string {
     sports.find((candidate) => candidate.id === event.sport)?.label ??
     event.sport.charAt(0).toUpperCase() + event.sport.slice(1)
   );
+}
+
+function eventScheduleContext(event: SportEvent) {
+  const timeZone = timeZoneForVenue(event.venue, event.startsAt);
+  return {
+    timeZone,
+    start: new Date(event.startsAt),
+    end: new Date(event.endsAt),
+  };
 }
 
 export function formatSharedGameOgTitle(
@@ -28,14 +42,13 @@ export function formatSharedGameLinkTitle(
 }
 
 export function formatSharedGameOgDate(event: SportEvent): string {
-  const start = wallClockDateFromIso(event.startsAt);
-  const end = wallClockDateFromIso(event.endsAt);
+  const { timeZone, start, end } = eventScheduleContext(event);
 
-  if (isSameDay(start, end)) {
-    return `${format(start, "EEE, d MMM")} · ${format(start, "HH:mm")} – ${format(end, "HH:mm")}`;
+  if (calendarDayKey(start, timeZone) === calendarDayKey(end, timeZone)) {
+    return `${formatDateLabel(start, timeZone)} · ${formatTimeLabel(start, timeZone)} – ${formatTimeLabel(end, timeZone)}`;
   }
 
-  return `${format(start, "EEE, d MMM · HH:mm")} – ${format(end, "EEE, d MMM · HH:mm")}`;
+  return `${formatDateLabel(start, timeZone)} · ${formatTimeLabel(start, timeZone)} – ${formatDateLabel(end, timeZone)} · ${formatTimeLabel(end, timeZone)}`;
 }
 
 export function formatSharedGameOgVenue(event: SportEvent): {
@@ -61,7 +74,8 @@ export function formatSharedGameShareText(
   sportLabel?: string,
 ): string {
   const sport = getSportLabel(event, sportLabel).toLowerCase();
-  const day = format(wallClockDateFromIso(event.startsAt), "EEEE");
+  const { timeZone, start } = eventScheduleContext(event);
+  const day = formatWeekdayLabel(start, timeZone);
   const spotsLeft = Math.max(event.capacity - event.joinedCount, 0);
 
   if (spotsLeft > 0 && spotsLeft <= 3) {
