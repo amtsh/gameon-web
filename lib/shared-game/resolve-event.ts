@@ -49,3 +49,29 @@ export async function buildSharedGameMetadata(slug: string): Promise<Metadata> {
     twitterCard: "summary_large_image",
   });
 }
+
+/** Metadata for the /g/private/{token} invite alias (same event, private URL). */
+export async function buildPrivateSharedGameMetadata(
+  slug: string,
+): Promise<Metadata> {
+  const event = await resolveSharedEvent(slug);
+  const path = `/g/private/${event?.shareToken ?? slug}`;
+
+  const siteUrl = getSiteUrl();
+  const openGraphUrl = `${siteUrl}${path}`;
+
+  const title = event ? event.title : defaultTitle;
+
+  const description = event
+    ? `${formatSharedGameDescription(event)}. Request a spot on ${siteName}.`
+    : siteDescription;
+
+  return createPageMetadata({
+    title,
+    description,
+    path,
+    openGraphUrl,
+    openGraphImage: false,
+    twitterCard: "summary_large_image",
+  });
+}
