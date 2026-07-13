@@ -164,5 +164,10 @@ export function eventCostToRow(cost?: EventCost) {
 
 export function displayCost(cost?: EventCost): string | undefined {
   if (!cost) return undefined;
-  return formatCost(costDraftFromEvent(cost)) || undefined;
+
+  const amountLabel = formatAmountLabel(cost.amount);
+  if (amountLabel === null) return undefined;
+
+  const suffix = cost.mode === "total" ? "booking cost" : "per person";
+  return `${amountLabel} ${cost.currency} ${suffix}`;
 }

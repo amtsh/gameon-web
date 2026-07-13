@@ -375,22 +375,10 @@ export function CreateEventSheet({
               </button>
             ))}
           </div>
-          <label className="stepper-row">
-            <span>Level</span>
-            <select
-              onChange={(changeEvent) =>
-                setSkillLevel(changeEvent.target.value as SkillLevel)
-              }
-              style={{ width: "auto" }}
-              value={skillLevel}
-            >
-              {skillLevels.map((level) => (
-                <option key={level.id} value={level.id}>
-                  {level.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        </div>
+
+        <div className="form-section">
+          <p className="form-label">Venue</p>
           <VenueSearchField
             key={venueFieldKey}
             value={venue}
@@ -405,7 +393,7 @@ export function CreateEventSheet({
 
         <div className="form-section">
           <p className="form-label">Game</p>
-          <label className="stepper-row">
+          <label className="stepper-row row-no-divider">
             <span>Starts</span>
             <input
               style={{ width: "auto" }}
@@ -439,7 +427,7 @@ export function CreateEventSheet({
           {errors.endsAt ? (
             <p className="form-error">{errors.endsAt.message}</p>
           ) : null}
-          <div className="stepper-row">
+          <div className="stepper-row row-no-divider">
             <div className="stepper-row-copy">
               <span>Capacity</span>
               {playersSought ? <p className="hint">{playersSought}</p> : null}
@@ -452,7 +440,7 @@ export function CreateEventSheet({
             />
           </div>
           {!isEditing ? (
-            <label className="toggle-row">
+            <label className="toggle-row row-no-divider">
               <span>Fill your spot</span>
               <input
                 checked={fillYourSpot}
@@ -463,6 +451,22 @@ export function CreateEventSheet({
               />
             </label>
           ) : null}
+          <label className="stepper-row row-no-divider">
+            <span>Expected Level</span>
+            <select
+              onChange={(changeEvent) =>
+                setSkillLevel(changeEvent.target.value as SkillLevel)
+              }
+              style={{ width: "auto" }}
+              value={skillLevel}
+            >
+              {skillLevels.map((level) => (
+                <option key={level.id} value={level.id}>
+                  {level.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <div className="form-section">
@@ -487,7 +491,7 @@ export function CreateEventSheet({
 
         <div className="form-section">
           <p className="form-label">Join rules</p>
-          <label className="toggle-row">
+          <label className="toggle-row row-no-divider">
             <span>Auto approve requests</span>
             <input
               checked={autoApprove}

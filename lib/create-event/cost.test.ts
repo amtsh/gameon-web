@@ -122,4 +122,10 @@ describe("eventCostFromDraft and row helpers", () => {
     expect(rowToEventCost(eventCostToRow(eventCost))).toEqual(eventCost);
     expect(displayCost(eventCost)).toBe("25 EUR per person");
   });
+
+  it("uses booking cost wording for total mode", () => {
+    expect(
+      displayCost({ amount: 80, currency: "SEK", mode: "total" }),
+    ).toBe("80 SEK booking cost");
+  });
 });

@@ -37,7 +37,7 @@ import {
   isCancelled,
   spotsLeft,
 } from "../event-feed";
-import { HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
+import { EventCountdownMeta, HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
 import { JoinGuideSheet } from "./JoinGuideSheet";
 import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
 import { PlayersSheet } from "./PlayersSheet";
@@ -363,10 +363,13 @@ export function EventDetailSheet({
         <div className="flex items-center gap-3.5">
           <SpotsLeftBadge count={spots} />
           <div className="min-w-0 flex-1">
-            <p className="row-meta" style={{ fontWeight: 700, fontSize: 10 }}>
-              <Icon icon={sport?.icon ?? "mdi:trophy"} width={12} />
-              {sport?.label}
-            </p>
+            <EventCountdownMeta
+              event={event}
+              isArchived={archived}
+              sportIcon={sport?.icon ?? "mdi:trophy"}
+              sportLabel={sport?.label}
+              style={{ fontWeight: 700, fontSize: 10 }}
+            />
             <div className="mt-1 flex items-start gap-3">
               <h2 className="detail-title flex-1">{event.title}</h2>
               {canShare ? (
@@ -407,7 +410,7 @@ export function EventDetailSheet({
         {event.isCreatedByCurrentUser && !archived ? (
           <>
             <div className="mt-6 pl-[17px]">
-              <p className="detail-label">Requests</p>
+              <p className="detail-label">Join requests</p>
               {pendingRequests.length > 0 ? (
                 <JoinRequestRows
                   approvingId={approvingId}
@@ -546,6 +549,8 @@ export function EventDetailSheet({
             }
           />
         </div>
+
+        <hr className="detail-divider my-6" />
 
         {event.description ? (
           <div className="mt-6 pl-[17px]">

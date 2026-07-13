@@ -41,6 +41,45 @@ const URGENCY_COLOR: Record<"urgent" | "hours", string> = {
   hours: "var(--warning)",
 };
 
+type EventCountdownMetaProps = {
+  event: SportEvent;
+  isArchived?: boolean;
+  sportLabel?: string;
+  sportIcon?: string;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function EventCountdownMeta({
+  event,
+  isArchived = false,
+  sportLabel,
+  sportIcon,
+  className,
+  style,
+}: EventCountdownMetaProps) {
+  const urgency = isArchived ? null : countdownUrgency(event);
+  const countdownColor = urgency ? URGENCY_COLOR[urgency] : undefined;
+
+  return (
+    <span className={clsx("row-meta", className)} style={style}>
+      {sportIcon ? <Icon icon={sportIcon} width={12} /> : null}
+      {sportLabel}
+      {sportLabel ? (
+        <span style={{ color: "var(--label-text)" }}>·</span>
+      ) : null}
+      <span
+        style={{
+          color: countdownColor,
+          fontWeight: urgency ? 600 : undefined,
+        }}
+      >
+        {eventRelativeLabel(event)}
+      </span>
+    </span>
+  );
+}
+
 export const EventRow = memo(function EventRow({
   event,
   isArchived = false,
@@ -51,21 +90,16 @@ export const EventRow = memo(function EventRow({
     ? `Ended ${clockTime(new Date(event.endsAt))}`
     : eventTime(new Date(event.startsAt));
 
-  const urgency = isArchived ? null : countdownUrgency(event);
-  const countdownColor = urgency ? URGENCY_COLOR[urgency] : undefined;
-
   return (
     <button className="event-row" onClick={onSelect}>
       <SpotsLeftBadge count={spotsLeft(event)} />
 
       <span className="min-w-0 flex-1">
-        <span className="row-meta">
-          {sport?.label}
-          <span style={{ color: "var(--label-text)" }}>·</span>
-          <span style={{ color: countdownColor, fontWeight: urgency ? 600 : undefined }}>
-            {eventRelativeLabel(event)}
-          </span>
-        </span>
+        <EventCountdownMeta
+          event={event}
+          isArchived={isArchived}
+          sportLabel={sport?.label}
+        />
 
         <span className="row-title">{event.title}</span>
 

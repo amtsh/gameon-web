@@ -1057,6 +1057,11 @@ textarea {
   border-bottom: none;
 }
 
+.create-event-form .stepper-row.row-no-divider,
+.create-event-form .toggle-row.row-no-divider {
+  border-bottom: none;
+}
+
 .create-event-form .contact-card,
 .profile-edit-form .contact-card {
   border: none;
