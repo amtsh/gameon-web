@@ -21,14 +21,33 @@ export async function buildSharedGameMetadata(slug: string): Promise<Metadata> {
     ? sportEventSharePath(event.shareToken)
     : sportEventSharePath(slug);
 
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = `${siteUrl}${canonical}`;
+
+  const title = event
+    ? `${event.title} \u00b7 ${siteName}`
+    : `Game not found \u00b7 ${siteName}`;
+
+  const description = event
+    ? `View details and join ${event.title} on ${siteName}.`
+    : siteDescription;
+
   return {
-    title: event
-      ? `${event.title} \u00b7 ${siteName}`
-      : `Game not found \u00b7 ${siteName}`,
-    description: event
-      ? `View details and join ${event.title} on ${siteName}.`
-      : siteDescription,
+    title,
+    description,
     alternates: { canonical },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: canonicalUrl,
+      siteName,
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
   };
 }
 
