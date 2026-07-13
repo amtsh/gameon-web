@@ -6,7 +6,6 @@ import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
-  deleteAccount,
   fetchSportPreferences,
   saveProfile,
   type SportPreference,
@@ -14,6 +13,7 @@ import {
 import type { Profile } from "@/lib/data/profile.shared";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
+import { DeleteAccountSheet } from "./DeleteAccountSheet";
 import { SignInPanel } from "./SignInPanel";
 import type { SkillLevel, SportKind } from "../types";
 
@@ -47,9 +47,7 @@ export function ProfileSheet({
   const [preferences, setPreferences] = useState<SportPreference[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteSheetPresented, setDeleteSheetPresented] = useState(false);
 
   useEffect(() => {
     if (!presented || !user) return;
@@ -65,8 +63,6 @@ export function ProfileSheet({
       );
       setPostalCode(profile?.postal_code ?? "");
       setSaveError(null);
-      setShowDeleteConfirm(false);
-      setDeleteError(null);
     };
 
     void load();
@@ -107,21 +103,6 @@ export function ProfileSheet({
       );
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleDeleteConfirmed = async () => {
-    setDeleting(true);
-    setDeleteError(null);
-    try {
-      await deleteAccount();
-      // Hard-navigate to home; session is gone server-side
-      window.location.href = "/";
-    } catch (error) {
-      setDeleteError(
-        error instanceof Error ? error.message : "Could not delete account",
-      );
-      setDeleting(false);
     }
   };
 
@@ -216,7 +197,7 @@ export function ProfileSheet({
           </div>
 
           <div className="form-section">
-            <p className="form-label">Games</p>
+            <p className="form-label">Interested Games</p>
             <div className="grid grid-cols-2 gap-2">
               {sports.map((sport) => {
                 const pref = preferences.find((p) => p.sport === sport.id);
@@ -239,7 +220,7 @@ export function ProfileSheet({
           </div>
 
           <div className="form-section">
-            <p className="form-label">Level</p>
+            <p className="form-label">Your Level</p>
             {interestedSports.map((pref) => {
               const sport = sports.find((candidate) => candidate.id === pref.sport);
               if (!sport) return null;
@@ -268,7 +249,16 @@ export function ProfileSheet({
           </div>
 
           <div className="form-section profile-account-footer">
-            <p className="form-label">Account</p>
+            <div className="form-label-row">
+              <p className="form-label">Account</p>
+              <button
+                className="link-button link-button-danger"
+                onClick={() => setDeleteSheetPresented(true)}
+                type="button"
+              >
+                (Delete)
+              </button>
+            </div>
             {user?.email ? (
               <p className="profile-email">{user.email}</p>
             ) : null}
@@ -280,53 +270,14 @@ export function ProfileSheet({
             >
               Sign out
             </button>
-
-            {/* ── Delete account ── */}
-            {!showDeleteConfirm ? (
-              <button
-                className="delete-account-trigger"
-                disabled={deleting}
-                onClick={() => setShowDeleteConfirm(true)}
-                type="button"
-              >
-                Delete account
-              </button>
-            ) : (
-              <div className="delete-account-confirm">
-                <p className="delete-account-warning">
-                  <strong>This cannot be undone.</strong> Your profile, sport
-                  preferences, hosted games, and join requests (including stored
-                  contact handles) will be permanently deleted.
-                </p>
-                {deleteError ? (
-                  <p className="form-error">{deleteError}</p>
-                ) : null}
-                <div className="delete-account-actions">
-                  <button
-                    className="delete-account-cancel"
-                    disabled={deleting}
-                    onClick={() => {
-                      setShowDeleteConfirm(false);
-                      setDeleteError(null);
-                    }}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="delete-account-confirm-btn"
-                    disabled={deleting}
-                    onClick={() => void handleDeleteConfirmed()}
-                    type="button"
-                  >
-                    {deleting ? "Deleting\u2026" : "Yes, delete my account"}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
+
+      <DeleteAccountSheet
+        onPresentedChange={setDeleteSheetPresented}
+        presented={deleteSheetPresented}
+      />
     </ModalSheet>
   );
 }

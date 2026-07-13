@@ -1229,6 +1229,39 @@ textarea {
   font-weight: 600;
 }
 
+.link-button-danger {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.form-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.delete-account-sheet {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px max(28px, env(safe-area-inset-bottom));
+}
+
+.delete-account-list {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--secondary-text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.delete-account-list li + li {
+  margin-top: 6px;
+}
+
 .sport-tile {
   display: flex;
   align-items: center;
