@@ -11,6 +11,8 @@ export type SportKind =
 
 export type SkillLevel = "any" | "beginner" | "intermediate" | "advanced";
 
+export type CostMode = "total" | "per_person";
+
 export type ContactMethod = "whatsapp" | "telegram";
 
 export type LocationMode = "device_location" | "postal_code";
@@ -104,7 +106,9 @@ export type Database = {
           sport: SportKind;
           title: string;
           description: string;
-          cost: string;
+          cost_amount: number | null;
+          cost_currency: string | null;
+          cost_mode: CostMode | null;
           skill_level: SkillLevel;
           capacity: number;
           attendee_count: number;
@@ -130,7 +134,9 @@ export type Database = {
           sport: SportKind;
           title: string;
           description?: string;
-          cost?: string;
+          cost_amount?: number | null;
+          cost_currency?: string | null;
+          cost_mode?: CostMode | null;
           skill_level?: SkillLevel;
           capacity: number;
           attendee_count?: number;
@@ -156,7 +162,9 @@ export type Database = {
           sport?: SportKind;
           title?: string;
           description?: string;
-          cost?: string;
+          cost_amount?: number | null;
+          cost_currency?: string | null;
+          cost_mode?: CostMode | null;
           skill_level?: SkillLevel;
           capacity?: number;
           attendee_count?: number;
@@ -323,7 +331,9 @@ export type Database = {
           sport: SportKind;
           title: string;
           description: string;
-          cost: string;
+          cost_amount: number | null;
+          cost_currency: string | null;
+          cost_mode: CostMode | null;
           skill_level: SkillLevel;
           capacity: number;
           attendee_count: number;
@@ -367,6 +377,7 @@ export type Database = {
       contact_method: ContactMethod;
       location_mode: LocationMode;
       join_request_status: JoinRequestStatus;
+      cost_mode: CostMode;
     };
     CompositeTypes: Record<string, never>;
   };

@@ -10,8 +10,10 @@ import {
 import { haversineDistanceKm } from "@/lib/location/geo";
 import { isUuid } from "@/lib/share-token";
 
+import { rowToEventCost } from "@/lib/create-event/cost";
+
 const EVENT_COLUMNS_PUBLIC =
-  "id, host_id, sport, title, description, cost, skill_level, capacity, " +
+  "id, host_id, sport, title, description, cost_amount, cost_currency, cost_mode, skill_level, capacity, " +
   "attendee_count, starts_at, ends_at, venue_name, venue_address, venue_city, " +
   "venue_country, venue_latitude, venue_longitude, created_at, auto_approve, is_private, " +
   "cancelled_at";
@@ -71,7 +73,7 @@ export function toSportEvent(
     },
     capacity: row.capacity,
     joinedCount: row.attendee_count,
-    cost: row.cost || undefined,
+    cost: rowToEventCost(row),
     description: row.description || undefined,
     hostId: row.host_id,
     hostName,

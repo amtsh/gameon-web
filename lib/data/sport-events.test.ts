@@ -4,7 +4,12 @@ import { DEFAULT_DISCOVERY_FILTER } from "@/lib/location/discovery";
 import { makeSportEventRow } from "@/test/factories";
 
 describe("toSportEvent", () => {
-  const row = makeSportEventRow({ id: "event-1", cost: "80 SEK" });
+  const row = makeSportEventRow({
+    id: "event-1",
+    cost_amount: 80,
+    cost_currency: "SEK",
+    cost_mode: "total",
+  });
 
   it("maps core fields and venue", () => {
     const event = toSportEvent(row, "Amit", {
@@ -18,7 +23,11 @@ describe("toSportEvent", () => {
     expect(event.id).toBe("event-1");
     expect(event.hostId).toBe(row.host_id);
     expect(event.hostName).toBe("Amit");
-    expect(event.cost).toBe("80 SEK");
+    expect(event.cost).toEqual({
+      amount: 80,
+      currency: "SEK",
+      mode: "total",
+    });
     expect(event.venue).toEqual({
       name: "Eriksdalshallen",
       address: "Ringvagen 70",
@@ -110,7 +119,9 @@ describe("toSportEvent", () => {
 
   it("omits empty optional strings", () => {
     const sparse = makeSportEventRow({
-      cost: "",
+      cost_amount: null,
+      cost_currency: null,
+      cost_mode: null,
       description: "",
       venue_address: null,
       venue_city: null,

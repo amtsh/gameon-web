@@ -14,6 +14,7 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { downloadSportEventIcs } from "@/lib/calendar/download-ics.client";
+import { displayCost } from "@/lib/create-event/cost";
 import { contactUrl } from "@/lib/contact-url";
 import { cancelSportEvent } from "@/lib/data/create-event.client";
 import {
@@ -511,7 +512,7 @@ export function EventDetailSheet({
           <MetadataItem
             icon={<CreditCard size={12} />}
             label="Cost"
-            value={event.cost?.trim() || "Not mentioned"}
+            value={displayCost(event.cost) ?? "Not mentioned"}
           />
           <MetadataItem
             icon={<UserIcon size={12} />}

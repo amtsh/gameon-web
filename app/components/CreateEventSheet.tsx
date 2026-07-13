@@ -2,7 +2,7 @@
 
 import { Icon } from "@iconify/react";
 import clsx from "clsx";
-import { X } from "lucide-react";
+import { CreditCard, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -13,10 +13,20 @@ import type { Profile } from "@/lib/data/profile.shared";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 import { VenueSearchField } from "./VenueSearchField";
+import { CostSheet } from "./CostSheet";
 import {
   buildCreatePrefill,
   toLocalDateTimeInput,
 } from "@/lib/create-event/prefill";
+import {
+  costDraftFromEvent,
+  displayCost,
+  eventCostFromDraft,
+  type CostCurrency,
+  type CostDraft,
+  type CostMode,
+  emptyCostDraft,
+} from "@/lib/create-event/cost";
 import type { SkillLevel, SportEvent, SportKind, Venue } from "../types";
 
 type CreateEventValues = {
@@ -24,7 +34,6 @@ type CreateEventValues = {
   startsAt: string;
   endsAt: string;
   capacity: number;
-  cost?: string;
   description?: string;
 };
 
@@ -122,6 +131,10 @@ export function CreateEventSheet({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [venueFieldKey, setVenueFieldKey] = useState(0);
+  const [costMode, setCostMode] = useState<CostMode>("total");
+  const [costAmount, setCostAmount] = useState("");
+  const [costCurrency, setCostCurrency] = useState<CostCurrency>("SEK");
+  const [costSheetPresented, setCostSheetPresented] = useState(false);
   const preserveDraftRef = useRef(false);
   const wasPresentedRef = useRef(false);
   const skipPreserveOnCloseRef = useRef(false);
@@ -138,10 +151,15 @@ export function CreateEventSheet({
       title: "",
       ...defaultSessionTimes(),
       capacity: 8,
-      cost: "",
       description: "",
     },
   });
+
+  const applyCostDraft = (draft: CostDraft) => {
+    setCostMode(draft.mode);
+    setCostAmount(draft.amount);
+    setCostCurrency(draft.currency);
+  };
 
   const title = watch("title");
   const startsAt = watch("startsAt");
@@ -180,12 +198,12 @@ export function CreateEventSheet({
         setFillYourSpot(false);
         setAutoApprove(editEvent.autoApprove ?? false);
         setIsPrivate(editEvent.isPrivate ?? false);
+        applyCostDraft(costDraftFromEvent(editEvent.cost));
         reset({
           title: editEvent.title,
           startsAt: toLocalDateTimeInput(editEvent.startsAt),
           endsAt: toLocalDateTimeInput(editEvent.endsAt),
           capacity: editEvent.capacity,
-          cost: editEvent.cost ?? "",
           description: editEvent.description ?? "",
         });
         return;
@@ -202,12 +220,12 @@ export function CreateEventSheet({
         setFillYourSpot(true);
         setAutoApprove(prefill.autoApprove);
         setIsPrivate(prefill.isPrivate);
+        applyCostDraft(costDraftFromEvent(prefill.cost));
         reset({
           title: prefill.title,
           startsAt: prefill.startsAt,
           endsAt: prefill.endsAt,
           capacity: prefill.capacity,
-          cost: prefill.cost,
           description: prefill.description,
         });
         return;
@@ -220,11 +238,11 @@ export function CreateEventSheet({
       setFillYourSpot(true);
       setAutoApprove(false);
       setIsPrivate(false);
+      applyCostDraft(emptyCostDraft());
       reset({
         title: "",
         ...defaultSessionTimes(),
         capacity: 8,
-        cost: "",
         description: "",
       });
     });
@@ -241,6 +259,7 @@ export function CreateEventSheet({
 
     setSubmitError(null);
     setIsSubmitting(true);
+    const cost = eventCostFromDraft(costDraft);
     try {
       if (editEvent) {
         await updateSportEvent({
@@ -251,7 +270,7 @@ export function CreateEventSheet({
           startsAt: values.startsAt,
           endsAt: values.endsAt,
           capacity: values.capacity,
-          cost: values.cost,
+          cost,
           description: values.description,
           venue,
           autoApprove,
@@ -266,7 +285,7 @@ export function CreateEventSheet({
           startsAt: values.startsAt,
           endsAt: values.endsAt,
           capacity: values.capacity,
-          cost: values.cost,
+          cost,
           description: values.description,
           venue,
           fillYourSpot,
@@ -297,6 +316,12 @@ export function CreateEventSheet({
   const sheetTitle = isEditing ? "Edit Game" : "Create Game";
   const startsAtField = register("startsAt", { required: true });
   const playersSought = playersSoughtLabel(capacity, fillYourSpot, isEditing);
+  const costDraft: CostDraft = {
+    mode: costMode,
+    amount: costAmount,
+    currency: costCurrency,
+  };
+  const costLabel = displayCost(eventCostFromDraft(costDraft)) ?? "Not set";
 
   return (
     <ModalSheet
@@ -438,7 +463,26 @@ export function CreateEventSheet({
               />
             </label>
           ) : null}
-          <input placeholder="Cost (80 SEK)" {...register("cost")} />
+        </div>
+
+        <div className="form-section">
+          <p className="form-label">Cost</p>
+          <div className="contact-card">
+            <CreditCard size={20} />
+            <span className="flex-1">
+              <span className="detail-caption block" style={{ fontWeight: 700 }}>
+                {costMode === "per_person" ? "Per person" : "Booking cost"}
+              </span>
+              <span className="detail-body">{costLabel}</span>
+            </span>
+            <button
+              className="link-button"
+              onClick={() => setCostSheetPresented(true)}
+              type="button"
+            >
+              Edit
+            </button>
+          </div>
         </div>
 
         <div className="form-section">
@@ -506,6 +550,13 @@ export function CreateEventSheet({
           />
         </div>
       </form>
+
+      <CostSheet
+        draft={costDraft}
+        onPresentedChange={setCostSheetPresented}
+        onSave={applyCostDraft}
+        presented={costSheetPresented}
+      />
     </ModalSheet>
   );
 }

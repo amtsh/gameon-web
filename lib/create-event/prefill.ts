@@ -51,7 +51,7 @@ export function buildCreatePrefill(source: SportEvent) {
     startsAt: toLocalDateTimeInput(dates.startsAt),
     endsAt: toLocalDateTimeInput(dates.endsAt),
     capacity: source.capacity,
-    cost: source.cost ?? "",
+    cost: source.cost,
     description: source.description ?? "",
   };
 }

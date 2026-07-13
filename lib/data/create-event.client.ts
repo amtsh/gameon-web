@@ -1,4 +1,6 @@
 import type { SkillLevel, SportKind, Venue } from "@/app/types";
+import type { EventCost } from "@/lib/create-event/cost";
+import { eventCostToRow } from "@/lib/create-event/cost";
 import type { Profile } from "@/lib/data/profile.shared";
 import { generateShareToken } from "@/lib/share-token";
 import { createClient } from "@/lib/supabase/client";
@@ -10,7 +12,7 @@ export type CreateSportEventInput = {
   startsAt: string;
   endsAt: string;
   capacity: number;
-  cost?: string;
+  cost?: EventCost;
   description?: string;
   venue: Venue;
   fillYourSpot: boolean;
@@ -50,12 +52,14 @@ export async function createSportEvent(input: CreateSportEventInput) {
     throw new Error("End time must be after start time");
   }
 
+  const costRow = eventCostToRow(input.cost);
+
   const baseRow = {
     host_id: user.id,
     sport: input.sport,
     title: input.title.trim(),
     description: input.description?.trim() ?? "",
-    cost: input.cost?.trim() ?? "",
+    ...costRow,
     skill_level: input.skillLevel,
     capacity: input.capacity,
     starts_at: startsAt,
@@ -138,13 +142,15 @@ export async function updateSportEvent(input: UpdateSportEventInput) {
     throw new Error("End time must be after start time");
   }
 
+  const costRow = eventCostToRow(input.cost);
+
   const { error } = await supabase
     .from("sport_events")
     .update({
       sport: input.sport,
       title: input.title.trim(),
       description: input.description?.trim() ?? "",
-      cost: input.cost?.trim() ?? "",
+      ...costRow,
       skill_level: input.skillLevel,
       capacity: input.capacity,
       starts_at: startsAt,

@@ -70,7 +70,7 @@ describe("buildCreatePrefill", () => {
     const source = makeEvent({
       isCreatedByCurrentUser: true,
       autoApprove: true,
-      cost: "80 SEK",
+      cost: { amount: 80, currency: "SEK", mode: "total" },
       description: "Bring shoes",
     });
     const prefill = buildCreatePrefill(source);
@@ -79,7 +79,7 @@ describe("buildCreatePrefill", () => {
     expect(prefill.venue).toEqual(source.venue);
     expect(prefill.capacity).toBe(source.capacity);
     expect(prefill.autoApprove).toBe(true);
-    expect(prefill.cost).toBe("80 SEK");
+    expect(prefill.cost).toEqual({ amount: 80, currency: "SEK", mode: "total" });
     expect(prefill.description).toBe("Bring shoes");
     expect(new Date(prefill.startsAt).getTime()).toBeGreaterThan(Date.now());
   });

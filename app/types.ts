@@ -1,3 +1,5 @@
+import type { EventCost } from "@/lib/create-event/cost";
+
 export type SportKind =
   | "badminton"
   | "football"
@@ -34,7 +36,7 @@ export type SportEvent = {
   venue: Venue;
   capacity: number;
   joinedCount: number;
-  cost?: string;
+  cost?: EventCost;
   description?: string;
   isCreatedByCurrentUser?: boolean;
   isJoined?: boolean;

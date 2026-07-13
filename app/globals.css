@@ -1095,6 +1095,23 @@ textarea {
   margin: 0;
 }
 
+.cost-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cost-input-group input {
+  width: 82px;
+  padding: 8px;
+  text-align: center;
+}
+
+.cost-input-group select {
+  min-width: 84px;
+  padding: 8px 30px 8px 12px;
+}
+
 .stepper-row select {
   appearance: none;
   -webkit-appearance: none;
