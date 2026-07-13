@@ -78,8 +78,11 @@ export function PlayersSheet({
   useEffect(() => {
     if (!presented) return;
     let cancelled = false;
-    setLoading(true);
-    setError(null);
+    const frame = requestAnimationFrame(() => {
+      if (cancelled) return;
+      setLoading(true);
+      setError(null);
+    });
     fetchApprovedPlayers(eventId, hostId, { shareToken })
       .then((data) => { if (!cancelled) { setPlayers(data); setLoading(false); } })
       .catch((err) => {
@@ -88,7 +91,10 @@ export function PlayersSheet({
           setLoading(false);
         }
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
   }, [eventId, hostId, presented, shareToken]);
 
   return (

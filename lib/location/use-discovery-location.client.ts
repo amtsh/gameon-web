@@ -86,8 +86,8 @@ export function useDiscoveryLocation({
     const source = resolveDiscoveryCenterSource(profile, gpsLocation, ipLocation);
     const sync = discoveryLocationLabelSync(source, profile);
     if (sync) {
-      setLabel(sync);
-      return;
+      const frame = requestAnimationFrame(() => setLabel(sync));
+      return () => cancelAnimationFrame(frame);
     }
 
     let cancelled = false;

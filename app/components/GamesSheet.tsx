@@ -29,10 +29,13 @@ type Props = {
 
 /** Returns true once the viewport is ≥820 px wide (matches GamesSheet.css breakpoint). */
 function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(min-width: 820px)").matches,
+  );
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 820px)");
-    setIsDesktop(mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
