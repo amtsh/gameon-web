@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { resolveInitialDiscoveryLocationLabel } from "@/lib/location/discovery";
 import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
-import { createPageMetadata, siteName } from "@/lib/seo/metadata";
+import { createPageMetadata, homeAppTitle, siteName } from "@/lib/seo/metadata";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { loadAppData } from "@/lib/data/app-data";
 import { LandingCity, LandingLocationProvider } from "./landing/LandingCity";
@@ -29,9 +29,10 @@ const landingDescription =
   "Game On maps local sports games near you. Find open games, request a spot, and play — no group chat needed.";
 
 export const metadata = createPageMetadata({
-  title: "Discover, join or host local games near you",
+  title: homeAppTitle,
   description: landingDescription,
   path: "/",
+  openGraphImage: false,
 });
 
 const howItWorksTips = [

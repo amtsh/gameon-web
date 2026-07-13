@@ -5,9 +5,9 @@ import {
   formatSharedGameOgVenue,
   sanitizeOgText,
 } from "@/lib/seo/format-event-og";
+import { createDefaultOpenGraphImage } from "@/lib/seo/default-opengraph-image";
 import { ogImageResponseOptions } from "@/lib/seo/og-font";
 import {
-  DefaultOgImageContent,
   OgBody,
   OgBrandHeader,
   OgImageShell,
@@ -28,14 +28,8 @@ export async function createSharedGameOpenGraphImage(token: string) {
   const imageOptions = await ogImageResponseOptions();
 
   if (!event) {
-    return new ImageResponse(
-      <OgImageShell>
-        <DefaultOgImageContent />
-      </OgImageShell>,
-      imageOptions,
-    );
+    return createDefaultOpenGraphImage();
   }
-
   const venue = formatSharedGameOgVenue(event);
   const dateText = sanitizeOgText(formatSharedGameOgDate(event));
   const venueLine = sanitizeOgText(
@@ -46,7 +40,9 @@ export async function createSharedGameOpenGraphImage(token: string) {
     <OgImageShell>
       <OgShowcaseCard>
         <OgBrandHeader />
-        <OgTitle>{sanitizeOgText(formatSharedGameOgTitle(event))}</OgTitle>
+        <OgTitle compact>
+          {sanitizeOgText(formatSharedGameOgTitle(event))}
+        </OgTitle>
         <OgBody>{dateText}</OgBody>
         <OgBody>{venueLine}</OgBody>
       </OgShowcaseCard>

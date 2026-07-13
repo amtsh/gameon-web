@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { siteDescription, siteName } from "@/lib/seo/metadata";
+import { homeAppTitle, siteDescription, siteName } from "@/lib/seo/metadata";
 
 /** Landscape canvas for social link previews. */
 export const ogImageSize = { width: 1200, height: 750 };
@@ -8,6 +8,7 @@ export const ogImageContentType = "image/png";
 export const landingColors = {
   ink: "#000000",
   body: "#6e6e73",
+  bodyDark: "#48484d",
   mute: "#8a8a8a",
   fontFamily: "Inter",
   background: "linear-gradient(135deg, #fff7f1 0%, #ffebeb 45%, #fff9f4 100%)",
@@ -19,29 +20,40 @@ export const landingColors = {
     "radial-gradient(ellipse at center, rgba(255, 187, 140, 0.47) 0%, rgba(255, 187, 140, 0) 70%)",
 } as const;
 
-/** Text tokens mirroring `.lp-showcase-card` h3/p, scaled up for the OG canvas. */
+/** Text tokens for full-canvas OG layout — sized to fit 1200×750 without overflow. */
 export const ogTypography = {
   brand: {
-    fontSize: 40,
+    fontSize: 60,
     fontWeight: 800,
     letterSpacing: "-0.03em",
     lineHeight: 1.1,
     color: landingColors.ink,
   },
   title: {
-    fontSize: 80,
+    fontSize: 84,
     fontWeight: 800,
     letterSpacing: "-0.03em",
-    lineHeight: 1.12,
+    lineHeight: 1.1,
     color: landingColors.ink,
     textAlign: "center" as const,
+    maxWidth: 1000,
+  },
+  titleCompact: {
+    fontSize: 72,
+    fontWeight: 800,
+    letterSpacing: "-0.03em",
+    lineHeight: 1.1,
+    color: landingColors.ink,
+    textAlign: "center" as const,
+    maxWidth: 1000,
   },
   body: {
-    fontSize: 36,
+    fontSize: 48,
     fontWeight: 800,
-    lineHeight: 1.45,
-    color: landingColors.body,
+    lineHeight: 1.35,
+    color: landingColors.bodyDark,
     textAlign: "center" as const,
+    maxWidth: 980,
   },
 } as const;
 
@@ -86,37 +98,57 @@ export function MapPinSearchIcon({
   );
 }
 
-/** Sits above the card content, matching the top nav brand mark. */
+/** Brand mark above OG content. */
 export function OgBrandHeader() {
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "16px",
-        marginBottom: 8,
+        gap: "20px",
         ...ogTextStyle("brand"),
       }}
     >
-      <MapPinSearchIcon size={40} strokeWidth={2.25} />
+      <MapPinSearchIcon size={60} strokeWidth={2.25} />
       {siteName}
     </div>
   );
 }
 
-/** Mirrors `.lp-showcase-card`: white rounded card, centered content. */
+/** White showcase card — mirrors landing `.lp-showcase-card` at OG scale. */
 export function OgShowcaseCard({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
         display: "flex",
+        width: "100%",
+        maxWidth: 1040,
         flexDirection: "column",
         alignItems: "center",
-        gap: 28,
-        maxWidth: 980,
-        padding: "80px 72px",
+        justifyContent: "center",
+        padding: "56px 64px",
         borderRadius: 48,
+        border: "1px solid #ececec",
         background: "#ffffff",
+        textAlign: "center",
+      }}
+    >
+      <OgContentStack>{children}</OgContentStack>
+    </div>
+  );
+}
+
+/** Centered content stack inside the showcase card. */
+export function OgContentStack({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        width: "100%",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 32,
         textAlign: "center",
       }}
     >
@@ -127,12 +159,18 @@ export function OgShowcaseCard({ children }: { children: ReactNode }) {
 
 export function OgTitle({
   children,
+  compact = false,
   style,
 }: {
   children: ReactNode;
+  compact?: boolean;
   style?: CSSProperties;
 }) {
-  return <div style={ogTextStyle("title", style)}>{children}</div>;
+  return (
+    <div style={ogTextStyle(compact ? "titleCompact" : "title", style)}>
+      {children}
+    </div>
+  );
 }
 
 export function OgBody({
@@ -149,7 +187,7 @@ export function DefaultOgImageContent() {
   return (
     <OgShowcaseCard>
       <OgBrandHeader />
-      <OgTitle>Join or host local games near you</OgTitle>
+      <OgTitle>{homeAppTitle}</OgTitle>
       <OgBody>{siteDescription}</OgBody>
     </OgShowcaseCard>
   );
@@ -210,7 +248,7 @@ export function OgImageShell({ children }: { children: ReactNode }) {
           height: "100%",
           alignItems: "center",
           justifyContent: "center",
-          padding: "56px",
+          padding: "64px",
         }}
       >
         {children}

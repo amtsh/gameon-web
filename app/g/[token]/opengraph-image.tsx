@@ -1,10 +1,11 @@
 import { createSharedGameOpenGraphImage } from "@/lib/seo/shared-game-opengraph-image";
-import { ogImageContentType, ogImageSize } from "@/lib/seo/og-image";
+import {
+  ogImageDynamic,
+  sharedGameOgImageRouteConfig,
+} from "@/lib/seo/og-image-route";
 
-export const alt = "Shared game on Game On";
-export const dynamic = "force-dynamic";
-export const size = ogImageSize;
-export const contentType = ogImageContentType;
+export const { alt, size, contentType } = sharedGameOgImageRouteConfig;
+export const dynamic = ogImageDynamic;
 
 type Props = {
   params: Promise<{ token: string }>;

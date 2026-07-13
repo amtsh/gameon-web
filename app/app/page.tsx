@@ -1,9 +1,9 @@
 import { loadAppData } from "@/lib/data/app-data";
 import {
   createPageMetadata,
+  homeAppTitle,
   siteDescription,
   siteName,
-  siteTagline,
 } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/seo/site";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -11,9 +11,10 @@ import GameOnApp from "../gameon-app";
 import { mockEvents } from "../data/mock-data";
 
 export const metadata = createPageMetadata({
-  title: siteTagline,
+  title: homeAppTitle,
   description: siteDescription,
   path: "/app",
+  openGraphImage: false,
 });
 
 function AppJsonLd() {

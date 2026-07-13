@@ -9,6 +9,9 @@ export const siteDescription =
 export const siteTagline =
   "Discover local games near you on one map. Request a spot. Show up.";
 
+/** Shared page + OG image title for `/` and `/app`. */
+export const homeAppTitle = "Join or host local games near you";
+
 export const defaultTitle = `${siteName} — ${siteTagline}`;
 
 /** Shared landing OG image — used for every route except /g/[token]. */
