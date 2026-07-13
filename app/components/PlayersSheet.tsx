@@ -108,7 +108,7 @@ export function PlayersSheet({
   return (
     <ModalSheet
       height="92svh"
-      title="Approved players"
+      title="Players joined"
       variant="form"
       scroll={false}
       presented={presented}
@@ -125,7 +125,7 @@ export function PlayersSheet({
           <ChevronLeft size={22} strokeWidth={2.2} />
         </button>
         <div className="players-nav-center">
-          <h2 className="players-nav-title">Approved players</h2>
+          <h2 className="players-nav-title">Players joined</h2>
           <p className="players-nav-count">{displayCount} players</p>
         </div>
         {/* spacer to keep title centred */}
@@ -155,7 +155,7 @@ export function PlayersSheet({
         ) : players.length === 0 ? (
           <p className="players-empty">No approved players yet.</p>
         ) : (
-          <ul className="players-list" role="list" aria-label="Approved players">
+          <ul className="players-list" role="list" aria-label="Players joined">
             {players.map((player) => (
               <li className="players-row" key={player.id}>
                 <PlayerAvatar player={player} />
