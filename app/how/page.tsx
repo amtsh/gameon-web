@@ -1,20 +1,20 @@
-import type { Metadata } from "next";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { HowContent } from "./HowContent";
 import "./how.css";
 
 // Unlisted technical reference: kept out of search indexes (noindex) but
 // still served, so AI agents fetching the URL can read how the app works.
-export const metadata: Metadata = {
-  title: "How GameOn works",
+export const metadata = createPageMetadata({
+  title: "How Game On works",
   description:
-    "Technical reference for how GameOn handles location discovery, join requests, waitlists, and contact sharing.",
+    "Technical reference for how Game On handles location discovery, join requests, waitlists, and contact sharing.",
+  path: "/how",
   robots: {
     index: false,
     follow: false,
     googleBot: { index: false, follow: false },
   },
-  alternates: { canonical: "/how" },
-};
+});
 
 export default function HowItWorksPage() {
   return (

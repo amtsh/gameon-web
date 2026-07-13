@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { PrivacyContent } from "./PrivacyContent";
 import "../legal.css";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy – GameOn",
-  description: "How GameOn collects, uses, and protects your personal data.",
-  alternates: { canonical: "/privacy" },
-};
+export const metadata = createPageMetadata({
+  title: "Privacy Policy",
+  description: "How Game On collects, uses, and protects your personal data.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

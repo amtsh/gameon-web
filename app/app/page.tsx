@@ -1,18 +1,20 @@
-import type { Metadata } from "next";
 import { loadAppData } from "@/lib/data/app-data";
-import { siteDescription, siteName } from "@/lib/seo/metadata";
+import {
+  createPageMetadata,
+  siteDescription,
+  siteName,
+  siteTagline,
+} from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/seo/site";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import GameOnApp from "../gameon-app";
 import { mockEvents } from "../data/mock-data";
 
-export const metadata: Metadata = {
-  title: "Find local sports games nearby",
+export const metadata = createPageMetadata({
+  title: siteTagline,
   description: siteDescription,
-  alternates: {
-    canonical: "/app",
-  },
-};
+  path: "/app",
+});
 
 function AppJsonLd() {
   const siteUrl = getSiteUrl();

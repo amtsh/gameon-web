@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { resolveInitialDiscoveryLocationLabel } from "@/lib/location/discovery";
 import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
-import { siteName } from "@/lib/seo/metadata";
+import { createPageMetadata, siteName } from "@/lib/seo/metadata";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { loadAppData } from "@/lib/data/app-data";
 import { LandingCity, LandingLocationProvider } from "./landing/LandingCity";
@@ -25,25 +25,14 @@ import { LandingTipGrid } from "./landing/LandingTipGrid";
 import { HeroBackground } from "./landing/HeroBackground";
 import "./landing.css";
 
-export const metadata: Metadata = {
+const landingDescription =
+  "Game On maps local sports games near you. Find open games, request a spot, and play — no group chat needed.";
+
+export const metadata = createPageMetadata({
   title: "Discover, join or host local games near you",
-  description:
-    "Game On maps local sports games near you. Find open games, request a spot, and play — no group chat needed.",
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: "Discover, join or host local games near you",
-    description:
-      "Game On maps local sports games near you. Find open games, request a spot, and play — no group chat needed.",
-    type: "website",
-    url: "/",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Discover, join or host local games near you",
-    description:
-      "Game On maps local sports games near you. Find open games, request a spot, and play — no group chat needed.",
-  },
-};
+  description: landingDescription,
+  path: "/",
+});
 
 const howItWorksTips = [
   {

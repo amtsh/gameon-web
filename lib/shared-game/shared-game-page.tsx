@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { loadAppData } from "@/lib/data/app-data";
 import { fetchSportEvent } from "@/lib/data/events";
-import { siteDescription, siteName } from "@/lib/seo/metadata";
+import { createPageMetadata, siteDescription, siteName } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/seo/site";
 import { sportEventSharePath } from "@/lib/share-token";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -24,31 +24,19 @@ export async function buildSharedGameMetadata(slug: string): Promise<Metadata> {
   const siteUrl = getSiteUrl();
   const canonicalUrl = `${siteUrl}${canonical}`;
 
-  const title = event
-    ? `${event.title} \u00b7 ${siteName}`
-    : `Game not found \u00b7 ${siteName}`;
+  const title = event ? event.title : "Game not found";
 
   const description = event
     ? `View details and join ${event.title} on ${siteName}.`
     : siteDescription;
 
-  return {
+  return createPageMetadata({
     title,
     description,
-    alternates: { canonical },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      url: canonicalUrl,
-      siteName,
-    },
-    twitter: {
-      card: "summary",
-      title,
-      description,
-    },
-  };
+    path: canonical,
+    openGraphUrl: canonicalUrl,
+    twitterCard: "summary",
+  });
 }
 
 export function GameJsonLd({

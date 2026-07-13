@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import { TermsContent } from "./TermsContent";
 import "../legal.css";
 
-export const metadata: Metadata = {
-  title: "Terms of Service – GameOn",
-  description: "Rules and responsibilities for using GameOn.",
-  alternates: { canonical: "/terms" },
-};
+export const metadata = createPageMetadata({
+  title: "Terms of Service",
+  description: "Rules and responsibilities for using Game On.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (
