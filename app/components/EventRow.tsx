@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import { Clock, Crown, MapPin } from "lucide-react";
+import { Clock, Crown, Lock, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { memo } from "react";
 import { sports } from "../data/mock-data";
@@ -32,6 +32,15 @@ export function HostedByYouBadge() {
     <span className="status-badge host">
       <Crown fill="currentColor" size={11} />
       Hosted by you
+    </span>
+  );
+}
+
+export function PrivateBadge() {
+  return (
+    <span className="status-badge private">
+      <Lock aria-hidden size={11} strokeWidth={2.25} />
+      Private
     </span>
   );
 }
@@ -137,12 +146,8 @@ function rowBadges(event: SportEvent, isArchived: boolean) {
   if (event.isCreatedByCurrentUser) {
     badges.push(<HostedByYouBadge key="host" />);
   }
-  if (event.isPrivate && !event.isCreatedByCurrentUser) {
-    badges.push(
-      <span className="status-badge" key="private">
-        Private
-      </span>,
-    );
+  if (event.isPrivate) {
+    badges.push(<PrivateBadge key="private" />);
   }
   if (isArchived) {
     badges.push(

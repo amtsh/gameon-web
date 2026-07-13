@@ -2,6 +2,41 @@ import type { SkillLevel } from "@/app/types";
 import type { Profile } from "@/lib/data/profile.shared";
 import { createClient } from "@/lib/supabase/client";
 
+async function fetchSportGamesPlayedCounts(
+  eventId: string,
+  profileIds: string[],
+  shareToken?: string,
+): Promise<Map<string, number>> {
+  if (profileIds.length === 0) return new Map();
+
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_sport_games_played_counts", {
+    p_event_id: eventId,
+    p_profile_ids: profileIds,
+    p_share_token: shareToken ?? null,
+  });
+
+  if (error) throw error;
+
+  return new Map(
+    (data ?? []).map((row) => [row.profile_id, row.games_played]),
+  );
+}
+
+export async function fetchHostSportGamesHostedCount(
+  eventId: string,
+  options: { shareToken?: string } = {},
+): Promise<number | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_host_sport_games_hosted_count", {
+    p_event_id: eventId,
+    p_share_token: options.shareToken ?? null,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
 export type HostJoinRequest = {
   id: string;
   requesterId: string;
@@ -19,6 +54,8 @@ export type ApprovedPlayer = {
   level: SkillLevel | null;
   isHost: boolean;
   avatarUrl: string | null;
+  /** Completed games played in this event's sport. */
+  gamesPlayed: number;
 };
 
 export async function fetchHostJoinRequests(
@@ -71,6 +108,13 @@ export async function fetchApprovedPlayers(
     if (error) throw error;
     if (!data?.length) return [];
 
+    const profileIds = data.map((row) => row.profile_id);
+    const gamesPlayedByProfile = await fetchSportGamesPlayedCounts(
+      eventId,
+      profileIds,
+      options.shareToken,
+    );
+
     return data.map((row) => {
       const fullName = row.name ?? "Player";
       const firstName = fullName.split(" ")[0] ?? fullName;
@@ -83,6 +127,7 @@ export async function fetchApprovedPlayers(
           : ((row.requester_level ?? "beginner") as SkillLevel),
         isHost: row.is_host,
         avatarUrl: null,
+        gamesPlayed: gamesPlayedByProfile.get(row.profile_id) ?? 0,
       };
     });
   }
@@ -122,6 +167,10 @@ export async function fetchApprovedPlayers(
   );
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const gamesPlayedByProfile = await fetchSportGamesPlayedCounts(
+    eventId,
+    profileIds,
+  );
 
   return participants.map((row) => {
     const profile = profileMap.get(row.profile_id);
@@ -137,6 +186,7 @@ export async function fetchApprovedPlayers(
         : ((levelByProfile.get(row.profile_id) ?? "beginner") as SkillLevel),
       isHost,
       avatarUrl: null,
+      gamesPlayed: gamesPlayedByProfile.get(row.profile_id) ?? 0,
     };
   });
 }

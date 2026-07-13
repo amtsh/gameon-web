@@ -351,6 +351,21 @@ export type Database = {
           share_token: string;
         }[];
       };
+      get_host_sport_games_hosted_count: {
+        Args: { p_event_id: string; p_share_token?: string | null };
+        Returns: number | null;
+      };
+      get_sport_games_played_counts: {
+        Args: {
+          p_event_id: string;
+          p_profile_ids: string[];
+          p_share_token?: string | null;
+        };
+        Returns: {
+          profile_id: string;
+          games_played: number;
+        }[];
+      };
       get_sport_event_roster: {
         Args: { p_event_id: string; p_share_token?: string | null };
         Returns: {

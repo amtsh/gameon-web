@@ -6,6 +6,7 @@ import {
   fetchApprovedPlayers,
   type ApprovedPlayer,
 } from "@/lib/data/join-requests.client";
+import { formatGamesPlayed } from "@/lib/data/game-count-copy";
 import { ModalSheet, ModalSheetScroll } from "./ModalSheet";
 import type { SkillLevel } from "../types";
 import "./PlayersSheet.css";
@@ -173,6 +174,11 @@ export function PlayersSheet({
                       {levelLabel[player.level ?? "beginner"]}
                     </span>
                   )}
+                  {player.gamesPlayed > 0 ? (
+                    <span className="sport-stat-meta">
+                      {formatGamesPlayed(player.gamesPlayed)}
+                    </span>
+                  ) : null}
                 </div>
               </li>
             ))}

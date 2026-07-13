@@ -108,7 +108,12 @@ const byStart = (a: SportEvent, b: SportEvent) => {
 // Mirrors EventFeed.swift
 export function activeUserEvents(events: SportEvent[], now = new Date()) {
   return events
-    .filter((event) => isUserRelated(event) && !isArchived(event, now))
+    .filter(
+      (event) =>
+        isUserRelated(event) &&
+        !event.isPrivate &&
+        !isArchived(event, now),
+    )
     .sort(byStart);
 }
 
@@ -137,7 +142,9 @@ export function groupedDiscoverableEvents(
   const visible = events
     .filter(
       (event) =>
-        !isUserRelated(event) && !isArchived(event, now) && !isCancelled(event),
+        (!isUserRelated(event) || Boolean(event.isPrivate)) &&
+        !isArchived(event, now) &&
+        !isCancelled(event),
     )
     .filter(
       (event) =>

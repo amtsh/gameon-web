@@ -133,10 +133,37 @@ describe("feed sections", () => {
     startsAt: "2026-07-12T16:00:00Z",
     endsAt: "2026-07-12T17:00:00Z",
   });
-  const all = [tomorrow, hosted, today, joinedPast];
+  const hostedPrivate = makeEvent({
+    id: "hosted-private",
+    isCreatedByCurrentUser: true,
+    isPrivate: true,
+    startsAt: "2026-07-12T10:00:00Z",
+    endsAt: "2026-07-12T11:00:00Z",
+  });
+  const privateNearby = makeEvent({
+    id: "private-nearby",
+    isPrivate: true,
+    sport: "football",
+    startsAt: "2026-07-11T18:00:00Z",
+    endsAt: "2026-07-11T19:00:00Z",
+  });
+  const all = [tomorrow, hosted, hostedPrivate, privateNearby, today, joinedPast];
 
-  it("activeUserEvents keeps only upcoming user-related events, sorted", () => {
+  it("activeUserEvents keeps only upcoming public user-related events, sorted", () => {
     expect(activeUserEvents(all, NOW).map((e) => e.id)).toEqual(["hosted"]);
+  });
+
+  it("routes private user-related games to nearby discovery, not Your Games", () => {
+    expect(activeUserEvents(all, NOW).map((e) => e.id)).not.toContain(
+      "hosted-private",
+    );
+    const sections = groupedDiscoverableEvents(all, [], NOW);
+    expect(sections.flatMap((s) => s.events.map((e) => e.id))).toEqual([
+      "today",
+      "private-nearby",
+      "hosted-private",
+      "tomorrow",
+    ]);
   });
 
   it("archivedUserEvents keeps only ended user-related events", () => {
@@ -147,8 +174,8 @@ describe("feed sections", () => {
     const sections = groupedDiscoverableEvents(all, [], NOW);
     expect(sections.map((s) => s.title[0])).toEqual(["Today", "Tomorrow"]);
     expect(sections.map((s) => s.events.map((e) => e.id))).toEqual([
-      ["today"],
-      ["tomorrow"],
+      ["today", "private-nearby"],
+      ["hosted-private", "tomorrow"],
     ]);
   });
 
@@ -159,9 +186,11 @@ describe("feed sections", () => {
     ]);
   });
 
-  it("excludes user-related events from discovery even when sport matches", () => {
+  it("still lists private games when filtering by sport, but not public user-related ones", () => {
     const sections = groupedDiscoverableEvents(all, ["badminton"], NOW);
-    expect(sections).toEqual([]);
+    expect(sections.flatMap((s) => s.events.map((e) => e.id))).toEqual([
+      "hosted-private",
+    ]);
   });
 
   it("excludes cancelled games from public discovery", () => {

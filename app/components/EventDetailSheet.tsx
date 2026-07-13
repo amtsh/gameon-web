@@ -6,6 +6,7 @@ import {
   ChevronRight,
   CreditCard,
   Gauge,
+  Lock,
   MapPin,
   Share2,
   User as UserIcon,
@@ -21,6 +22,7 @@ import {
   approveJoinRequest,
   fetchHostContact,
   fetchHostJoinRequests,
+  fetchHostSportGamesHostedCount,
   leaveEvent,
   requestToJoin,
   withdrawJoinRequest,
@@ -37,11 +39,12 @@ import {
   isCancelled,
   spotsLeft,
 } from "../event-feed";
-import { EventCountdownMeta, HostedByYouBadge, SpotsLeftBadge } from "./EventRow";
+import { EventCountdownMeta, HostedByYouBadge, PrivateBadge, SpotsLeftBadge } from "./EventRow";
 import { JoinGuideSheet } from "./JoinGuideSheet";
 import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
 import { PlayersSheet } from "./PlayersSheet";
 import { getJoinGuideStep } from "@/lib/join/requirements";
+import { formatGamesHosted } from "@/lib/data/game-count-copy";
 import {
   canJoinFromDetail,
   canSeePlayers,
@@ -137,6 +140,7 @@ export function EventDetailSheet({
     contact: ContactInfo;
   } | null>(null);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
+  const [hostGamesHosted, setHostGamesHosted] = useState<number | null>(null);
 
   const sport = sports.find((candidate) => candidate.id === event.sport);
   const spots = spotsLeft(event);
@@ -231,6 +235,31 @@ export function EventDetailSheet({
       .catch(() => {});
     return () => { cancelled = true; };
   }, [contactEligible, event.id]);
+
+  useEffect(() => {
+    if (!presented || archived || cancelled) {
+      const frame = requestAnimationFrame(() => setHostGamesHosted(null));
+      return () => cancelAnimationFrame(frame);
+    }
+
+    let stale = false;
+    const shareToken =
+      event.isPrivate && openedViaShareLink ? event.shareToken : undefined;
+
+    fetchHostSportGamesHostedCount(event.id, { shareToken })
+      .then((count) => {
+        if (!stale && count != null) {
+          setHostGamesHosted(count);
+        }
+      })
+      .catch(() => {
+        if (!stale) setHostGamesHosted(null);
+      });
+
+    return () => {
+      stale = true;
+    };
+  }, [archived, cancelled, event.id, event.isPrivate, event.shareToken, openedViaShareLink, presented]);
 
   const runMutation = async (action: () => Promise<void>) => {
     setActionError(null);
@@ -387,9 +416,7 @@ export function EventDetailSheet({
               {cancelled ? (
                 <span className="status-badge cancelled">Cancelled</span>
               ) : null}
-              {event.isPrivate ? (
-                <span className="status-badge">Private</span>
-              ) : null}
+              {event.isPrivate ? <PrivateBadge /> : null}
               {event.isCreatedByCurrentUser ? <HostedByYouBadge /> : null}
               {event.isJoined && !event.isCreatedByCurrentUser && !cancelled ? (
                 <span className="status-badge success">You are going</span>
@@ -522,10 +549,22 @@ export function EventDetailSheet({
             label="Host"
             value={
               event.isCreatedByCurrentUser ? (
-                "You"
+                <>
+                  <span className="block">You</span>
+                  {hostGamesHosted != null && hostGamesHosted > 0 ? (
+                    <span className="sport-stat-meta">
+                      {formatGamesHosted(hostGamesHosted)}
+                    </span>
+                  ) : null}
+                </>
               ) : (
                 <>
                   <span className="block">{event.hostName ?? "Host"}</span>
+                  {hostGamesHosted != null && hostGamesHosted > 0 ? (
+                    <span className="sport-stat-meta">
+                      {formatGamesHosted(hostGamesHosted)}
+                    </span>
+                  ) : null}
                   {hostContactHref && hostContact?.eventId === event.id ? (
                     <a
                       className="host-meta-contact link-info mt-1.5 inline-flex"
@@ -604,7 +643,7 @@ export function EventDetailSheet({
           ) : null}
           {archived || event.isJoined ? (
             <a
-              className="primary-action grid place-items-center"
+              className="primary-action"
               href={mapsUrl}
               rel="noreferrer"
               target="_blank"
@@ -633,9 +672,10 @@ export function EventDetailSheet({
                   : "Leave waitlist"}
             </button>
           ) : !canJoin ? (
-            <p className="empty-state pb-3 pt-0 text-center">
-              Invite-only — open the shared link to join.
-            </p>
+            <button className="outline-action" disabled type="button">
+              <Lock aria-hidden size={16} strokeWidth={2.25} />
+              Need invite link to join
+            </button>
           ) : (
             <button
               className="primary-action"

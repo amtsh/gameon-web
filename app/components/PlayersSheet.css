@@ -134,6 +134,11 @@
   font-weight: 600;
 }
 
+.players-info .sport-stat-meta {
+  font-size: 9px;
+  font-weight: 400;
+}
+
 /* Level colors — CSS vars so both light + dark themes are respected */
 .players-level--any          { color: var(--tertiary-text); }
 .players-level--beginner     { color: var(--success); }
