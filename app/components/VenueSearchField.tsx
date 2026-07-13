@@ -1,7 +1,7 @@
 "use client";
 
-import { MapPin, Search } from "lucide-react";
-import { useRef, useState } from "react";
+import { MapPin, Search, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import type { Venue } from "../types";
 
@@ -38,8 +38,12 @@ function toVenue(feature: PhotonFeature): Venue {
   };
 }
 
+function formatVenueLabel(venue: Venue): string {
+  return [venue.name, venue.address, venue.city].filter(Boolean).join(", ");
+}
+
 export function VenueSearchField({ value, onSelect }: Props) {
-  const [query, setQuery] = useState(value?.name ?? "");
+  const [query, setQuery] = useState(value ? formatVenueLabel(value) : "");
   const [results, setResults] = useState<Venue[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -70,6 +74,22 @@ export function VenueSearchField({ value, onSelect }: Props) {
     }
   }, 350);
 
+  useEffect(() => {
+    if (value) {
+      setQuery(formatVenueLabel(value));
+    }
+  }, [value]);
+
+  function clearField() {
+    setQuery("");
+    onSelect(null);
+    search.cancel();
+    abortRef.current?.abort();
+    setResults([]);
+    setIsOpen(false);
+    setIsSearching(false);
+  }
+
   return (
     <div
       className="venue-search"
@@ -79,7 +99,9 @@ export function VenueSearchField({ value, onSelect }: Props) {
         }
       }}
     >
-      <div className="input-with-icon">
+      <div
+        className={`input-with-icon${query ? " input-with-icon--has-trailing" : ""}`}
+      >
         <Search size={17} />
         <input
           placeholder="Venue"
@@ -100,6 +122,16 @@ export function VenueSearchField({ value, onSelect }: Props) {
           }}
           onFocus={() => results.length > 0 && setIsOpen(true)}
         />
+        {query ? (
+          <button
+            aria-label="Clear venue"
+            className="input-clear-btn"
+            onClick={clearField}
+            type="button"
+          >
+            <X size={16} strokeWidth={2.5} />
+          </button>
+        ) : null}
       </div>
 
       {isSearching ? <p className="hint">Searching venues...</p> : null}
@@ -111,7 +143,7 @@ export function VenueSearchField({ value, onSelect }: Props) {
               <button
                 type="button"
                 onClick={() => {
-                  setQuery(venue.name);
+                  setQuery(formatVenueLabel(venue));
                   setIsOpen(false);
                   onSelect(venue);
                 }}
@@ -129,13 +161,6 @@ export function VenueSearchField({ value, onSelect }: Props) {
             </li>
           ))}
         </ul>
-      ) : null}
-
-      {value ? (
-        <p className="hint">
-          Selected: {value.name}
-          {value.city ? `, ${value.city}` : ""}
-        </p>
       ) : null}
     </div>
   );

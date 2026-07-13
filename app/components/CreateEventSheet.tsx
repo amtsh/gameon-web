@@ -74,6 +74,17 @@ function isCreateFormReady({
   return true;
 }
 
+function playersSoughtLabel(
+  capacity: number,
+  fillYourSpot: boolean,
+  isEditing: boolean,
+): string | null {
+  if (!Number.isFinite(capacity) || capacity < 2) return null;
+
+  const count = !isEditing && fillYourSpot ? capacity - 1 : capacity;
+  return count === 1 ? "Looking for 1 player" : `Looking for ${count} players`;
+}
+
 type Props = {
   presented: boolean;
   onPresentedChange: (presented: boolean) => void;
@@ -110,6 +121,7 @@ export function CreateEventSheet({
   const [isPrivate, setIsPrivate] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [venueFieldKey, setVenueFieldKey] = useState(0);
   const preserveDraftRef = useRef(false);
   const wasPresentedRef = useRef(false);
   const skipPreserveOnCloseRef = useRef(false);
@@ -164,6 +176,7 @@ export function CreateEventSheet({
         setSport(editEvent.sport);
         setSkillLevel(editEvent.skillLevel);
         setVenue(editEvent.venue);
+        setVenueFieldKey((key) => key + 1);
         setFillYourSpot(false);
         setAutoApprove(editEvent.autoApprove ?? false);
         setIsPrivate(editEvent.isPrivate ?? false);
@@ -185,6 +198,7 @@ export function CreateEventSheet({
         setSport(prefill.sport);
         setSkillLevel(prefill.skillLevel);
         setVenue(prefill.venue);
+        setVenueFieldKey((key) => key + 1);
         setFillYourSpot(true);
         setAutoApprove(prefill.autoApprove);
         setIsPrivate(prefill.isPrivate);
@@ -202,6 +216,7 @@ export function CreateEventSheet({
       setSport("badminton");
       setSkillLevel("any");
       setVenue(null);
+      setVenueFieldKey((key) => key + 1);
       setFillYourSpot(true);
       setAutoApprove(false);
       setIsPrivate(false);
@@ -281,6 +296,7 @@ export function CreateEventSheet({
   const contactValue = profile?.contact_value;
   const sheetTitle = isEditing ? "Edit Game" : "Create Game";
   const startsAtField = register("startsAt", { required: true });
+  const playersSought = playersSoughtLabel(capacity, fillYourSpot, isEditing);
 
   return (
     <ModalSheet
@@ -350,16 +366,20 @@ export function CreateEventSheet({
               ))}
             </select>
           </label>
-        </div>
-
-        <div className="form-section">
-          <p className="form-label">Game</p>
-          <VenueSearchField value={venue} onSelect={setVenue} />
+          <VenueSearchField
+            key={venueFieldKey}
+            value={venue}
+            onSelect={setVenue}
+          />
           <input
             placeholder="Title"
             {...register("title", { required: "Title is required" })}
           />
           {errors.title ? <p className="form-error">{errors.title.message}</p> : null}
+        </div>
+
+        <div className="form-section">
+          <p className="form-label">Game</p>
           <label className="stepper-row">
             <span>Starts</span>
             <input
@@ -394,16 +414,18 @@ export function CreateEventSheet({
           {errors.endsAt ? (
             <p className="form-error">{errors.endsAt.message}</p>
           ) : null}
-          <input placeholder="Cost (80 SEK)" {...register("cost")} />
-          <label className="stepper-row">
-            <span>Capacity</span>
+          <div className="stepper-row">
+            <div className="stepper-row-copy">
+              <span>Capacity</span>
+              {playersSought ? <p className="hint">{playersSought}</p> : null}
+            </div>
             <input
               type="number"
               min={2}
               max={30}
               {...register("capacity", { min: 2, max: 30, valueAsNumber: true })}
             />
-          </label>
+          </div>
           {!isEditing ? (
             <label className="toggle-row">
               <span>Fill your spot</span>
@@ -416,6 +438,11 @@ export function CreateEventSheet({
               />
             </label>
           ) : null}
+          <input placeholder="Cost (80 SEK)" {...register("cost")} />
+        </div>
+
+        <div className="form-section">
+          <p className="form-label">Join rules</p>
           <label className="toggle-row">
             <span>Auto approve requests</span>
             <input

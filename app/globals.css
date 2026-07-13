@@ -926,6 +926,30 @@ textarea {
   padding-left: 42px;
 }
 
+.input-with-icon--has-trailing input {
+  padding-right: 42px;
+}
+
+.input-clear-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-icon);
+  transform: translateY(-50%);
+}
+
+.input-clear-btn:hover {
+  background: var(--subtle-surface);
+  color: var(--secondary-text);
+}
+
 .venue-search {
   position: relative;
   display: grid;
@@ -1059,6 +1083,16 @@ textarea {
   width: 82px;
   padding: 8px;
   text-align: center;
+}
+
+.stepper-row-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stepper-row-copy .hint {
+  margin: 0;
 }
 
 .stepper-row select {
