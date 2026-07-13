@@ -26,6 +26,15 @@
   "images": {
     "binding": "IMAGES"
   },
+  // Workers cache (Wrangler >= 4.69). Zone Cache Rules do not apply here;
+  // edge TTL is driven by response headers on each route.
+  //
+  // OG images (see lib/seo/og-font.ts):
+  //   GET /opengraph-image             — static build asset (ASSETS)
+  //   GET /g/:token/opengraph-image    — dynamic; Cache-Control: public, max-age=3600
+  "cache": {
+    "enabled": true,
+  },
   "routes": [
     {
       "pattern": "gameonsite.com",

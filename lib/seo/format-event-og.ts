@@ -1,6 +1,7 @@
 import { format, isSameDay } from "date-fns";
 import { sports } from "@/app/data/mock-data";
 import type { SportEvent } from "@/app/types";
+import { wallClockDateFromIso } from "@/lib/date/wall-clock";
 import { siteName } from "@/lib/seo/metadata";
 
 function getSportLabel(event: SportEvent, sportLabel?: string): string {
@@ -19,8 +20,8 @@ export function formatSharedGameOgTitle(
 }
 
 export function formatSharedGameOgDate(event: SportEvent): string {
-  const start = new Date(event.startsAt);
-  const end = new Date(event.endsAt);
+  const start = wallClockDateFromIso(event.startsAt);
+  const end = wallClockDateFromIso(event.endsAt);
 
   if (isSameDay(start, end)) {
     return `${format(start, "EEE, d MMM")} · ${format(start, "HH:mm")} – ${format(end, "HH:mm")}`;

@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { siteDescription, siteName } from "@/lib/seo/metadata";
 
-/** Portrait canvas — taller than wide, for social/story-style previews. */
+/** Landscape canvas for social link previews. */
 export const ogImageSize = { width: 1200, height: 750 };
 export const ogImageContentType = "image/png";
 
@@ -19,7 +19,7 @@ export const landingColors = {
     "radial-gradient(ellipse at center, rgba(255, 187, 140, 0.47) 0%, rgba(255, 187, 140, 0) 70%)",
 } as const;
 
-/** Text tokens mirroring `.lp-showcase-card` h3/p, scaled up for the portrait OG canvas. */
+/** Text tokens mirroring `.lp-showcase-card` h3/p, scaled up for the OG canvas. */
 export const ogTypography = {
   brand: {
     fontSize: 40,

@@ -1,76 +1,39 @@
 import { ogImageContentType, ogImageSize } from "@/lib/seo/og-image";
 
-let regularFont: ArrayBuffer | null = null;
-let semiboldFont: ArrayBuffer | null = null;
-let boldFont: ArrayBuffer | null = null;
-let extraboldFont: ArrayBuffer | null = null;
+let extraboldFontPromise: Promise<ArrayBuffer> | null = null;
 
-async function loadOgFonts() {
-  if (!regularFont || !semiboldFont || !boldFont || !extraboldFont) {
-    const [regular, semibold, bold, extrabold] = await Promise.all([
-      fetch(
-        "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.5/latin-ext-400-normal.woff",
-      ).then((response) => response.arrayBuffer()),
-      fetch(
-        "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.5/latin-ext-600-normal.woff",
-      ).then((response) => response.arrayBuffer()),
-      fetch(
-        "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.5/latin-ext-700-normal.woff",
-      ).then((response) => response.arrayBuffer()),
-      fetch(
-        "https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.5/latin-ext-800-normal.woff",
-      ).then((response) => response.arrayBuffer()),
-    ]);
-
-    regularFont = regular;
-    semiboldFont = semibold;
-    boldFont = bold;
-    extraboldFont = extrabold;
+async function loadOgFont(): Promise<ArrayBuffer> {
+  if (!extraboldFontPromise) {
+    const fontUrl = new URL(
+      "./fonts/inter-latin-ext-800-normal.woff",
+      import.meta.url,
+    );
+    extraboldFontPromise = fetch(fontUrl).then((response) =>
+      response.arrayBuffer(),
+    );
   }
 
-  return {
-    regular: regularFont,
-    semibold: semiboldFont,
-    bold: boldFont,
-    extrabold: extraboldFont,
-  };
+  return extraboldFontPromise;
 }
 
+export const ogImageResponseHeaders = {
+  "Content-Type": ogImageContentType,
+  "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+} as const;
+
 export async function ogImageResponseOptions() {
-  const fonts = await loadOgFonts();
+  const font = await loadOgFont();
 
   return {
     ...ogImageSize,
     fonts: [
       {
         name: "Inter",
-        data: fonts.regular,
-        style: "normal" as const,
-        weight: 400 as const,
-      },
-      {
-        name: "Inter",
-        data: fonts.semibold,
-        style: "normal" as const,
-        weight: 600 as const,
-      },
-      {
-        name: "Inter",
-        data: fonts.bold,
-        style: "normal" as const,
-        weight: 700 as const,
-      },
-      {
-        name: "Inter",
-        data: fonts.extrabold,
+        data: font,
         style: "normal" as const,
         weight: 800 as const,
       },
     ],
+    headers: ogImageResponseHeaders,
   };
 }
-
-export const ogImageResponseHeaders = {
-  "Content-Type": ogImageContentType,
-  "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
-};

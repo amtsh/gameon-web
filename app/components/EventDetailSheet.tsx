@@ -8,9 +8,10 @@ import {
   Gauge,
   Lock,
   MapPin,
-  Share2,
+  Share,
   User as UserIcon,
   Users,
+  X,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -46,7 +47,12 @@ import {
   SpotsLeftBadge,
 } from "./EventRow";
 import { JoinGuideSheet } from "./JoinGuideSheet";
-import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
+import {
+  ConfirmDialog,
+  ModalSheet,
+  ModalSheetScroll,
+  SheetDismissTrigger,
+} from "./ModalSheet";
 import { PlayersSheet } from "./PlayersSheet";
 import { getJoinGuideStep } from "@/lib/join/requirements";
 import { formatGamesHosted } from "@/lib/data/game-count-copy";
@@ -423,16 +429,27 @@ export function EventDetailSheet({
             />
             <div className="mt-1 flex items-start gap-3">
               <h2 className="detail-title flex-1">{event.title}</h2>
-              {canShare ? (
-                <button
-                  aria-label="Share game"
-                  className="circle-button flex-shrink-0"
-                  onClick={() => void handleShare()}
-                  type="button"
-                >
-                  <Share2 size={18} />
-                </button>
-              ) : null}
+              <div className="flex flex-shrink-0 items-center gap-2">
+                {canShare ? (
+                  <button
+                    aria-label="Share game"
+                    className="sheet-close-btn"
+                    onClick={() => void handleShare()}
+                    type="button"
+                  >
+                    <Share size={18} strokeWidth={2.5} />
+                  </button>
+                ) : null}
+                <SheetDismissTrigger>
+                  <button
+                    aria-label="Close"
+                    className="sheet-close-btn"
+                    type="button"
+                  >
+                    <X size={18} strokeWidth={2.5} />
+                  </button>
+                </SheetDismissTrigger>
+              </div>
             </div>
             <div className="row-badges mt-2">
               {cancelled ? (
@@ -451,7 +468,7 @@ export function EventDetailSheet({
               ) : null}
             </div>
             {canShare && shareFeedback ? (
-              <p className="detail-caption mt-2">{shareFeedback}</p>
+              <p className="detail-caption-error mt-2">{shareFeedback}</p>
             ) : null}
           </div>
         </div>

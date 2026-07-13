@@ -17,7 +17,7 @@ export const defaultOgImagePath = "/opengraph-image";
 export const defaultOgImage = {
   url: defaultOgImagePath,
   width: 1200,
-  height: 630,
+  height: 750,
   alt: defaultTitle,
 } as const;
 
