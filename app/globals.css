@@ -92,6 +92,10 @@ body {
   min-height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  /* Font smoothing — crisp antialiased text on all platforms */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -101,6 +105,16 @@ body {
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Better text wrapping — no orphaned words on headings */
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+/* Prettier paragraph wrapping — avoids single-word last lines */
+p, li, figcaption {
+  text-wrap: pretty;
 }
 
 button,
@@ -133,6 +147,34 @@ select {
 
 textarea {
   resize: none;
+}
+
+/* Explicit, targeted transitions — never use transition: all */
+button,
+a,
+input,
+textarea,
+select {
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+/* Consistent focus ring across all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Utility — tabular numbers for counters, dates, scores */
+.tabular-nums,
+[data-tabular] {
+  font-variant-numeric: tabular-nums;
 }
 
 .no-scrollbar {
@@ -471,6 +513,7 @@ textarea {
   line-height: 1.25;
   text-align: right;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .row-meta-text {
@@ -758,6 +801,7 @@ textarea {
   color: var(--secondary-text);
   font-size: 15px;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 .host-meta-contact {
@@ -790,6 +834,17 @@ textarea {
   color: var(--primary-action-fg);
   font-size: 15px;
   font-weight: 600;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.primary-action:hover {
+  opacity: 0.88;
+}
+
+.primary-action:active {
+  transform: scale(0.98);
 }
 
 .primary-action.danger {
@@ -810,6 +865,19 @@ textarea {
   color: var(--primary-action-bg);
   font-size: 15px;
   font-weight: 600;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.outline-action:hover {
+  background: color-mix(in srgb, var(--primary-action-bg) 6%, transparent);
+}
+
+.outline-action:active {
+  transform: scale(0.98);
 }
 
 .outline-action:disabled {
@@ -921,6 +989,15 @@ textarea {
   font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.google-sign-in:hover {
+  background: var(--subtle-surface);
+  border-color: var(--separator);
 }
 
 .google-sign-in-icon {
@@ -1181,6 +1258,7 @@ textarea {
   padding: 10px 14px;
   color: var(--primary-text);
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Create/Edit form: flatten field-level containers into plain rows,
@@ -1415,6 +1493,10 @@ textarea {
   font-size: 13px;
   font-weight: 600;
   background: transparent;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .sport-tile.selected {
@@ -1437,12 +1519,27 @@ textarea {
   color: var(--secondary-text);
   font-size: 13px;
   font-weight: 600;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .segmented-control button.selected {
   background: var(--elevated-surface);
   color: var(--primary-text);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Reduce motion: disable all non-essential transitions */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media (min-width: 820px) {
