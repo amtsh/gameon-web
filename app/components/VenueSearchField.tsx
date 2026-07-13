@@ -142,7 +142,12 @@ export function VenueSearchField({ value, onSelect }: Props) {
             <li key={`${venue.name}-${index}`}>
               <button
                 type="button"
-                onClick={() => {
+                // onMouseDown fires before onBlur, so the dropdown stays open
+                // long enough to register the selection on mobile where
+                // relatedTarget is always null and onBlur would close the list
+                // before onClick could fire.
+                onMouseDown={(e) => {
+                  e.preventDefault();
                   setQuery(formatVenueLabel(venue));
                   setIsOpen(false);
                   onSelect(venue);
