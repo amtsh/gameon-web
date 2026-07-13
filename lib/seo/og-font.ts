@@ -1,15 +1,22 @@
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { ogImageContentType, ogImageSize } from "@/lib/seo/og-image";
 
 let extraboldFontPromise: Promise<ArrayBuffer> | null = null;
 
 async function loadOgFont(): Promise<ArrayBuffer> {
   if (!extraboldFontPromise) {
-    const fontUrl = new URL(
-      "./fonts/inter-latin-ext-800-normal.woff",
-      import.meta.url,
+    // `fetch(new URL(..., import.meta.url))` only works under the Edge
+    // runtime; this route runs on Node.js, where `fetch` has no `file://`
+    // support, so read the bundled font from disk instead.
+    const fontPath = fileURLToPath(
+      new URL("./fonts/inter-latin-ext-800-normal.woff", import.meta.url),
     );
-    extraboldFontPromise = fetch(fontUrl).then((response) =>
-      response.arrayBuffer(),
+    extraboldFontPromise = readFile(fontPath).then(
+      (buffer) => buffer.buffer.slice(
+        buffer.byteOffset,
+        buffer.byteOffset + buffer.byteLength,
+      ) as ArrayBuffer,
     );
   }
 
