@@ -307,6 +307,7 @@ export default function GameOnApp({
           onEdit={openEdit}
           onMutated={refreshSessionData}
           onJoinSuccess={maybeShowInstallNudge}
+          onOpenSignIn={() => setActiveSheet("profile")}
           openedViaShareLink={
             shareLinkEventId != null && detailEvent.id === shareLinkEventId
           }

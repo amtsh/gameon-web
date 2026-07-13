@@ -65,6 +65,8 @@ type Props = {
   /** Fired after a successful join/waitlist request — a natural moment to
       nudge PWA installation, since the user just got value from the app. */
   onJoinSuccess?: () => void;
+  /** Opens the profile sign-in sheet for guests. */
+  onOpenSignIn?: () => void;
   /** True when detail was opened from /g/[shareToken] for this event. */
   openedViaShareLink?: boolean;
 };
@@ -124,6 +126,7 @@ export function EventDetailSheet({
   onEdit,
   onMutated,
   onJoinSuccess,
+  onOpenSignIn,
   openedViaShareLink = false,
 }: Props) {
   const [confirming, setConfirming] = useState<
@@ -521,10 +524,16 @@ export function EventDetailSheet({
             {event.joinedCount > 0 && showPlayers ? (
               <button
                 className="link-info mt-1.5"
-                onClick={() => setPlayersOpen(true)}
+                onClick={() => {
+                  if (!isSignedIn) {
+                    onOpenSignIn?.();
+                    return;
+                  }
+                  setPlayersOpen(true);
+                }}
                 type="button"
               >
-                See players
+                {isSignedIn ? "See players" : "Sign in to See players"}
                 <ChevronRight size={14} strokeWidth={3} />
               </button>
             ) : null}
