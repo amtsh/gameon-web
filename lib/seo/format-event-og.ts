@@ -19,6 +19,14 @@ export function formatSharedGameOgTitle(
   return `${getSportLabel(event, sportLabel)}: ${event.title}`;
 }
 
+/** Page and link-preview title for shared game URLs. */
+export function formatSharedGameLinkTitle(
+  event: SportEvent,
+  sportLabel?: string,
+): string {
+  return `Join ${getSportLabel(event, sportLabel)} - ${event.title}`;
+}
+
 export function formatSharedGameOgDate(event: SportEvent): string {
   const start = wallClockDateFromIso(event.startsAt);
   const end = wallClockDateFromIso(event.endsAt);
@@ -52,14 +60,15 @@ export function formatSharedGameShareText(
   event: SportEvent,
   sportLabel?: string,
 ): string {
-  const sport = (sportLabel ?? event.sport).toLowerCase();
+  const sport = getSportLabel(event, sportLabel).toLowerCase();
+  const day = format(wallClockDateFromIso(event.startsAt), "EEEE");
   const spotsLeft = Math.max(event.capacity - event.joinedCount, 0);
 
   if (spotsLeft > 0 && spotsLeft <= 3) {
     return `${spotsLeft} spot${spotsLeft === 1 ? "" : "s"} left — join on ${siteName}`;
   }
 
-  return `Join this ${sport} game on ${siteName}`;
+  return `Hey — grab your spot for ${day} ${sport}`;
 }
 
 /** Strip combining marks so Satori can render venue/address text reliably. */

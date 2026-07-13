@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cache } from "react";
 import { mockEvents } from "@/app/data/mock-data";
 import { loadSportEventForSeo } from "@/lib/data/sport-events";
-import { formatSharedGameDescription } from "@/lib/seo/format-event-og";
+import { formatSharedGameDescription, formatSharedGameLinkTitle } from "@/lib/seo/format-event-og";
 import {
   createPageMetadata,
   defaultTitle,
@@ -34,7 +34,7 @@ export async function buildSharedGameMetadata(slug: string): Promise<Metadata> {
   const siteUrl = getSiteUrl();
   const canonicalUrl = `${siteUrl}${canonical}`;
 
-  const title = event ? event.title : defaultTitle;
+  const title = event ? formatSharedGameLinkTitle(event) : defaultTitle;
 
   const description = event
     ? `${formatSharedGameDescription(event)}. Request a spot on ${siteName}.`
@@ -60,7 +60,7 @@ export async function buildPrivateSharedGameMetadata(
   const siteUrl = getSiteUrl();
   const openGraphUrl = `${siteUrl}${path}`;
 
-  const title = event ? event.title : defaultTitle;
+  const title = event ? formatSharedGameLinkTitle(event) : defaultTitle;
 
   const description = event
     ? `${formatSharedGameDescription(event)}. Request a spot on ${siteName}.`

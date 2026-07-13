@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { formatSharedGameOgDate } from "@/lib/seo/format-event-og";
+import {
+  formatSharedGameLinkTitle,
+  formatSharedGameOgDate,
+  formatSharedGameShareText,
+} from "@/lib/seo/format-event-og";
 import type { SportEvent } from "@/app/types";
 
 const baseEvent: SportEvent = {
@@ -19,10 +23,32 @@ const baseEvent: SportEvent = {
   joinedCount: 2,
 };
 
+describe("formatSharedGameLinkTitle", () => {
+  it("prefixes sport with Join for link previews", () => {
+    expect(formatSharedGameLinkTitle(baseEvent)).toBe(
+      "Join Badminton - Evening doubles",
+    );
+  });
+});
+
 describe("formatSharedGameOgDate", () => {
   it("uses wall-clock times from the stored offset, not server UTC", () => {
     expect(formatSharedGameOgDate(baseEvent)).toBe(
       "Sun, 19 Jul · 17:00 – 19:00",
+    );
+  });
+});
+
+describe("formatSharedGameShareText", () => {
+  it("uses a casual invite with weekday and sport", () => {
+    expect(
+      formatSharedGameShareText({ ...baseEvent, joinedCount: 0 }),
+    ).toBe("Hey — grab your spot for Sunday badminton");
+  });
+
+  it("urges action when only a few spots remain", () => {
+    expect(formatSharedGameShareText(baseEvent)).toBe(
+      "2 spots left — join on Game On",
     );
   });
 });
