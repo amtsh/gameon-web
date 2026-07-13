@@ -1,8 +1,6 @@
 import { defaultTitle } from "@/lib/seo/metadata";
 import { ogImageContentType, ogImageSize } from "@/lib/seo/og-image";
 
-export const ogImageDynamic = "force-dynamic";
-
 export function ogImageRouteConfig(alt: string) {
   return {
     alt,
