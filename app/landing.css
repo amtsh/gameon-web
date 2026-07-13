@@ -43,7 +43,7 @@
 .lp-top {
   position: sticky;
   top: max(12px, env(safe-area-inset-top));
-  z-index: 20;
+  z-index: 2;
   padding: 0 max(20px, env(safe-area-inset-right)) 12px
     max(20px, env(safe-area-inset-left));
   background: transparent;
@@ -190,37 +190,51 @@ button.lp-btn-light:focus-visible {
 @property --orb-c-x { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
 @property --orb-c-y { syntax: "<percentage>"; inherits: false; initial-value: 80%; }
 
+/* Hero fold — animated background spans header + hero */
+
+.lp-hero-fold {
+  position: relative;
+  overflow: hidden;
+}
+
 .lp-hero {
   position: relative;
+  z-index: 1;
   padding: clamp(28px, 5vw, 56px) 0 clamp(40px, 7vw, 72px);
-  isolation: isolate;
-  overflow: hidden;
 }
 
 /* Background canvas — sits behind all hero content */
 .lp-hero-bg {
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   overflow: hidden;
-  /* Frosted glass wash over the whole hero */
-  backdrop-filter: blur(0px);
+  /* Warm base wash so the hero is never plain white */
+  background: linear-gradient(
+    135deg,
+    #fff4ee 0%,
+    #ffe8f0 45%,
+    #fff8f2 100%
+  );
 }
 
-/* White frosted glass overlay — the actual frost lives here */
+/* Frosted glass overlay — keep light so orbs stay visible */
 .lp-hero-bg::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(40px) saturate(1.4);
-  -webkit-backdrop-filter: blur(40px) saturate(1.4);
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(28px) saturate(1.25);
+  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+  pointer-events: none;
 }
 
 /* Each orb is a radial gradient that moves via @property animation.
    will-change: transform keeps them on their own GPU layer. */
 .lp-hero-bg-orb {
   position: absolute;
+  z-index: 0;
   border-radius: 50%;
   will-change: transform;
   pointer-events: none;
@@ -233,10 +247,10 @@ button.lp-btn-light:focus-visible {
   left: -120px;
   background: radial-gradient(
     ellipse at center,
-    oklch(0.80 0.14 38 / 0.55) 0%,
-    oklch(0.80 0.14 38 / 0.0) 70%
+    rgba(255, 145, 95, 0.72) 0%,
+    rgba(255, 145, 95, 0) 70%
   );
-  animation: orb-drift-a 18s ease-in-out infinite;
+  animation: orb-drift-a 11s ease-in-out infinite;
 }
 
 .lp-hero-bg-orb--b {
@@ -246,10 +260,10 @@ button.lp-btn-light:focus-visible {
   right: -100px;
   background: radial-gradient(
     ellipse at center,
-    oklch(0.78 0.16 5 / 0.45) 0%,
-    oklch(0.78 0.16 5 / 0.0) 70%
+    rgba(255, 105, 135, 0.62) 0%,
+    rgba(255, 105, 135, 0) 70%
   );
-  animation: orb-drift-b 22s ease-in-out infinite;
+  animation: orb-drift-b 13s ease-in-out infinite;
 }
 
 .lp-hero-bg-orb--c {
@@ -259,30 +273,33 @@ button.lp-btn-light:focus-visible {
   left: 30%;
   background: radial-gradient(
     ellipse at center,
-    oklch(0.82 0.12 25 / 0.38) 0%,
-    oklch(0.82 0.12 25 / 0.0) 70%
+    rgba(255, 175, 120, 0.55) 0%,
+    rgba(255, 175, 120, 0) 70%
   );
-  animation: orb-drift-c 26s ease-in-out infinite;
+  animation: orb-drift-c 15s ease-in-out infinite;
 }
 
 @keyframes orb-drift-a {
   0%   { transform: translate(0px, 0px) scale(1); }
-  33%  { transform: translate(60px, 40px) scale(1.08); }
-  66%  { transform: translate(-30px, 70px) scale(0.96); }
+  25%  { transform: translate(140px, 90px) scale(1.14); }
+  50%  { transform: translate(-80px, 130px) scale(0.9); }
+  75%  { transform: translate(100px, -60px) scale(1.08); }
   100% { transform: translate(0px, 0px) scale(1); }
 }
 
 @keyframes orb-drift-b {
   0%   { transform: translate(0px, 0px) scale(1); }
-  40%  { transform: translate(-70px, -50px) scale(1.1); }
-  75%  { transform: translate(40px, 30px) scale(0.93); }
+  30%  { transform: translate(-160px, -110px) scale(1.16); }
+  55%  { transform: translate(120px, 80px) scale(0.88); }
+  80%  { transform: translate(-90px, 50px) scale(1.1); }
   100% { transform: translate(0px, 0px) scale(1); }
 }
 
 @keyframes orb-drift-c {
   0%   { transform: translate(0px, 0px) scale(1); }
-  30%  { transform: translate(50px, -60px) scale(1.06); }
-  70%  { transform: translate(-60px, 20px) scale(1.0); }
+  20%  { transform: translate(130px, -120px) scale(1.12); }
+  45%  { transform: translate(-150px, 70px) scale(0.92); }
+  70%  { transform: translate(80px, 100px) scale(1.06); }
   100% { transform: translate(0px, 0px) scale(1); }
 }
 
@@ -297,6 +314,8 @@ button.lp-btn-light:focus-visible {
 /* Hero grid — unchanged */
 
 .lp-hero-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 36px;
   align-items: center;
@@ -401,6 +420,8 @@ button.lp-btn-light:focus-visible {
 /* Sport pills — horizontal marquee below hero */
 
 .lp-sports-marquee {
+  position: relative;
+  z-index: 1;
   overflow: hidden;
   margin-top: clamp(28px, 5vw, 44px);
   padding: 16px 0;

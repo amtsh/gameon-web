@@ -86,23 +86,23 @@ export default async function LandingPage() {
       initialLabel={initialCityLabel}
     >
       <div className="lp">
-        <header className="lp-top">
-          <div className="lp-top-inner">
-            <Link className="lp-logo" href="/">
-              {siteName}
-            </Link>
-            <div className="lp-top-actions">
-              <LandingCity className="lp-city" />
-              <Link className="lp-btn lp-btn-dark lp-btn-sm" href="/home">
-                Open map
+        <div className="lp-hero-fold">
+          <HeroBackground />
+          <header className="lp-top">
+            <div className="lp-top-inner">
+              <Link className="lp-logo" href="/">
+                {siteName}
               </Link>
+              <div className="lp-top-actions">
+                <LandingCity className="lp-city" />
+                <Link className="lp-btn lp-btn-dark lp-btn-sm" href="/home">
+                  Open map
+                </Link>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        <main>
           <section className="lp-hero">
-            <HeroBackground />
             <div className="lp-container lp-hero-grid">
               <div className="lp-hero-copy">
                 <h1>Find a game near you</h1>
@@ -149,7 +149,9 @@ export default async function LandingPage() {
             </div>
             <LandingSportPills />
           </section>
+        </div>
 
+        <main>
           <section className="lp-band">
             <div className="lp-container">
               <h2>What you can do</h2>
