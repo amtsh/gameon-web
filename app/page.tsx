@@ -26,10 +26,23 @@ import { HeroBackground } from "./landing/HeroBackground";
 import "./landing.css";
 
 export const metadata: Metadata = {
-  title: "Discover and join local games",
+  title: "Join or host local games near you",
   description:
-    "Game On maps local sports games around you. Tap a pin, request a spot, play.",
+    "Game On maps local sports games near you. Find open games, request a spot, and play — no group chat needed.",
   alternates: { canonical: "/" },
+  openGraph: {
+    title: "Join or host local games near you",
+    description:
+      "Game On maps local sports games near you. Find open games, request a spot, and play — no group chat needed.",
+    type: "website",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Join or host local games near you",
+    description:
+      "Game On maps local sports games near you. Find open games, request a spot, and play — no group chat needed.",
+  },
 };
 
 const howItWorksTips = [
@@ -126,7 +139,7 @@ export default async function LandingPage() {
           <section className="lp-hero">
             <div className="lp-container lp-hero-grid">
               <div className="lp-hero-copy">
-                <h1>Discover and join local games</h1>
+                <h1>Join or host local games near you</h1>
                 <p className="lp-hero-sub">
                   Local sports on one map. Request a spot. Show up.
                 </p>
