@@ -17,11 +17,12 @@ const levelLabel: Record<SkillLevel, string> = {
   advanced: "Advanced",
 };
 
-const levelColor: Record<SkillLevel, string> = {
-  any: "var(--tertiary-text)",
-  beginner: "var(--success)",
-  intermediate: "var(--warning)",
-  advanced: "var(--danger)",
+// CSS class per level — theming handled in PlayersSheet.css
+const levelClass: Record<SkillLevel, string> = {
+  any: "players-level--any",
+  beginner: "players-level--beginner",
+  intermediate: "players-level--intermediate",
+  advanced: "players-level--advanced",
 };
 
 function initials(name: string) {
@@ -43,6 +44,10 @@ function PlayerAvatar({ player }: { player: ApprovedPlayer }) {
           className="players-avatar-img"
           referrerPolicy="no-referrer"
           src={player.avatarUrl!}
+          width={46}
+          height={46}
+          loading="lazy"
+          decoding="async"
           onError={() => setImgFailed(true)}
         />
       ) : (
@@ -97,6 +102,9 @@ export function PlayersSheet({
     };
   }, [eventId, hostId, presented, shareToken]);
 
+  // Use fetched count when available, fall back to prop
+  const displayCount = loading ? totalCount : players.length || totalCount;
+
   return (
     <ModalSheet
       height="92svh"
@@ -118,7 +126,7 @@ export function PlayersSheet({
         </button>
         <div className="players-nav-center">
           <h2 className="players-nav-title">Approved players</h2>
-          <p className="players-nav-count">{totalCount} players</p>
+          <p className="players-nav-count">{displayCount} players</p>
         </div>
         {/* spacer to keep title centred */}
         <span style={{ width: 40 }} />
@@ -126,7 +134,12 @@ export function PlayersSheet({
 
       <ModalSheetScroll>
         {loading ? (
-          <div className="players-skeleton-list">
+          <div
+            className="players-skeleton-list"
+            aria-busy="true"
+            aria-label="Loading players"
+            role="status"
+          >
             {Array.from({ length: 6 }).map((_, i) => (
               <div className="players-skeleton-row" key={i}>
                 <div className="players-skeleton-avatar" />
@@ -138,11 +151,11 @@ export function PlayersSheet({
             ))}
           </div>
         ) : error ? (
-          <p className="players-error">{error}</p>
+          <p className="players-error" role="alert">{error}</p>
         ) : players.length === 0 ? (
           <p className="players-empty">No approved players yet.</p>
         ) : (
-          <ul className="players-list" role="list">
+          <ul className="players-list" role="list" aria-label="Approved players">
             {players.map((player) => (
               <li className="players-row" key={player.id}>
                 <PlayerAvatar player={player} />
@@ -155,8 +168,7 @@ export function PlayersSheet({
                     </span>
                   ) : (
                     <span
-                      className="players-level"
-                      style={{ color: levelColor[player.level ?? "beginner"] }}
+                      className={`players-level ${levelClass[player.level ?? "beginner"]}`}
                     >
                       {levelLabel[player.level ?? "beginner"]}
                     </span>
