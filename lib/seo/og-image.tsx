@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import { siteDescription, siteName } from "@/lib/seo/metadata";
 
-/** Landscape canvas for social link previews. */
-export const ogImageSize = { width: 1200, height: 750 };
+/** Standard 1.91:1 OG canvas (1200×630) for social link previews. */
+export const ogImageSize = { width: 1200, height: 630 };
 export const ogImageContentType = "image/png";
 
 export const landingColors = {
@@ -22,14 +22,14 @@ export const landingColors = {
 /** Text tokens mirroring `.lp-showcase-card` h3/p, scaled up for the OG canvas. */
 export const ogTypography = {
   brand: {
-    fontSize: 40,
+    fontSize: 36,
     fontWeight: 800,
     letterSpacing: "-0.03em",
     lineHeight: 1.1,
     color: landingColors.ink,
   },
   title: {
-    fontSize: 80,
+    fontSize: 64,
     fontWeight: 800,
     letterSpacing: "-0.03em",
     lineHeight: 1.12,
@@ -37,7 +37,7 @@ export const ogTypography = {
     textAlign: "center" as const,
   },
   body: {
-    fontSize: 36,
+    fontSize: 30,
     fontWeight: 800,
     lineHeight: 1.45,
     color: landingColors.body,
@@ -98,7 +98,7 @@ export function OgBrandHeader() {
         ...ogTextStyle("brand"),
       }}
     >
-      <MapPinSearchIcon size={40} strokeWidth={2.25} />
+      <MapPinSearchIcon size={32} strokeWidth={2.25} />
       {siteName}
     </div>
   );
@@ -112,10 +112,10 @@ export function OgShowcaseCard({ children }: { children: ReactNode }) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 28,
+        gap: 20,
         maxWidth: 980,
-        padding: "80px 72px",
-        borderRadius: 48,
+        padding: "48px 64px",
+        borderRadius: 40,
         background: "#ffffff",
         textAlign: "center",
       }}
@@ -210,7 +210,7 @@ export function OgImageShell({ children }: { children: ReactNode }) {
           height: "100%",
           alignItems: "center",
           justifyContent: "center",
-          padding: "56px",
+          padding: "40px",
         }}
       >
         {children}
