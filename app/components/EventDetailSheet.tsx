@@ -296,7 +296,7 @@ export function EventDetailSheet({
       if (navigator.share) {
         await navigator.share({
           title: event.title,
-          text: `Join ${event.title} on GameOn`,
+          text: `Join ${sport?.label ?? event.sport} on GameOn - ${event.title}`,
           url: shareUrl,
         });
         return;
@@ -308,7 +308,7 @@ export function EventDetailSheet({
       setShareFeedback("Could not share");
       window.setTimeout(() => setShareFeedback(null), 2000);
     }
-  }, [event.title, shareUrl]);
+  }, [event.sport, event.title, shareUrl, sport?.label]);
 
   const handleAddToCalendar = useCallback(() => {
     downloadSportEventIcs(event, shareUrl);
