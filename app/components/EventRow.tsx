@@ -4,8 +4,18 @@ import { Icon } from "@iconify/react";
 import { Clock, Crown, Lock, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { memo } from "react";
+import { isSameDay } from "date-fns";
 import { sports } from "../data/mock-data";
-import { clockTime, countdownUrgency, durationText, eventRelativeLabel, eventTime, isCancelled, spotsLeft } from "../event-feed";
+import {
+  clockTime,
+  countdownUrgency,
+  durationText,
+  eventRelativeLabel,
+  isCancelled,
+  shortDateSuffix,
+  spotsLeft,
+  weekdayLabel,
+} from "../event-feed";
 import { formatDistanceKm } from "@/lib/location/geo";
 import type { SportEvent } from "../types";
 
@@ -89,53 +99,125 @@ export function EventCountdownMeta({
   );
 }
 
+function EventCountdown({
+  event,
+  isArchived = false,
+}: {
+  event: SportEvent;
+  isArchived?: boolean;
+}) {
+  const urgency = isArchived ? null : countdownUrgency(event);
+  const countdownColor = urgency ? URGENCY_COLOR[urgency] : undefined;
+
+  return (
+    <span
+      className="row-countdown"
+      style={{
+        color: countdownColor,
+        fontWeight: urgency ? 600 : undefined,
+      }}
+    >
+      {eventRelativeLabel(event)}
+    </span>
+  );
+}
+
+function ScheduleDate({ date }: { date: Date }) {
+  return (
+    <>
+      <span className="row-schedule-day">{weekdayLabel(date)}</span>
+      <span className="row-schedule-muted">{shortDateSuffix(date)}</span>
+    </>
+  );
+}
+
+function EventRowSchedule({
+  event,
+  isArchived = false,
+}: {
+  event: SportEvent;
+  isArchived?: boolean;
+}) {
+  const start = new Date(event.startsAt);
+  const end = new Date(event.endsAt);
+
+  if (isArchived) {
+    return (
+      <span className="row-meta-text">
+        <span className="row-schedule-muted">Ended </span>
+        <ScheduleDate date={end} />
+        <span className="row-meta-sep"> · </span>
+        <span className="row-schedule-muted">{clockTime(end)}</span>
+      </span>
+    );
+  }
+
+  if (isSameDay(start, end)) {
+    return (
+      <span className="row-meta-text">
+        <ScheduleDate date={start} />
+        <span className="row-meta-sep"> · </span>
+        <span className="row-schedule-muted">
+          {clockTime(start)} – {clockTime(end)}
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="row-meta-text">
+      <ScheduleDate date={start} />
+      <span className="row-meta-sep"> · </span>
+      <span className="row-schedule-muted">{clockTime(start)}</span>
+      <span className="row-meta-sep"> – </span>
+      <ScheduleDate date={end} />
+      <span className="row-meta-sep"> · </span>
+      <span className="row-schedule-muted">{clockTime(end)}</span>
+    </span>
+  );
+}
+
 export const EventRow = memo(function EventRow({
   event,
   isArchived = false,
   onSelect,
 }: Props) {
   const sport = sports.find((candidate) => candidate.id === event.sport);
-  const startTime = isArchived
-    ? `Ended ${clockTime(new Date(event.endsAt))}`
-    : eventTime(new Date(event.startsAt));
 
   return (
-    <button className="event-row" onClick={onSelect}>
+    <button className="event-row" onClick={onSelect} type="button">
       <SpotsLeftBadge count={spotsLeft(event)} />
 
-      <span className="min-w-0 flex-1">
-        <EventCountdownMeta
-          event={event}
-          isArchived={isArchived}
-          sportLabel={sport?.label}
-        />
+      <div className="event-row-body">
+        <div className="row-header">
+          <div className="row-sport-label">
+            {sport?.icon ? <Icon icon={sport.icon} width={12} /> : null}
+            <span className="row-sport-name">{sport?.label}</span>
+            <span className="row-meta-sep">·</span>
+            <span className="row-sport-duration">{durationText(event)}</span>
+          </div>
+          <EventCountdown event={event} isArchived={isArchived} />
+        </div>
 
-        <span className="row-title">{event.title}</span>
+        <div className="row-title">{event.title}</div>
 
-        <span className="row-meta">
-          <MapPin size={12} />
-          <span className="truncate">
+        <div className="row-meta">
+          <MapPin aria-hidden size={12} />
+          <span className="row-meta-text">
             {event.venue.name || event.venue.address || "Venue"}
+            {event.distanceKm != null
+              ? ` · ${formatDistanceKm(event.distanceKm)}`
+              : ""}
           </span>
-          {event.distanceKm != null ? (
-            <>
-              <span style={{ color: "var(--label-text)" }}>·</span>
-              <span>{formatDistanceKm(event.distanceKm)}</span>
-            </>
-          ) : null}
-        </span>
+        </div>
 
-        <span className="row-meta mt-1">
-          <Clock size={12} />
-          {startTime}
-          <span style={{ color: "var(--label-text)" }}>·</span>
-          <span style={{ color: "var(--primary-text)" }}>
-            {durationText(event)}
-          </span>
-        </span>
+        <div className="row-meta row-meta-schedule">
+          <Clock aria-hidden size={12} />
+          <EventRowSchedule event={event} isArchived={isArchived} />
+        </div>
 
         {rowBadges(event, isArchived)}
-      </span>
+      </div>
     </button>
   );
 });

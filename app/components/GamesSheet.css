@@ -80,6 +80,7 @@
 }
 
 .GamesSheet-scrollContent {
+  min-width: 0;
   padding-bottom: 8px;
 }
 

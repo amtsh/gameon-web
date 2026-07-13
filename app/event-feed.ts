@@ -5,6 +5,27 @@ import type { SportEvent, SportKind } from "./types";
 export const eventTime = (date: Date) => format(date, "EEE, d MMM · HH:mm");
 export const clockTime = (date: Date) => format(date, "HH:mm");
 export const detailDate = (date: Date) => format(date, "EEE, d MMM");
+export const weekdayLabel = (date: Date) => format(date, "EEE");
+export const shortDateSuffix = (date: Date) => format(date, ", d MMM");
+
+/** Start and end schedule for list rows. */
+export function eventRowScheduleLabel(
+  event: SportEvent,
+  options: { isArchived?: boolean } = {},
+): string {
+  const start = new Date(event.startsAt);
+  const end = new Date(event.endsAt);
+
+  if (options.isArchived) {
+    return `Ended ${eventTime(end)}`;
+  }
+
+  if (isSameDay(start, end)) {
+    return `${detailDate(start)} · ${clockTime(start)} – ${clockTime(end)}`;
+  }
+
+  return `${eventTime(start)} – ${eventTime(end)}`;
+}
 
 export function sectionTitle(date: Date, now = new Date()): [string, string] {
   if (isSameDay(date, now)) return ["Today", format(date, "EEEE")];

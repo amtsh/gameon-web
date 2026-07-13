@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   activeUserEvents,
   archivedUserEvents,
+  clockTime,
   durationText,
   eventRelativeLabel,
+  eventRowScheduleLabel,
   groupedDiscoverableEvents,
   isArchived,
   isCancelled,
@@ -75,6 +77,39 @@ describe("durationText", () => {
     ["2026-07-11T16:00:00Z", "2026-07-11T16:00:00Z", "1m"],
   ])("%s → %s = %s", (startsAt, endsAt, expected) => {
     expect(durationText(makeEvent({ startsAt, endsAt }))).toBe(expected);
+  });
+});
+
+describe("eventRowScheduleLabel", () => {
+  it("shows start and end time on the same day", () => {
+    const event = makeEvent({
+      startsAt: "2026-07-19T15:00:00Z",
+      endsAt: "2026-07-19T17:00:00Z",
+    });
+    const label = eventRowScheduleLabel(event);
+
+    expect(label).toContain(clockTime(new Date(event.startsAt)));
+    expect(label).toContain(clockTime(new Date(event.endsAt)));
+    expect(label).toContain("–");
+  });
+
+  it("shows full start and end when the event spans days", () => {
+    const event = makeEvent({
+      startsAt: "2026-07-19T15:00:00Z",
+      endsAt: "2026-07-20T09:00:00Z",
+    });
+    const label = eventRowScheduleLabel(event);
+
+    expect(label).toContain("–");
+    expect(label).not.toMatch(/–\s*\d{1,2}:\d{2}$/);
+  });
+
+  it("prefixes archived events with Ended", () => {
+    const event = makeEvent({
+      startsAt: "2026-07-10T10:00:00Z",
+      endsAt: "2026-07-10T11:00:00Z",
+    });
+    expect(eventRowScheduleLabel(event, { isArchived: true })).toMatch(/^Ended /);
   });
 });
 

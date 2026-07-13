@@ -386,12 +386,111 @@ textarea {
 
 .event-row {
   position: relative;
-  display: flex;
+  display: grid;
+  box-sizing: border-box;
   width: 100%;
-  align-items: center;
-  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  align-items: start;
+  grid-template-columns: 52px minmax(0, 1fr);
+  column-gap: 12px;
+  margin: 0;
   padding: 15px 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+  overflow: hidden;
+}
+
+.event-row:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+.event-row-body {
+  display: flex;
+  grid-column: 2;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row-header {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.row-sport-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  padding-right: 5.75rem;
+  overflow: hidden;
+  color: var(--tertiary-text);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.row-sport-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-sport-duration {
+  flex: 0 0 auto;
+}
+
+.row-sport-label > svg,
+.row-sport-label .iconify {
+  flex: 0 0 auto;
+}
+
+.row-meta-sep {
+  flex: 0 0 auto;
+  color: var(--label-text);
+}
+
+.row-countdown {
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-width: 5.5rem;
+  color: var(--tertiary-text);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.row-meta-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-schedule-day {
+  color: var(--primary-text);
+}
+
+.row-meta .row-schedule-day {
+  color: var(--primary-text);
+}
+
+.row-schedule-muted {
+  color: var(--tertiary-text);
 }
 
 .event-row::after {
@@ -407,10 +506,11 @@ textarea {
 .spots-badge {
   display: flex;
   width: 52px;
-  flex: 0 0 auto;
+  grid-column: 1;
   flex-direction: column;
   align-items: center;
   gap: 1px;
+  margin-top: 2px;
   color: var(--tertiary-text);
 }
 
@@ -432,6 +532,8 @@ textarea {
 
 .row-meta {
   display: flex;
+  width: 100%;
+  min-width: 0;
   align-items: center;
   gap: 5px;
   overflow: hidden;
@@ -441,8 +543,16 @@ textarea {
   white-space: nowrap;
 }
 
+.row-meta-schedule {
+  margin-top: 2px;
+}
+
+.row-meta > svg {
+  flex: 0 0 auto;
+}
+
 .row-title {
-  margin: 5px 0 5px;
+  margin: 4px 0;
   color: var(--primary-text);
   font-size: 16px;
   font-weight: 600;
@@ -451,6 +561,7 @@ textarea {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+  min-width: 0;
 }
 
 .row-badges {
