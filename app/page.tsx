@@ -3,8 +3,16 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { ArrowRight, MapPinSearch } from "lucide-react";
-import { DISCOVERY_RADIUS_KM } from "@/lib/location/constants";
+import {
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  MapPin,
+  MapPinSearch,
+  Shield,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { resolveInitialDiscoveryLocationLabel } from "@/lib/location/discovery";
 import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
 import { siteName } from "@/lib/seo/metadata";
@@ -13,46 +21,53 @@ import { loadAppData } from "@/lib/data/app-data";
 import { LandingCity, LandingLocationProvider } from "./landing/LandingCity";
 import { CompareMark } from "./landing/CompareMark";
 import { LandingSportPills } from "./landing/LandingSportPills";
+import { LandingTipGrid } from "./landing/LandingTipGrid";
 import { HeroBackground } from "./landing/HeroBackground";
 import "./landing.css";
 
 export const metadata: Metadata = {
-  title: "Find a game near you",
+  title: "Discover and join local games",
   description:
     "Game On maps local sports games around you. Tap a pin, request a spot, play.",
   alternates: { canonical: "/" },
 };
 
-const products = [
+const howItWorksTips = [
   {
-    title: "Play",
-    body: "See open games near you. Request a spot in two taps.",
-    href: "/home",
-    cta: "Find a game",
+    title: "Find open games on the map",
+    body: "Browse pins near you and see who is playing before you commit.",
+    icon: MapPin,
+    iconVariant: "rose" as const,
   },
   {
-    title: "Host",
-    body: "Publish once. Requests and waitlists fill the roster.",
-    href: "/home",
-    cta: "Host a game",
-  },
-];
-
-const steps = [
-  {
-    n: "1",
-    title: "Open the map",
-    body: `Games within ${DISCOVERY_RADIUS_KM} km. Filter by sport.`,
+    title: "Request a spot in two taps",
+    body: "Send a join request from the map. No group chat thread required.",
+    icon: UserPlus,
+    iconVariant: "sky" as const,
   },
   {
-    n: "2",
-    title: "Request a spot",
-    body: "Host approves you, or auto-approve puts you in.",
+    title: "Get approved or join automatically",
+    body: "Hosts can approve requests manually, or auto-join can put you in instantly.",
+    icon: CheckCircle2,
+    iconVariant: "violet" as const,
   },
   {
-    n: "3",
-    title: "Show up",
-    body: "Reminders, directions, and host contact once you're in.",
+    title: "Add games to your calendar",
+    body: "Save confirmed games for reminders so you do not miss kickoff.",
+    icon: Calendar,
+    iconVariant: "rose" as const,
+  },
+  {
+    title: "Host once and fill your roster",
+    body: "Set capacity once, then let requests and waitlists handle the rest.",
+    icon: Users,
+    iconVariant: "sky" as const,
+  },
+  {
+    title: "Keep your contact private",
+    body: "Your details reach a host only after they approve you — never posted publicly.",
+    icon: Shield,
+    iconVariant: "violet" as const,
   },
 ];
 
@@ -111,7 +126,7 @@ export default async function LandingPage() {
           <section className="lp-hero">
             <div className="lp-container lp-hero-grid">
               <div className="lp-hero-copy">
-                <h1>Find a game near you</h1>
+                <h1>Discover and join local games</h1>
                 <p className="lp-hero-sub">
                   Local sports on one map. Request a spot. Show up.
                 </p>
@@ -158,38 +173,10 @@ export default async function LandingPage() {
         </div>
 
         <main>
-          <section className="lp-band">
-            <div className="lp-container">
-              <h2>What you can do</h2>
-              <div className="lp-product-row">
-                {products.map((item) => (
-                  <article className="lp-product-card" key={item.title}>
-                    <h3>{item.title}</h3>
-                    <p>{item.body}</p>
-                    <Link className="lp-text-link" href={item.href}>
-                      {item.cta}
-                      <ArrowRight size={15} aria-hidden />
-                    </Link>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="lp-band">
+          <section className="lp-band lp-band-surface">
             <div className="lp-container">
               <h2>How it works</h2>
-              <div className="lp-steps">
-                {steps.map((step) => (
-                  <article className="lp-step" key={step.n}>
-                    <span className="lp-step-n" aria-hidden>
-                      {step.n}
-                    </span>
-                    <h3>{step.title}</h3>
-                    <p>{step.body}</p>
-                  </article>
-                ))}
-              </div>
+              <LandingTipGrid tips={howItWorksTips} />
             </div>
           </section>
 

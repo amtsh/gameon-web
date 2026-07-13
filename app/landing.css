@@ -10,7 +10,14 @@
   --lp-muted: #f6f6f6;
   --lp-line: #e2e2e2;
   --lp-ink: #000000;
-  --lp-body: #5e5e5e;
+  --lp-body: #6e6e73;
+  --lp-body-size: 16px;
+  --lp-body-line: 1.5;
+  --lp-body-weight: 600;
+  --lp-title-size: clamp(22px, 3vw, 28px);
+  --lp-title-weight: 700;
+  --lp-title-tracking: -0.03em;
+  --lp-title-line: 1.1;
   --lp-mute: #8a8a8a;
   --lp-soft: #f3f3f3;
 
@@ -369,8 +376,9 @@ button.lp-btn-light:focus-visible {
   margin: 16px 0 0;
   max-width: 32ch;
   color: var(--lp-body);
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: var(--lp-body-size);
+  font-weight: var(--lp-body-weight);
+  line-height: var(--lp-body-line);
 }
 
 /* Request box — the actual CTA */
@@ -530,112 +538,80 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
 .lp-compare-section h2,
 .lp-cta-dark h2 {
   margin: 0;
-  font-size: clamp(22px, 3vw, 28px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-size: var(--lp-title-size);
+  font-weight: var(--lp-title-weight);
+  letter-spacing: var(--lp-title-tracking);
+  line-height: var(--lp-title-line);
   text-wrap: balance;
 }
 
-.lp-product-row {
+.lp-band-surface {
+  background: #f5f5f7;
+}
+
+.lp-showcase-grid {
   display: grid;
-  gap: 14px;
-  margin-top: 24px;
+  gap: 16px;
+  margin-top: 32px;
 }
 
 @media (min-width: 720px) {
-  .lp-product-row {
-    grid-template-columns: repeat(2, 1fr);
+  .lp-showcase-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.lp-product-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 22px;
-  border: 1px solid var(--lp-line);
-  border-radius: 16px;
-  background: #fff;
-}
-
-.lp-product-card h3 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.lp-product-card p {
-  margin: 10px 0 0;
-  color: var(--lp-body);
-  font-size: 15px;
-  line-height: 1.5;
-  flex: 1;
-}
-
-.lp-product-card .lp-text-link {
-  margin-top: 18px;
-}
-
-.lp-steps {
-  display: grid;
-  gap: 28px;
-  margin-top: 28px;
-}
-
-@media (min-width: 800px) {
-  .lp-steps {
+@media (min-width: 1060px) {
+  .lp-showcase-grid--3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: auto auto auto;
-    gap: 32px;
-    align-items: start;
+    gap: 18px;
   }
 }
 
-.lp-step {
+.lp-showcase-card {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  min-width: 0;
+  align-items: center;
+  padding: clamp(28px, 4vw, 36px) clamp(20px, 3vw, 28px);
+  border-radius: 24px;
+  background: #fff;
+  text-align: center;
 }
 
-@media (min-width: 800px) {
-  .lp-step {
-    display: grid;
-    grid-template-rows: subgrid;
-    grid-row: span 3;
-    gap: 12px;
-  }
+.lp-showcase-icon {
+  flex-shrink: 0;
 }
 
-.lp-step-n {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  background: var(--lp-ink);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
+.lp-showcase-icon--rose {
+  color: #e19eea;
 }
 
-.lp-step h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
+.lp-showcase-icon--sky {
+  color: #4bc1f2;
 }
 
-.lp-step p {
-  margin: 0;
+.lp-showcase-icon--violet {
+  color: #7c7ce0;
+}
+
+.lp-showcase-card h3 {
+  margin: 20px 0 0;
+  color: var(--lp-ink);
+  font-size: var(--lp-title-size);
+  font-weight: var(--lp-title-weight);
+  letter-spacing: var(--lp-title-tracking);
+  line-height: var(--lp-title-line);
+  text-wrap: balance;
+}
+
+.lp-showcase-card p {
+  margin: 14px 0 0;
+  max-width: 36ch;
   color: var(--lp-body);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: var(--lp-body-size);
+  font-weight: var(--lp-body-weight);
+  line-height: var(--lp-body-line);
+  text-wrap: balance;
 }
 
 /* Split host / privacy */
@@ -669,8 +645,9 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   margin: 14px 0 0;
   max-width: 36ch;
   color: var(--lp-body);
-  font-size: 16px;
-  line-height: 1.55;
+  font-size: var(--lp-body-size);
+  font-weight: var(--lp-body-weight);
+  line-height: var(--lp-body-line);
 }
 
 .lp-split .lp-btn {
