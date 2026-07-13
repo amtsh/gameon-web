@@ -78,7 +78,7 @@ function isCreateFormReady({
   const end = new Date(endsAt);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
   if (end <= start) return false;
-  if (!Number.isFinite(capacity) || capacity < 2 || capacity > 30) return false;
+  if (!Number.isFinite(capacity) || capacity < 1 || capacity > 100) return false;
 
   return true;
 }
@@ -88,10 +88,28 @@ function playersSoughtLabel(
   fillYourSpot: boolean,
   isEditing: boolean,
 ): string | null {
-  if (!Number.isFinite(capacity) || capacity < 2) return null;
+  if (!Number.isFinite(capacity) || capacity < 1) return null;
 
   const count = !isEditing && fillYourSpot ? capacity - 1 : capacity;
   return count === 1 ? "Looking for 1 player" : `Looking for ${count} players`;
+}
+
+/** Returns a validation message for the venue field, or null if valid. */
+function venueError(venue: Venue | null, touched: boolean): string | null {
+  if (!touched) return null;
+  if (!venue) return "Select a venue from the list";
+  return null;
+}
+
+/** Returns a validation message for the WhatsApp contact, or null if valid. */
+function contactError(
+  method: string | undefined | null,
+  value: string | undefined | null,
+): string | null {
+  if (method !== "whatsapp" || !value) return null;
+  // Must start with + followed by at least 7 digits
+  if (!/^\+\d{7,}/.test(value.trim())) return "Add country code (e.g. +46…)";
+  return null;
 }
 
 type Props = {
@@ -125,6 +143,7 @@ export function CreateEventSheet({
   const [sport, setSport] = useState<SportKind>("badminton");
   const [skillLevel, setSkillLevel] = useState<SkillLevel>("any");
   const [venue, setVenue] = useState<Venue | null>(null);
+  const [venueTouched, setVenueTouched] = useState(false);
   const [fillYourSpot, setFillYourSpot] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
@@ -194,6 +213,7 @@ export function CreateEventSheet({
         setSport(editEvent.sport);
         setSkillLevel(editEvent.skillLevel);
         setVenue(editEvent.venue);
+        setVenueTouched(false);
         setVenueFieldKey((key) => key + 1);
         setFillYourSpot(false);
         setAutoApprove(editEvent.autoApprove ?? false);
@@ -216,6 +236,7 @@ export function CreateEventSheet({
         setSport(prefill.sport);
         setSkillLevel(prefill.skillLevel);
         setVenue(prefill.venue);
+        setVenueTouched(false);
         setVenueFieldKey((key) => key + 1);
         setFillYourSpot(true);
         setAutoApprove(prefill.autoApprove);
@@ -234,6 +255,7 @@ export function CreateEventSheet({
       setSport("badminton");
       setSkillLevel("any");
       setVenue(null);
+      setVenueTouched(false);
       setVenueFieldKey((key) => key + 1);
       setFillYourSpot(true);
       setAutoApprove(false);
@@ -251,6 +273,7 @@ export function CreateEventSheet({
   }, [editEvent, prefillFromEvent, presented, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
+    setVenueTouched(true);
     if (!venue) return;
     if (!profile) {
       setSubmitError("Profile not loaded. Close and try again.");
@@ -314,7 +337,16 @@ export function CreateEventSheet({
   const contactMethod = profile?.contact_method;
   const contactValue = profile?.contact_value;
   const sheetTitle = isEditing ? "Edit Game" : "Create Game";
-  const startsAtField = register("startsAt", { required: true });
+  const startsAtField = register("startsAt", {
+    required: true,
+    validate: (v) => {
+      const d = new Date(v);
+      if (Number.isNaN(d.getTime())) return true;
+      const max = new Date();
+      max.setMonth(max.getMonth() + 3);
+      return d <= max || "Can't be more than 3 months away";
+    },
+  });
   const playersSought = playersSoughtLabel(capacity, fillYourSpot, isEditing);
   const costDraft: CostDraft = {
     mode: costMode,
@@ -322,6 +354,8 @@ export function CreateEventSheet({
     currency: costCurrency,
   };
   const costLabel = displayCost(eventCostFromDraft(costDraft)) ?? "Not set";
+  const venueValidationError = venueError(venue, venueTouched);
+  const whatsappError = contactError(contactMethod, contactValue);
 
   return (
     <ModalSheet
@@ -382,8 +416,14 @@ export function CreateEventSheet({
           <VenueSearchField
             key={venueFieldKey}
             value={venue}
-            onSelect={setVenue}
+            onSelect={(v) => {
+              setVenue(v);
+              setVenueTouched(true);
+            }}
           />
+          {venueValidationError ? (
+            <p className="form-error">{venueValidationError}</p>
+          ) : null}
           <input
             placeholder="Title"
             {...register("title", { required: "Title is required" })}
@@ -411,6 +451,9 @@ export function CreateEventSheet({
               }}
             />
           </label>
+          {errors.startsAt ? (
+            <p className="form-error">{errors.startsAt.message}</p>
+          ) : null}
           <label className="stepper-row">
             <span>Ends</span>
             <input
@@ -433,12 +476,20 @@ export function CreateEventSheet({
               {playersSought ? <p className="hint">{playersSought}</p> : null}
             </div>
             <input
+              inputMode="numeric"
               type="number"
-              min={2}
-              max={30}
-              {...register("capacity", { min: 2, max: 30, valueAsNumber: true })}
+              min={1}
+              max={100}
+              {...register("capacity", {
+                min: { value: 1, message: "At least 1 player" },
+                max: { value: 100, message: "100 players max" },
+                valueAsNumber: true,
+              })}
             />
           </div>
+          {errors.capacity ? (
+            <p className="form-error">{errors.capacity.message}</p>
+          ) : null}
           {!isEditing ? (
             <label className="toggle-row row-no-divider">
               <span>Fill your spot</span>
@@ -539,6 +590,9 @@ export function CreateEventSheet({
               Edit
             </button>
           </div>
+          {whatsappError ? (
+            <p className="form-error">{whatsappError}</p>
+          ) : null}
         </div>
 
         <div className="form-section">
@@ -547,6 +601,7 @@ export function CreateEventSheet({
             placeholder={
               "A good description is\n" +
               "- Greet and tell players what to expect\n" +
+              "- Court number for play\n" +
               "- How payment works. (Prefer payment on venue)"
             }
             rows={4}
