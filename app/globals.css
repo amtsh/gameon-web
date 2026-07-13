@@ -442,7 +442,7 @@ textarea {
 }
 
 .row-title {
-  margin: 5px 0 1px;
+  margin: 5px 0 5px;
   color: var(--primary-text);
   font-size: 16px;
   font-weight: 600;

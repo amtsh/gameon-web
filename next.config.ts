@@ -12,6 +12,15 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.148"],
+  async redirects() {
+    return [
+      {
+        source: "/home",
+        destination: "/app",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

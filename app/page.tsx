@@ -84,7 +84,7 @@ export default async function LandingPage() {
   if (hasSupabaseEnv()) {
     const { user } = await loadAppData();
     if (user) {
-      redirect("/home");
+      redirect("/app");
     }
   }
 
@@ -116,7 +116,7 @@ export default async function LandingPage() {
               </Link>
               <div className="lp-top-actions">
                 <LandingCity className="lp-city" />
-                <Link className="lp-btn lp-btn-dark lp-btn-sm" href="/home">
+                <Link className="lp-btn lp-btn-dark lp-btn-sm" href="/app">
                   Open map
                 </Link>
               </div>
@@ -131,7 +131,7 @@ export default async function LandingPage() {
                   Local sports on one map. Request a spot. Show up.
                 </p>
 
-                <form className="lp-request" action="/home" method="get">
+                <form className="lp-request" action="/app" method="get">
                   <div className="lp-field">
                     <span className="lp-field-label">Near</span>
                     <LandingCity className="lp-field-value" iconSize={16} />
@@ -188,7 +188,7 @@ export default async function LandingPage() {
                   Set capacity and approval once. Players request spots.
                   Waitlists fill dropouts automatically.
                 </p>
-                <Link className="lp-btn lp-btn-dark" href="/home">
+                <Link className="lp-btn lp-btn-dark" href="/app">
                   Host a game
                 </Link>
               </div>
@@ -234,7 +234,7 @@ export default async function LandingPage() {
             <div className="lp-container">
               <h2>The map is live</h2>
               <p>Browse without an account. Join when you&apos;re ready.</p>
-              <Link className="lp-btn lp-btn-light" href="/home">
+              <Link className="lp-btn lp-btn-light" href="/app">
                 See games near you
                 <ArrowRight size={16} aria-hidden />
               </Link>
@@ -246,7 +246,7 @@ export default async function LandingPage() {
           <div className="lp-container lp-footer-inner">
             <span>© 2026 {siteName}</span>
             <nav className="lp-footer-links" aria-label="Footer">
-              <Link href="/home">Open map</Link>
+              <Link href="/app">Open map</Link>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
               <a

@@ -556,7 +556,7 @@ export function EventDetailSheet({
         {event.isCreatedByCurrentUser && !archived && !cancelled ? (
           <>
             <button
-              className="outline-action mt-4"
+              className="outline-action mt-8"
               onClick={() => onEdit(event)}
               type="button"
             >

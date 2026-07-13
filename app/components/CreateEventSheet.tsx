@@ -3,7 +3,7 @@
 import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   createSportEvent,
@@ -27,6 +27,52 @@ type CreateEventValues = {
   cost?: string;
   description?: string;
 };
+
+function defaultSessionTimes() {
+  const start = new Date();
+  start.setMinutes(0, 0, 0);
+  start.setHours(start.getHours() + 2);
+  const end = new Date(start.getTime() + 60 * 60_000);
+  return {
+    startsAt: toLocalDateTimeInput(start.toISOString()),
+    endsAt: toLocalDateTimeInput(end.toISOString()),
+  };
+}
+
+function endTimeOneHourAfterStart(startsAt: string) {
+  const start = new Date(startsAt);
+  if (Number.isNaN(start.getTime())) return null;
+  const end = new Date(start.getTime() + 60 * 60_000);
+  return toLocalDateTimeInput(end.toISOString());
+}
+
+function isCreateFormReady({
+  title,
+  startsAt,
+  endsAt,
+  capacity,
+  venue,
+  profile,
+  isSubmitting,
+}: {
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  capacity: number;
+  venue: Venue | null;
+  profile: Profile | null;
+  isSubmitting: boolean;
+}) {
+  if (!profile || !venue || isSubmitting || !title.trim()) return false;
+
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+  if (end <= start) return false;
+  if (!Number.isFinite(capacity) || capacity < 2 || capacity > 30) return false;
+
+  return true;
+}
 
 type Props = {
   presented: boolean;
@@ -64,28 +110,57 @@ export function CreateEventSheet({
   const [isPrivate, setIsPrivate] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const preserveDraftRef = useRef(false);
+  const wasPresentedRef = useRef(false);
+  const skipPreserveOnCloseRef = useRef(false);
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isValid },
+    setValue,
+    watch,
+    formState: { errors },
   } = useForm<CreateEventValues>({
     mode: "onChange",
     defaultValues: {
       title: "",
-      startsAt: "2026-07-12T18:00",
-      endsAt: "2026-07-12T19:00",
+      ...defaultSessionTimes(),
       capacity: 8,
       cost: "",
       description: "",
     },
   });
 
+  const title = watch("title");
+  const startsAt = watch("startsAt");
+  const endsAt = watch("endsAt");
+  const capacity = watch("capacity");
+  const canSubmit = isCreateFormReady({
+    title,
+    startsAt,
+    endsAt,
+    capacity,
+    venue,
+    profile,
+    isSubmitting,
+  });
+
+  useEffect(() => {
+    if (wasPresentedRef.current && !presented) {
+      if (!skipPreserveOnCloseRef.current) {
+        preserveDraftRef.current = true;
+      }
+      skipPreserveOnCloseRef.current = false;
+    }
+    wasPresentedRef.current = presented;
+  }, [presented]);
+
   useEffect(() => {
     if (!presented) return;
 
     const frame = requestAnimationFrame(() => {
       if (editEvent) {
+        preserveDraftRef.current = false;
         setSport(editEvent.sport);
         setSkillLevel(editEvent.skillLevel);
         setVenue(editEvent.venue);
@@ -102,6 +177,8 @@ export function CreateEventSheet({
         });
         return;
       }
+
+      if (preserveDraftRef.current) return;
 
       if (prefillFromEvent) {
         const prefill = buildCreatePrefill(prefillFromEvent);
@@ -130,8 +207,7 @@ export function CreateEventSheet({
       setIsPrivate(false);
       reset({
         title: "",
-        startsAt: "2026-07-12T18:00",
-        endsAt: "2026-07-12T19:00",
+        ...defaultSessionTimes(),
         capacity: 8,
         cost: "",
         description: "",
@@ -185,6 +261,8 @@ export function CreateEventSheet({
         });
       }
       await onSaved(!editEvent);
+      preserveDraftRef.current = false;
+      skipPreserveOnCloseRef.current = true;
       onPresentedChange(false);
     } catch (error) {
       setSubmitError(
@@ -202,6 +280,7 @@ export function CreateEventSheet({
   const contactMethod = profile?.contact_method;
   const contactValue = profile?.contact_value;
   const sheetTitle = isEditing ? "Edit Game" : "Create Game";
+  const startsAtField = register("startsAt", { required: true });
 
   return (
     <ModalSheet
@@ -225,7 +304,7 @@ export function CreateEventSheet({
           </SheetDismissTrigger>
           <h2>{sheetTitle}</h2>
           <button
-            disabled={!isValid || !venue || isSubmitting || !profile}
+            disabled={!canSubmit}
             type="submit"
           >
             {isSubmitting
@@ -286,7 +365,17 @@ export function CreateEventSheet({
             <input
               style={{ width: "auto" }}
               type="datetime-local"
-              {...register("startsAt", { required: true })}
+              {...startsAtField}
+              onBlur={(blurEvent) => {
+                startsAtField.onBlur(blurEvent);
+                const nextEnd = endTimeOneHourAfterStart(blurEvent.target.value);
+                if (nextEnd) {
+                  setValue("endsAt", nextEnd, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }
+              }}
             />
           </label>
           <label className="stepper-row">

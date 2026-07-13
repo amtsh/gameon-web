@@ -69,7 +69,7 @@ export const EventRow = memo(function EventRow({
 
         <span className="row-title">{event.title}</span>
 
-        <span className="row-meta mt-1">
+        <span className="row-meta">
           <MapPin size={12} />
           <span className="truncate">
             {event.venue.name || event.venue.address || "Venue"}

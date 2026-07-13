@@ -10,13 +10,13 @@ export const metadata: Metadata = {
   title: "Find local sports games nearby",
   description: siteDescription,
   alternates: {
-    canonical: "/home",
+    canonical: "/app",
   },
 };
 
 function AppJsonLd() {
   const siteUrl = getSiteUrl();
-  const appUrl = `${siteUrl}/home`;
+  const appUrl = `${siteUrl}/app`;
 
   const jsonLd = {
     "@context": "https://schema.org",

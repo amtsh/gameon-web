@@ -15,7 +15,7 @@ describe("safeNextPath", () => {
     ["javascript:alert(1)"],
     ["/\\evil.com"],
     ["game/abc"], // relative, not rooted
-  ])("falls back to /home for %s", (raw) => {
-    expect(safeNextPath(raw)).toBe("/home");
+  ])("falls back to /app for %s", (raw) => {
+    expect(safeNextPath(raw)).toBe("/app");
   });
 });

@@ -262,6 +262,10 @@ export default function GameOnApp({
     [events, pastEvents],
   );
 
+  const createSheetPresented =
+    activeSheet === "create" ||
+    (activeSheet === "contact" && contactReturnSheet.current === "create");
+
   return (
     <main className="gameon-root">
       <AppMap
@@ -328,7 +332,7 @@ export default function GameOnApp({
       ) : null}
 
       <CreateEventSheet
-        presented={activeSheet === "create"}
+        presented={createSheetPresented}
         onPresentedChange={(presented) => {
           if (!presented) setEditEvent(undefined);
           setActiveSheet(presented ? "create" : null);
