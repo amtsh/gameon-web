@@ -135,6 +135,16 @@ export default function GameOnApp({
     void pwaInstall.promptNativeInstall().finally(() => setInstallNudgeOpen(false));
   }, [pwaInstall]);
 
+  // TEMP: preview install toast locally — remove before merge
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    if (pwaInstall.platform === "desktop" || pwaInstall.platform === "unsupported") {
+      return;
+    }
+    const timer = setTimeout(() => setInstallNudgeOpen(true), 800);
+    return () => clearTimeout(timer);
+  }, [pwaInstall.platform]);
+
   const requireAuth = useCallback(
     (action: () => void) => {
       if (user) { action(); return; }

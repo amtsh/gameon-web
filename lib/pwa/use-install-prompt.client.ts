@@ -63,10 +63,11 @@ export function usePwaInstallPrompt() {
     };
   }, []);
 
-  // Eligible when the platform gives us something actionable to show:
-  // a native prompt (Android/desktop Chrome/Edge) or manual iOS steps.
+  // Mobile only: iOS manual steps, or Android when the native prompt is available.
   const canShow =
-    !isStandalone && (platform === "ios" || deferredPrompt !== null);
+    !isStandalone &&
+    platform !== "desktop" &&
+    (platform === "ios" || (platform === "android" && deferredPrompt !== null));
 
   const requestShow = useCallback(() => {
     if (!canShow) return false;
@@ -89,7 +90,7 @@ export function usePwaInstallPrompt() {
 
   return {
     platform,
-    canInstallNatively: deferredPrompt !== null,
+    canInstallNatively: deferredPrompt !== null && platform !== "desktop",
     requestShow,
     dismiss,
     promptNativeInstall,
