@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MapPinSearch } from "lucide-react";
 import { DISCOVERY_RADIUS_KM } from "@/lib/location/constants";
 import { resolveInitialDiscoveryLocationLabel } from "@/lib/location/discovery";
 import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
@@ -91,6 +91,12 @@ export default async function LandingPage() {
           <header className="lp-top">
             <div className="lp-top-inner">
               <Link className="lp-logo" href="/">
+                <MapPinSearch
+                  aria-hidden
+                  className="lp-logo-icon"
+                  size={20}
+                  strokeWidth={2.25}
+                />
                 {siteName}
               </Link>
               <div className="lp-top-actions">
