@@ -336,6 +336,8 @@ export function CreateEventSheet({
 
   const contactMethod = profile?.contact_method;
   const contactValue = profile?.contact_value;
+  // Telegram is not yet enabled — only WhatsApp is shown in the UI for now.
+  const isWhatsappContact = contactMethod === "whatsapp";
   const sheetTitle = isEditing ? "Edit Game" : "Create Game";
   const startsAtField = register("startsAt", {
     required: true,
@@ -572,15 +574,12 @@ export function CreateEventSheet({
         <div className="form-section">
           <p className="form-label">Contact</p>
           <div className="contact-card">
-            <Icon
-              icon={
-                contactMethod === "whatsapp" ? "mdi:whatsapp" : "mdi:telegram"
-              }
-              width={20}
-            />
+            <Icon icon="mdi:whatsapp" width={20} />
             <span className="flex-1">
               <span className="detail-caption block" style={{ fontWeight: 700 }}>
-                Shared after approval
+                {isWhatsappContact
+                  ? "WhatsApp shared after approval"
+                  : "Contact shared after approval"}
               </span>
               <span className="detail-body">
                 {contactValue ?? "Not set"}
