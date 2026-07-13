@@ -1,43 +1,13 @@
-import type { Metadata } from "next";
 import { loadAppData } from "@/lib/data/app-data";
-import { fetchSportEvent } from "@/lib/data/events";
-import { createPageMetadata, siteDescription, siteName } from "@/lib/seo/metadata";
+import { siteDescription, siteName } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/seo/site";
 import { sportEventSharePath } from "@/lib/share-token";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import GameOnApp from "@/app/gameon-app";
 import { mockEvents } from "@/app/data/mock-data";
+import { findMockEvent } from "./resolve-event";
 
-export function findMockEvent(slug: string) {
-  return (
-    mockEvents.find((event) => event.shareToken === slug || event.id === slug) ??
-    null
-  );
-}
-
-export async function buildSharedGameMetadata(slug: string): Promise<Metadata> {
-  const event = hasSupabaseEnv() ? await fetchSportEvent(slug) : findMockEvent(slug);
-  const canonical = event
-    ? sportEventSharePath(event.shareToken)
-    : sportEventSharePath(slug);
-
-  const siteUrl = getSiteUrl();
-  const canonicalUrl = `${siteUrl}${canonical}`;
-
-  const title = event ? event.title : "Game not found";
-
-  const description = event
-    ? `View details and join ${event.title} on ${siteName}.`
-    : siteDescription;
-
-  return createPageMetadata({
-    title,
-    description,
-    path: canonical,
-    openGraphUrl: canonicalUrl,
-    twitterCard: "summary",
-  });
-}
+export { buildSharedGameMetadata, findMockEvent, resolveSharedEvent } from "./resolve-event";
 
 export function GameJsonLd({
   shareToken,

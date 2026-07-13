@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import type { SportEvent } from "@/app/types";
 import {
   loadPastUserSportEvents,
-  loadSportEvent,
+  loadSportEventForSeo,
   loadSportEvents,
 } from "@/lib/data/sport-events";
 import { loadProfile, type Profile } from "@/lib/data/profile.shared";
@@ -39,7 +39,7 @@ export async function loadAppData(sharedEventSlug?: string): Promise<AppData> {
     loadSportEvents(supabase, user?.id, discovery),
     user ? loadPastUserSportEvents(supabase, user.id) : Promise.resolve([]),
     sharedEventSlug
-      ? loadSportEvent(supabase, sharedEventSlug, user?.id, discovery)
+      ? loadSportEventForSeo(sharedEventSlug)
       : Promise.resolve(undefined),
   ]);
 

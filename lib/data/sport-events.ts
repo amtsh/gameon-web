@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { SportEvent } from "@/app/types";
 import type { Database, SportEventRow } from "@/lib/supabase/database.types";
+import { getSupabaseKey, getSupabaseUrl, hasSupabaseEnv } from "@/lib/supabase/env";
 import {
   DEFAULT_DISCOVERY_FILTER,
   isUserRelatedEvent,
@@ -214,8 +216,24 @@ export async function loadSportEvent(
       p_share_token: slug,
     });
 
-    if (error) throw error;
-    event = (data?.[0] as PublicSportEventRow | undefined) ?? null;
+    if (!error) {
+      event = (data?.[0] as PublicSportEventRow | undefined) ?? null;
+    }
+
+    if (!event) {
+      const { data: direct, error: directError } = await supabase
+        .from("sport_events")
+        .select(EVENT_COLUMNS_WITH_TOKEN)
+        .eq("share_token", slug)
+        .gt("ends_at", new Date().toISOString())
+        .is("cancelled_at", null)
+        .maybeSingle()
+        .overrideTypes<PublicSportEventRow | null, { merge: false }>();
+
+      if (!directError) {
+        event = direct;
+      }
+    }
   }
 
   if (!event) return null;
@@ -236,6 +254,18 @@ export async function loadSportEvent(
     ctx,
     discovery,
   );
+}
+
+/** Public share-link lookup for SEO and OG images — no cookies or user context. */
+export async function loadSportEventForSeo(slug: string): Promise<SportEvent | null> {
+  if (!hasSupabaseEnv()) return null;
+
+  const supabase = createSupabaseClient<Database>(
+    getSupabaseUrl(),
+    getSupabaseKey(),
+  );
+
+  return loadSportEvent(supabase, slug);
 }
 
 /** Past events the signed-in user hosted or joined. */

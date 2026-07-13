@@ -39,7 +39,12 @@ import {
   isCancelled,
   spotsLeft,
 } from "../event-feed";
-import { EventCountdownMeta, HostedByYouBadge, PrivateBadge, SpotsLeftBadge } from "./EventRow";
+import {
+  EventCountdownMeta,
+  HostedByYouBadge,
+  PrivateBadge,
+  SpotsLeftBadge,
+} from "./EventRow";
 import { JoinGuideSheet } from "./JoinGuideSheet";
 import { ConfirmDialog, ModalSheet, ModalSheetScroll } from "./ModalSheet";
 import { PlayersSheet } from "./PlayersSheet";
@@ -50,6 +55,7 @@ import {
   canSeePlayers,
   canShareGame,
 } from "@/lib/private-game";
+import { formatSharedGameShareText } from "@/lib/seo/format-event-og";
 import { sportEventSharePath, sportEventShareUrl } from "@/lib/share-token";
 
 type Props = {
@@ -89,7 +95,8 @@ const destructiveActions = {
   },
   cancel: {
     title: "Cancel this game?",
-    message: "Players who joined will be notified. The game will leave the public feed.",
+    message:
+      "Players who joined will be notified. The game will leave the public feed.",
     confirmLabel: "Cancel Game",
   },
 } as const;
@@ -168,8 +175,7 @@ export function EventDetailSheet({
     [openedViaShareLink],
   );
   const showPlayers = canSeePlayers(event, privateGameContext);
-  const canJoin =
-    !cancelled && canJoinFromDetail(event, privateGameContext);
+  const canJoin = !cancelled && canJoinFromDetail(event, privateGameContext);
   const canShare = !cancelled && canShareGame(event);
 
   const loadRequests = useCallback(async () => {
@@ -209,7 +215,7 @@ export function EventDetailSheet({
       const frame = requestAnimationFrame(() => setJoinGuideOpen(true));
       return () => cancelAnimationFrame(frame);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presented]);
 
   useEffect(() => {
@@ -219,12 +225,12 @@ export function EventDetailSheet({
   }, [loadRequests, presented]);
 
   const contactEligible =
-    presented && isSignedIn && Boolean(event.isJoined) &&
+    presented &&
+    isSignedIn &&
+    Boolean(event.isJoined) &&
     !event.isCreatedByCurrentUser;
   const hostContactHref =
-    hostContact?.eventId === event.id
-      ? contactUrl(hostContact.contact)
-      : null;
+    hostContact?.eventId === event.id ? contactUrl(hostContact.contact) : null;
 
   useEffect(() => {
     if (!contactEligible) return;
@@ -236,7 +242,9 @@ export function EventDetailSheet({
         }
       })
       .catch(() => {});
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [contactEligible, event.id]);
 
   useEffect(() => {
@@ -262,7 +270,15 @@ export function EventDetailSheet({
     return () => {
       stale = true;
     };
-  }, [archived, cancelled, event.id, event.isPrivate, event.shareToken, openedViaShareLink, presented]);
+  }, [
+    archived,
+    cancelled,
+    event.id,
+    event.isPrivate,
+    event.shareToken,
+    openedViaShareLink,
+    presented,
+  ]);
 
   const runMutation = async (action: () => Promise<void>) => {
     setActionError(null);
@@ -328,7 +344,7 @@ export function EventDetailSheet({
       if (navigator.share) {
         await navigator.share({
           title: event.title,
-          text: `Join ${sport?.label ?? event.sport} on GameOn - ${event.title}`,
+          text: formatSharedGameShareText(event, sport?.label),
           url: shareUrl,
         });
         return;
@@ -340,7 +356,7 @@ export function EventDetailSheet({
       setShareFeedback("Could not share");
       window.setTimeout(() => setShareFeedback(null), 2000);
     }
-  }, [event.sport, event.title, shareUrl, sport?.label]);
+  }, [event, shareUrl, sport?.label]);
 
   const handleAddToCalendar = useCallback(() => {
     downloadSportEventIcs(event, shareUrl);
@@ -350,7 +366,10 @@ export function EventDetailSheet({
     if (!confirming) return;
     const kind = confirming;
     setConfirming(null);
-    if (kind === "leave") { await runMutation(() => leaveEvent(event.id)); return; }
+    if (kind === "leave") {
+      await runMutation(() => leaveEvent(event.id));
+      return;
+    }
     if (kind === "withdraw" || kind === "leaveWaitlist") {
       await runMutation(() => withdrawJoinRequest(event.id));
       return;
@@ -445,7 +464,9 @@ export function EventDetailSheet({
                 <JoinRequestRows
                   approvingId={approvingId}
                   canApprove={spots > 0}
-                  onApprove={(requestId) => void handleApproveRequest(requestId)}
+                  onApprove={(requestId) =>
+                    void handleApproveRequest(requestId)
+                  }
                   requests={pendingRequests}
                 />
               ) : (
@@ -457,7 +478,9 @@ export function EventDetailSheet({
                 <JoinRequestRows
                   approvingId={approvingId}
                   canApprove={spots > 0}
-                  onApprove={(requestId) => void handleApproveRequest(requestId)}
+                  onApprove={(requestId) =>
+                    void handleApproveRequest(requestId)
+                  }
                   requests={waitlistedRequests}
                   waitlist
                 />
@@ -470,7 +493,9 @@ export function EventDetailSheet({
         ) : null}
 
         <div className="mt-6 flex items-center gap-3.5">
-          <span className="detail-icon-tile"><Calendar size={22} /></span>
+          <span className="detail-icon-tile">
+            <Calendar size={22} />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="detail-label">When</p>
             <p className="detail-body mt-1.5">{dateTimeText}</p>
@@ -493,7 +518,9 @@ export function EventDetailSheet({
         </div>
 
         <div className="mt-6 flex items-center gap-3.5">
-          <span className="detail-icon-tile"><MapPin size={22} /></span>
+          <span className="detail-icon-tile">
+            <MapPin size={22} />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="detail-label">Where</p>
             <p className="detail-body mt-1.5">{event.venue.name}</p>
@@ -648,7 +675,9 @@ export function EventDetailSheet({
             <p className="empty-state pb-3 pt-0 text-center">Archived game</p>
           ) : null}
           {cancelled ? (
-            <p className="empty-state pb-3 pt-0 text-center">This game was cancelled</p>
+            <p className="empty-state pb-3 pt-0 text-center">
+              This game was cancelled
+            </p>
           ) : null}
           {archived || event.isJoined ? (
             <a
@@ -659,7 +688,8 @@ export function EventDetailSheet({
             >
               Get Directions
             </a>
-          ) : cancelled ? null : event.hasPendingRequest || event.isOnWaitlist ? (
+          ) : cancelled ? null : event.hasPendingRequest ||
+            event.isOnWaitlist ? (
             <button
               className={
                 event.hasPendingRequest || event.isOnWaitlist
@@ -668,8 +698,14 @@ export function EventDetailSheet({
               }
               disabled={busy}
               onClick={() => {
-                if (event.hasPendingRequest) { setConfirming("withdraw"); return; }
-                if (event.isOnWaitlist) { setConfirming("leaveWaitlist"); return; }
+                if (event.hasPendingRequest) {
+                  setConfirming("withdraw");
+                  return;
+                }
+                if (event.isOnWaitlist) {
+                  setConfirming("leaveWaitlist");
+                  return;
+                }
                 startJoinFlow();
               }}
               type="button"
@@ -789,9 +825,7 @@ function JoinRequestRows({
             <p className="detail-caption mt-1">
               {skillLevelLabels[requester.requesterLevel]}
               {" \u00b7 "}
-              {waitlist
-                ? `#${index + 1} in line`
-                : "Pending"}
+              {waitlist ? `#${index + 1} in line` : "Pending"}
             </p>
           </div>
           {canApprove ? (

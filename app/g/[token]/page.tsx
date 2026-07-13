@@ -4,6 +4,8 @@ import {
   SharedGamePage,
 } from "@/lib/shared-game/shared-game-page";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ token: string }>;
 };

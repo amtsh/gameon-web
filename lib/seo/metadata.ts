@@ -11,6 +11,16 @@ export const siteTagline =
 
 export const defaultTitle = `${siteName} — ${siteTagline}`;
 
+/** Shared landing OG image — used for every route except /g/[token]. */
+export const defaultOgImagePath = "/opengraph-image";
+
+export const defaultOgImage = {
+  url: defaultOgImagePath,
+  width: 1200,
+  height: 630,
+  alt: defaultTitle,
+} as const;
+
 export const siteKeywords = [
   "local sports",
   "local games",
@@ -33,6 +43,8 @@ type PageMetadataOptions = {
   path: string;
   /** Full OG URL override — use when the share URL differs from the canonical path. */
   openGraphUrl?: string;
+  /** Pass false when a route segment defines its own opengraph-image file. */
+  openGraphImage?: string | false;
   openGraphType?: "website" | "article";
   robots?: Metadata["robots"];
   twitterCard?: "summary" | "summary_large_image";
@@ -44,10 +56,16 @@ export function createPageMetadata({
   description = siteDescription,
   path,
   openGraphUrl,
+  openGraphImage = defaultOgImagePath,
   openGraphType = "website",
   robots,
   twitterCard = "summary_large_image",
 }: PageMetadataOptions): Metadata {
+  const openGraphImages =
+    openGraphImage === false
+      ? undefined
+      : [{ ...defaultOgImage, url: openGraphImage }];
+
   const metadata: Metadata = {
     title,
     description,
@@ -58,11 +76,13 @@ export function createPageMetadata({
       type: openGraphType,
       url: openGraphUrl ?? path,
       siteName,
+      ...(openGraphImages ? { images: openGraphImages } : {}),
     },
     twitter: {
       card: twitterCard,
       title,
       description,
+      ...(openGraphImages ? { images: [openGraphImages[0].url] } : {}),
     },
   };
 
@@ -120,11 +140,13 @@ export function getSiteMetadata(): Metadata {
       siteName,
       title: defaultTitle,
       description: siteDescription,
+      images: [defaultOgImage],
     },
     twitter: {
       card: "summary_large_image",
       title: defaultTitle,
       description: siteDescription,
+      images: [defaultOgImagePath],
     },
     appleWebApp: {
       capable: true,
