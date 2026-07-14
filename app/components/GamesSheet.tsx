@@ -1,7 +1,7 @@
 "use client";
 
 import { Sheet, Scroll, type SheetViewProps } from "@silk-hq/components";
-import { Plus, User } from "lucide-react";
+import { MessagesSquare, Plus, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
@@ -276,6 +276,20 @@ export function GamesSheet({
                     </Scroll.Content>
                   </Scroll.View>
                 </Scroll.Root>
+
+                {!showingPast && (
+                  <div className="GamesSheet-feedback">
+                    <a
+                      className="GamesSheet-feedback-link row-meta"
+                      href="https://gameon.userjot.com"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <MessagesSquare aria-hidden size={12} strokeWidth={2} />
+                      <span className="row-meta-text">Give feedback</span>
+                    </a>
+                  </div>
+                )}
               </Sheet.SpecialWrapper.Content>
             </Sheet.SpecialWrapper.Root>
           </Sheet.Content>

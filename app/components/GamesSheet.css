@@ -38,7 +38,7 @@
 .GamesSheet-specialWrapperContent {
   box-sizing: border-box;
   height: 100%;
-  padding: 4px 18px max(8px, env(safe-area-inset-bottom));
+  padding: 4px 18px 0;
 }
 
 .GamesSheet-bleedingBackground {
@@ -84,6 +84,11 @@
   padding-bottom: 8px;
 }
 
+.GamesSheet-specialWrapperContent:not(:has(.GamesSheet-feedback))
+  .GamesSheet-scrollContent {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
 .empty-state-block {
   padding: 48px 0 18px;
 }
@@ -101,6 +106,26 @@
 .empty-state-actions {
   display: grid;
   gap: 10px;
+}
+
+.GamesSheet-feedback {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 6px 0 max(8px, env(safe-area-inset-bottom));
+}
+
+.GamesSheet-feedback-link.row-meta {
+  width: auto;
+  max-width: 100%;
+  overflow: visible;
+  text-decoration: none;
+  color: inherit;
+}
+
+.GamesSheet-feedback-link .row-meta-text {
+  flex: 0 1 auto;
 }
 
 /* ── Desktop: right-side panel over the map ── */
