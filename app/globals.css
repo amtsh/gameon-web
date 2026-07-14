@@ -36,6 +36,10 @@
   --map-fade-top: rgba(0, 0, 0, 0.08);
   --map-fade-bottom: rgba(0, 0, 0, 0.28);
 
+  /* Liquid-glass specular edges (light) */
+  --glass-specular-top: rgba(255, 255, 255, 0.5);
+  --glass-specular-bottom: rgba(0, 0, 0, 0.06);
+
   --background: var(--app-background);
   --foreground: var(--primary-text);
 }
@@ -74,6 +78,10 @@
 
   --map-fade-top: rgba(0, 0, 0, 0.08);
   --map-fade-bottom: rgba(0, 0, 0, 0.28);
+
+  /* Liquid-glass specular edges (dark) */
+  --glass-specular-top: rgba(255, 255, 255, 0.14);
+  --glass-specular-bottom: rgba(0, 0, 0, 0.3);
 
   color-scheme: dark;
 }
@@ -317,13 +325,25 @@ select {
   flex-direction: column;
   align-items: center;
   padding: 8px 0;
-  border: 1px solid var(--hairline);
+  border: 1px solid color-mix(in srgb, var(--hairline) 60%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--app-background) 72%, transparent);
   color: var(--primary-text);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 var(--glass-specular-top),
+    inset 0 -1px 0 var(--glass-specular-bottom);
+  backdrop-filter: blur(22px) saturate(1.7);
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .floating-actions {
+    background: var(--app-background);
+    border-color: var(--hairline);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .floating-actions button,
@@ -682,7 +702,21 @@ select {
 
 .detail-bottom {
   padding: 10px 18px max(12px, env(safe-area-inset-bottom));
-  background: var(--app-background);
+  background: color-mix(in srgb, var(--app-background) 88%, transparent);
+  box-shadow:
+    0 -1px 0 color-mix(in srgb, var(--hairline) 65%, transparent),
+    inset 0 1px 0 var(--glass-specular-top);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .detail-bottom {
+    background: var(--app-background);
+    box-shadow: 0 -1px 0 var(--hairline);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .confirm-backdrop {
@@ -694,15 +728,34 @@ select {
   justify-content: center;
   padding: 24px;
   background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
 .confirm-card {
   width: min(100%, 320px);
   overflow: hidden;
   border-radius: 18px;
-  background: var(--elevated-surface);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  background: color-mix(in srgb, var(--elevated-surface) 86%, transparent);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 var(--glass-specular-top);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
   text-align: center;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .confirm-backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .confirm-card {
+    background: var(--elevated-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .confirm-card .confirm-title {
@@ -1043,10 +1096,21 @@ select {
   align-items: center;
   margin: 0 -18px 18px;
   padding: 10px 16px 14px;
-  border-bottom: 1px solid var(--hairline);
   background: color-mix(in srgb, var(--form-background) 94%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--hairline) 65%, transparent),
+    inset 0 1px 0 var(--glass-specular-top);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sheet-nav {
+    background: var(--form-background);
+    box-shadow: 0 1px 0 var(--hairline);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 .sheet-nav h2 {
