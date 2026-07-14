@@ -61,7 +61,7 @@ const howItWorksTips = [
     iconVariant: "rose" as const,
   },
   {
-    title: "Host once and fill your roster",
+    title: "Host once and fill every spot",
     body: "Set capacity once, then let requests and waitlists handle the rest.",
     icon: Users,
     iconVariant: "sky" as const,
@@ -184,31 +184,30 @@ export default async function LandingPage() {
             </div>
           </section>
 
-          {/* <section className="lp-split">
-            <div className="lp-container lp-split-grid">
-              <div className="lp-split-col">
-                <h2>Host without the group chat</h2>
-                <p>
-                  Set capacity and approval once. Players request spots.
-                  Waitlists fill dropouts automatically.
-                </p>
-                <Link className="lp-btn lp-btn-dark" href="/app">
-                  Host a game
-                </Link>
-              </div>
-              <div className="lp-split-col">
-                <h2>Your contact stays private</h2>
-                <p>
-                  Contact details reach a host only after they approve you —
-                  never posted publicly.
-                </p>
-                <Link className="lp-text-link" href="/how">
-                  Privacy details
-                  <ArrowRight size={15} aria-hidden />
-                </Link>
+          <section className="lp-band lp-split">
+            <div className="lp-container">
+              <h2>For Hosts</h2>
+              <div className="lp-split-grid">
+                <div className="lp-split-col">
+                  <h2>Fill every spot without the group chat</h2>
+                  <p>
+                    Post your game on the map. Players request spots. Approve each
+                    one yourself, or turn on auto-approve and let spots fill.
+                  </p>
+                  <Link className="lp-btn lp-btn-dark" href="/app">
+                    Host a game
+                  </Link>
+                </div>
+                <div className="lp-split-col">
+                  <h2>Waitlists backfill dropouts</h2>
+                  <p>
+                    Set capacity once. When someone leaves, the next person on the
+                    waitlist is approved automatically — no last-minute scramble.
+                  </p>
+                </div>
               </div>
             </div>
-          </section> */}
+          </section>
 
           <section className="lp-band lp-compare-section">
             <div className="lp-container">

@@ -614,10 +614,10 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
   text-wrap: balance;
 }
 
-/* Split host / privacy */
+/* Split host section */
 
-.lp-split {
-  padding: clamp(48px, 8vw, 88px) 0;
+.lp-split > .lp-container > h2 {
+  margin: 0 0 32px;
 }
 
 .lp-split-grid {
