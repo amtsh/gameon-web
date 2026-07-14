@@ -51,7 +51,7 @@ export function CostSheet({
       presented={presented}
       onPresentedChange={onPresentedChange}
     >
-      <header className="sheet-nav">
+      <header className="sheet-nav sheet-nav--transparent">
         <SheetDismissTrigger>
           <button aria-label="Close" type="button">
             <X size={20} />

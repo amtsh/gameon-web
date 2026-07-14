@@ -371,7 +371,7 @@ export function CreateEventSheet({
       onPresentedChange={onPresentedChange}
     >
       <form className="create-event-form" onSubmit={onSubmit}>
-        <header className="sheet-nav">
+        <header className="sheet-nav sheet-nav--transparent">
           {/* Circle close button — only way to dismiss this locked sheet */}
           <SheetDismissTrigger>
             <button
