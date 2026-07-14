@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseIpCoordinates,
   readIpCoordinatesFromHeaderMap,
+  readIpCountryCodeFromHeaderMap,
 } from "./ip-geo";
 
 describe("parseIpCoordinates", () => {
@@ -29,5 +30,16 @@ describe("readIpCoordinatesFromHeaderMap", () => {
       latitude: 59.33,
       longitude: 18.03,
     });
+  });
+});
+
+describe("readIpCountryCodeFromHeaderMap", () => {
+  it("reads and lowercases x-vercel-ip-country", () => {
+    const headers = new Headers({ "x-vercel-ip-country": "SE" });
+    expect(readIpCountryCodeFromHeaderMap(headers)).toBe("se");
+  });
+
+  it("returns null when the header is missing", () => {
+    expect(readIpCountryCodeFromHeaderMap(new Headers())).toBeNull();
   });
 });

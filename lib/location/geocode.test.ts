@@ -108,6 +108,70 @@ describe("geocodePlaceDetailed", () => {
     stubFetchOnce({}, false);
     expect(await geocodePlaceDetailed("11620")).toBeNull();
   });
+
+  it("biases the lookup toward the given coordinates", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          features: [
+            {
+              geometry: { coordinates: [18.0632, 59.3236] },
+              properties: { city: "Stockholm" },
+            },
+          ],
+        }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await geocodePlaceDetailed("11620", {
+      bias: { latitude: 40.7128, longitude: -74.006 },
+    });
+
+    const url = new URL(fetchMock.mock.calls[0][0] as string);
+    expect(url.searchParams.get("lat")).toBe("40.7128");
+    expect(url.searchParams.get("lon")).toBe("-74.006");
+  });
+
+  it("prefers the candidate matching the given country code", async () => {
+    stubFetchOnce({
+      features: [
+        {
+          geometry: { coordinates: [-9.1393, 38.7223] },
+          properties: { city: "Lisbon", countrycode: "pt" },
+        },
+        {
+          geometry: { coordinates: [18.0632, 59.3236] },
+          properties: { city: "Stockholm", countrycode: "se" },
+        },
+      ],
+    });
+
+    await expect(
+      geocodePlaceDetailed("1000", { countryCode: "se" }),
+    ).resolves.toEqual({
+      coordinates: { latitude: 59.3236, longitude: 18.0632 },
+      label: "Stockholm",
+    });
+  });
+
+  it("falls back to the top candidate when no country matches", async () => {
+    stubFetchOnce({
+      features: [
+        {
+          geometry: { coordinates: [-9.1393, 38.7223] },
+          properties: { city: "Lisbon", countrycode: "pt" },
+        },
+      ],
+    });
+
+    await expect(
+      geocodePlaceDetailed("1000", { countryCode: "se" }),
+    ).resolves.toEqual({
+      coordinates: { latitude: 38.7223, longitude: -9.1393 },
+      label: "Lisbon",
+    });
+  });
 });
 
 describe("geocodePlace", () => {

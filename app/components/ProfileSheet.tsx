@@ -13,6 +13,7 @@ import {
 } from "@/lib/data/profile-mutations.client";
 import type { Profile } from "@/lib/data/profile.shared";
 import { geocodePlaceDetailed } from "@/lib/location/geocode";
+import { fetchIpLocation, type IpLocation } from "@/lib/location/ip-geo.client";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 import { DeleteAccountSheet } from "./DeleteAccountSheet";
@@ -55,6 +56,9 @@ export function ProfileSheet({
   const [saving, setSaving] = useState(false);
   const [deleteSheetPresented, setDeleteSheetPresented] = useState(false);
   const areaAbortRef = useRef<AbortController | null>(null);
+  // IP-derived location/country, used to scope geocode lookups to the user's own region
+  // instead of always biasing toward the hardcoded default (Stockholm).
+  const ipLocationRef = useRef<IpLocation>({ coordinates: null, countryCode: null });
 
   const lookupArea = useCallback(async (value: string) => {
     const trimmed = value.trim();
@@ -73,6 +77,8 @@ export function ProfileSheet({
     try {
       const result = await geocodePlaceDetailed(trimmed, {
         signal: controller.signal,
+        bias: ipLocationRef.current.coordinates ?? undefined,
+        countryCode: ipLocationRef.current.countryCode ?? undefined,
       });
       if (controller.signal.aborted) return;
       setDetectedArea(result?.label ?? null);
@@ -91,7 +97,11 @@ export function ProfileSheet({
     if (!presented || !user) return;
 
     const load = async () => {
-      const prefs = await fetchSportPreferences();
+      const [prefs, ipLocation] = await Promise.all([
+        fetchSportPreferences(),
+        fetchIpLocation(),
+      ]);
+      ipLocationRef.current = ipLocation;
       setPreferences(prefs);
       setName(
         profile?.name ??

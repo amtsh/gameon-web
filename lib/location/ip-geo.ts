@@ -21,3 +21,11 @@ export function readIpCoordinatesFromHeaderMap(
     headers.get("x-vercel-ip-longitude"),
   );
 }
+
+/** ISO country code (lowercase) from Vercel edge headers, e.g. "se". */
+export function readIpCountryCodeFromHeaderMap(
+  headers: Headers,
+): string | null {
+  const country = headers.get("x-vercel-ip-country");
+  return country ? country.toLowerCase() : null;
+}

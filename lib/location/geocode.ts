@@ -12,19 +12,29 @@ export type GeocodeResult = {
   label: string | null;
 };
 
+export type GeocodeOptions = {
+  signal?: AbortSignal;
+  /** Where to bias results, e.g. the user's IP-derived location. Defaults to Stockholm. */
+  bias?: Coordinates;
+  /** ISO country code (lowercase, e.g. "se") to prefer among candidate matches. */
+  countryCode?: string;
+};
+
 /** Geocode a postal code or place name via Photon, returning coordinates and area label together. */
 export async function geocodePlaceDetailed(
   query: string,
-  options?: { signal?: AbortSignal },
+  options?: GeocodeOptions,
 ): Promise<GeocodeResult | null> {
   const trimmed = query.trim();
   if (!trimmed) return null;
 
+  const bias = options?.bias ?? DEFAULT_DISCOVERY_CENTER;
   const params = new URLSearchParams({
     q: trimmed,
-    limit: "1",
-    lat: String(DEFAULT_DISCOVERY_CENTER.latitude),
-    lon: String(DEFAULT_DISCOVERY_CENTER.longitude),
+    // Fetch multiple candidates when we can filter by country; otherwise just the top match.
+    limit: options?.countryCode ? "5" : "1",
+    lat: String(bias.latitude),
+    lon: String(bias.longitude),
   });
 
   const response = await fetch(`https://photon.komoot.io/api/?${params}`, {
@@ -33,8 +43,17 @@ export async function geocodePlaceDetailed(
   if (!response.ok) return null;
 
   const data: { features?: PhotonFeature[] } = await response.json();
-  const feature = data.features?.[0];
-  if (!feature) return null;
+  const features = data.features ?? [];
+  if (!features.length) return null;
+
+  const feature =
+    (options?.countryCode &&
+      features.find(
+        (candidate) =>
+          candidate.properties?.countrycode?.toLowerCase() ===
+          options.countryCode,
+      )) ||
+    features[0];
 
   const [longitude, latitude] = feature.geometry.coordinates;
   return {
@@ -44,8 +63,11 @@ export async function geocodePlaceDetailed(
 }
 
 /** Geocode a postal code or place name via Photon (same provider as venue search). */
-export async function geocodePlace(query: string): Promise<Coordinates | null> {
-  const result = await geocodePlaceDetailed(query);
+export async function geocodePlace(
+  query: string,
+  options?: GeocodeOptions,
+): Promise<Coordinates | null> {
+  const result = await geocodePlaceDetailed(query, options);
   return result?.coordinates ?? null;
 }
 
