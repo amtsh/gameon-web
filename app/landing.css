@@ -656,6 +656,10 @@ main > section:not(.lp-hero):not(.lp-cta-dark):nth-child(odd) {
 
 /* Group chat vs GameOn */
 
+.lp-compare-section {
+  background: #fff;
+}
+
 .lp-compare {
   margin-top: 24px;
   overflow: hidden;

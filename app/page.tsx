@@ -184,7 +184,7 @@ export default async function LandingPage() {
             </div>
           </section>
 
-          <section className="lp-split">
+          {/* <section className="lp-split">
             <div className="lp-container lp-split-grid">
               <div className="lp-split-col">
                 <h2>Host without the group chat</h2>
@@ -208,7 +208,7 @@ export default async function LandingPage() {
                 </Link>
               </div>
             </div>
-          </section>
+          </section> */}
 
           <section className="lp-band lp-compare-section">
             <div className="lp-container">
