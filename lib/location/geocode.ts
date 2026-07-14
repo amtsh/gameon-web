@@ -6,8 +6,17 @@ type PhotonFeature = {
   properties?: Record<string, string | undefined>;
 };
 
-/** Geocode a postal code or place name via Photon (same provider as venue search). */
-export async function geocodePlace(query: string): Promise<Coordinates | null> {
+export type GeocodeResult = {
+  coordinates: Coordinates;
+  /** Area/city label derived from the same lookup, e.g. for an "area detected" hint. */
+  label: string | null;
+};
+
+/** Geocode a postal code or place name via Photon, returning coordinates and area label together. */
+export async function geocodePlaceDetailed(
+  query: string,
+  options?: { signal?: AbortSignal },
+): Promise<GeocodeResult | null> {
   const trimmed = query.trim();
   if (!trimmed) return null;
 
@@ -18,7 +27,9 @@ export async function geocodePlace(query: string): Promise<Coordinates | null> {
     lon: String(DEFAULT_DISCOVERY_CENTER.longitude),
   });
 
-  const response = await fetch(`https://photon.komoot.io/api/?${params}`);
+  const response = await fetch(`https://photon.komoot.io/api/?${params}`, {
+    signal: options?.signal,
+  });
   if (!response.ok) return null;
 
   const data: { features?: PhotonFeature[] } = await response.json();
@@ -26,7 +37,16 @@ export async function geocodePlace(query: string): Promise<Coordinates | null> {
   if (!feature) return null;
 
   const [longitude, latitude] = feature.geometry.coordinates;
-  return { latitude, longitude };
+  return {
+    coordinates: { latitude, longitude },
+    label: formatReverseGeocodeLabel(feature.properties ?? {}),
+  };
+}
+
+/** Geocode a postal code or place name via Photon (same provider as venue search). */
+export async function geocodePlace(query: string): Promise<Coordinates | null> {
+  const result = await geocodePlaceDetailed(query);
+  return result?.coordinates ?? null;
 }
 
 /** Build a human-readable discovery label from Photon reverse-geocode properties. */

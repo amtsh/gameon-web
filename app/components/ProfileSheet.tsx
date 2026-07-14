@@ -4,13 +4,15 @@ import { Icon } from "@iconify/react";
 import type { User } from "@supabase/supabase-js";
 import clsx from "clsx";
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import {
   fetchSportPreferences,
   saveProfile,
   type SportPreference,
 } from "@/lib/data/profile-mutations.client";
 import type { Profile } from "@/lib/data/profile.shared";
+import { geocodePlaceDetailed } from "@/lib/location/geocode";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 import { DeleteAccountSheet } from "./DeleteAccountSheet";
@@ -31,6 +33,8 @@ type Props = {
 
 const levelOptions: SkillLevel[] = ["beginner", "intermediate", "advanced"];
 
+type AreaStatus = "idle" | "checking" | "found" | "not-found";
+
 export function ProfileSheet({
   presented,
   onPresentedChange,
@@ -44,10 +48,44 @@ export function ProfileSheet({
 }: Props) {
   const [name, setName] = useState("");
   const [postalCode, setPostalCode] = useState("");
+  const [detectedArea, setDetectedArea] = useState<string | null>(null);
+  const [areaStatus, setAreaStatus] = useState<AreaStatus>("idle");
   const [preferences, setPreferences] = useState<SportPreference[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteSheetPresented, setDeleteSheetPresented] = useState(false);
+  const areaAbortRef = useRef<AbortController | null>(null);
+
+  const lookupArea = useCallback(async (value: string) => {
+    const trimmed = value.trim();
+    areaAbortRef.current?.abort();
+
+    if (!trimmed) {
+      setAreaStatus("idle");
+      setDetectedArea(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    areaAbortRef.current = controller;
+    setAreaStatus("checking");
+
+    try {
+      const result = await geocodePlaceDetailed(trimmed, {
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setDetectedArea(result?.label ?? null);
+      setAreaStatus(result?.label ? "found" : "not-found");
+    } catch {
+      if (!controller.signal.aborted) {
+        setDetectedArea(null);
+        setAreaStatus("not-found");
+      }
+    }
+  }, []);
+
+  const debouncedLookupArea = useDebouncedCallback(lookupArea, 400);
 
   useEffect(() => {
     if (!presented || !user) return;
@@ -61,12 +99,15 @@ export function ProfileSheet({
           user.user_metadata?.name ??
           "",
       );
-      setPostalCode(profile?.postal_code ?? "");
+      const initialPostalCode = profile?.postal_code ?? "";
+      setPostalCode(initialPostalCode);
+      debouncedLookupArea.cancel();
+      void lookupArea(initialPostalCode);
       setSaveError(null);
     };
 
     void load();
-  }, [presented, profile, user]);
+  }, [presented, profile, user, debouncedLookupArea, lookupArea]);
 
   const toggleSport = (sport: SportKind) => {
     setPreferences((current) =>
@@ -145,13 +186,27 @@ export function ProfileSheet({
           <div className="form-section">
             <label className="form-label">Postal code</label>
             <input
-              onChange={(changeEvent) => setPostalCode(changeEvent.target.value)}
+              onChange={(changeEvent) => {
+                const nextValue = changeEvent.target.value;
+                setPostalCode(nextValue);
+                debouncedLookupArea(nextValue);
+              }}
               placeholder="Postal code"
               value={postalCode}
             />
             {postalCode ? (
-              <p className="hint">
-                Nearby games will use postal code {postalCode}.
+              <p
+                className={clsx(
+                  "hint",
+                  areaStatus === "not-found" && "hint-warning",
+                )}
+              >
+                {areaStatus === "checking" && "Detecting area…"}
+                {areaStatus === "found" && `Area detected: ${detectedArea}`}
+                {areaStatus === "not-found" &&
+                  "We couldn't detect an area for this postal code."}
+                {areaStatus === "idle" &&
+                  `Nearby games will use postal code ${postalCode}.`}
               </p>
             ) : null}
           </div>

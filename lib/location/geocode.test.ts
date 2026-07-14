@@ -1,8 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   formatReverseGeocodeCity,
   formatReverseGeocodeLabel,
+  geocodePlace,
+  geocodePlaceDetailed,
 } from "./geocode";
+
+function stubFetchOnce(body: unknown, ok = true) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok,
+      json: () => Promise.resolve(body),
+    }),
+  );
+}
 
 describe("formatReverseGeocodeCity", () => {
   it("returns city only when district is also present", () => {
@@ -58,5 +70,64 @@ describe("formatReverseGeocodeLabel", () => {
         city: "Berlin",
       }),
     ).toBe("Berlin");
+  });
+});
+
+describe("geocodePlaceDetailed", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns coordinates and an area label from a single lookup", async () => {
+    stubFetchOnce({
+      features: [
+        {
+          geometry: { coordinates: [18.0632, 59.3236] },
+          properties: { suburb: "Södermalm", city: "Stockholm" },
+        },
+      ],
+    });
+
+    await expect(geocodePlaceDetailed("11620")).resolves.toEqual({
+      coordinates: { latitude: 59.3236, longitude: 18.0632 },
+      label: "Södermalm, Stockholm",
+    });
+  });
+
+  it("returns null when the query is blank", async () => {
+    stubFetchOnce({ features: [] });
+    expect(await geocodePlaceDetailed("   ")).toBeNull();
+  });
+
+  it("returns null when the provider has no match", async () => {
+    stubFetchOnce({ features: [] });
+    expect(await geocodePlaceDetailed("not a real place")).toBeNull();
+  });
+
+  it("returns null when the request fails", async () => {
+    stubFetchOnce({}, false);
+    expect(await geocodePlaceDetailed("11620")).toBeNull();
+  });
+});
+
+describe("geocodePlace", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns just the coordinates from a detailed lookup", async () => {
+    stubFetchOnce({
+      features: [
+        {
+          geometry: { coordinates: [18.0632, 59.3236] },
+          properties: { city: "Stockholm" },
+        },
+      ],
+    });
+
+    await expect(geocodePlace("11620")).resolves.toEqual({
+      latitude: 59.3236,
+      longitude: 18.0632,
+    });
   });
 });
