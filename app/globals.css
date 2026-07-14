@@ -1364,6 +1364,63 @@ select {
   border-bottom: none;
 }
 
+.create-event-form .when-block {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.create-event-form .when-block .when-row {
+  display: grid;
+  grid-template-columns: minmax(3.5rem, auto) minmax(0, max-content);
+  align-items: center;
+  column-gap: 16px;
+  border-bottom: none;
+  padding: 0;
+}
+
+.create-event-form .when-block .when-row > :last-child {
+  justify-self: end;
+}
+
+.when-time-inputs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  width: max-content;
+}
+
+.when-time-sep {
+  color: var(--label-text);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.when-preview {
+  margin: 0;
+  max-width: 62%;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.create-event-form .when-block input[type="date"],
+.create-event-form .when-block input[type="time"] {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.create-event-form .when-block .stepper-input-date {
+  width: 21.5rem;
+  max-width: 100%;
+}
+
+.create-event-form .when-block .stepper-input-time {
+  width: 16rem;
+  max-width: 100%;
+}
+
 .create-event-form .contact-card,
 .profile-edit-form .contact-card {
   border: none;
@@ -1392,13 +1449,9 @@ select {
   text-align: center;
 }
 
-.stepper-row .stepper-input-date {
-  width: 172px;
-  text-align: right;
-}
-
+.stepper-row .stepper-input-date,
 .stepper-row .stepper-input-time {
-  width: 128px;
+  width: auto;
   text-align: right;
 }
 

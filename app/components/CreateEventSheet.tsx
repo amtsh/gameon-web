@@ -22,6 +22,7 @@ import {
   composeSessionDatetimes,
   defaultSessionFields,
   endTimeOneHourAfter,
+  formatSchedulePreview,
   isSessionDateWithinLimit,
   isSessionScheduleValid,
   sessionFieldsFromDatetimes,
@@ -378,6 +379,12 @@ export function CreateEventSheet({
   const costLabel = displayCost(eventCostFromDraft(costDraft)) ?? "Not set";
   const venueValidationError = venueError(venue, venueTouched);
   const whatsappError = contactError(contactMethod, contactValue);
+  const schedulePreview = formatSchedulePreview(
+    sessionDate,
+    startTime,
+    endDate,
+    endTime,
+  );
 
   return (
     <ModalSheet
@@ -454,65 +461,80 @@ export function CreateEventSheet({
         </div>
 
         <div className="form-section">
+          <div className="form-label-row">
+            <p className="form-label">When</p>
+            {schedulePreview ? (
+              <p className="when-preview hint">{schedulePreview}</p>
+            ) : null}
+          </div>
+          <div className="when-block">
+            <label className="stepper-row when-row">
+              <span>Date</span>
+              <input
+                className="stepper-input-date"
+                type="date"
+                {...sessionDateField}
+                onChange={(changeEvent) => {
+                  const nextDate = changeEvent.target.value;
+                  const previousDate = sessionDate;
+                  sessionDateField.onChange(changeEvent);
+                  setValue(
+                    "endDate",
+                    shiftEndDate(previousDate, nextDate, endDate),
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    },
+                  );
+                }}
+              />
+            </label>
+            {errors.sessionDate ? (
+              <p className="form-error">{errors.sessionDate.message}</p>
+            ) : null}
+            <label className="stepper-row when-row">
+              <span>Time</span>
+              <div className="when-time-inputs">
+                <input
+                  className="stepper-input-time"
+                  type="time"
+                  {...startTimeField}
+                  onChange={(changeEvent) => {
+                    const previousStart = startTime;
+                    const stillDefaultEnd =
+                      endDate === sessionDate &&
+                      endTime === endTimeOneHourAfter(previousStart);
+                    startTimeField.onChange(changeEvent);
+                    if (!stillDefaultEnd) return;
+                    const nextEnd = endTimeOneHourAfter(changeEvent.target.value);
+                    if (nextEnd) {
+                      setValue("endTime", nextEnd, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                    }
+                  }}
+                />
+                <span className="when-time-sep">–</span>
+                <input
+                  className="stepper-input-time"
+                  type="time"
+                  {...endTimeField}
+                />
+              </div>
+            </label>
+            {errors.startTime ? (
+              <p className="form-error">{errors.startTime.message}</p>
+            ) : null}
+            {errors.endTime ? (
+              <p className="form-error">{errors.endTime.message}</p>
+            ) : null}
+            <input type="hidden" {...register("endDate")} />
+          </div>
+        </div>
+
+        <div className="form-section">
           <p className="form-label">Game</p>
-          <label className="stepper-row row-no-divider">
-            <span>Date</span>
-            <input
-              className="stepper-input-date"
-              type="date"
-              {...sessionDateField}
-              onChange={(changeEvent) => {
-                const nextDate = changeEvent.target.value;
-                const previousDate = sessionDate;
-                sessionDateField.onChange(changeEvent);
-                setValue("endDate", shiftEndDate(previousDate, nextDate, endDate), {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
-              }}
-            />
-          </label>
-          {errors.sessionDate ? (
-            <p className="form-error">{errors.sessionDate.message}</p>
-          ) : null}
-          <label className="stepper-row row-no-divider">
-            <span>Start time</span>
-            <input
-              className="stepper-input-time"
-              type="time"
-              {...startTimeField}
-              onChange={(changeEvent) => {
-                const previousStart = startTime;
-                const stillDefaultEnd =
-                  endDate === sessionDate &&
-                  endTime === endTimeOneHourAfter(previousStart);
-                startTimeField.onChange(changeEvent);
-                if (!stillDefaultEnd) return;
-                const nextEnd = endTimeOneHourAfter(changeEvent.target.value);
-                if (nextEnd) {
-                  setValue("endTime", nextEnd, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }
-              }}
-            />
-          </label>
-          {errors.startTime ? (
-            <p className="form-error">{errors.startTime.message}</p>
-          ) : null}
-          <label className="stepper-row">
-            <span>End time</span>
-            <input
-              className="stepper-input-time"
-              type="time"
-              {...endTimeField}
-            />
-          </label>
-          {errors.endTime ? (
-            <p className="form-error">{errors.endTime.message}</p>
-          ) : null}
-          <input type="hidden" {...register("endDate")} />
           <div className="stepper-row row-no-divider">
             <div className="stepper-row-copy">
               <span>Capacity</span>

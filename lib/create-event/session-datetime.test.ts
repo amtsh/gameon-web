@@ -4,6 +4,7 @@ import {
   composeSessionDatetimes,
   defaultSessionFields,
   endTimeOneHourAfter,
+  formatSchedulePreview,
   isSessionDateWithinLimit,
   isSessionScheduleValid,
   sessionFieldsFromDatetimes,
@@ -138,6 +139,20 @@ describe("defaultSessionFields", () => {
     expect(fields.startTime).toBe("16:00");
     expect(fields.endTime).toBe("17:00");
     expect(fields.endDate).toBe("2026-07-11");
+  });
+});
+
+describe("formatSchedulePreview", () => {
+  it("renders a live schedule summary", () => {
+    expect(
+      formatSchedulePreview(
+        "2026-07-19",
+        "17:00",
+        "2026-07-19",
+        "19:00",
+        new Date("2026-07-11T10:00:00"),
+      ),
+    ).toBe("Sun, 19 Jul · 17:00 – 19:00 · 2 hours");
   });
 });
 

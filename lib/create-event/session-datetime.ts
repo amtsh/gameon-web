@@ -1,4 +1,11 @@
-import { addDays, differenceInCalendarDays, format, parseISO } from "date-fns";
+import {
+  addDays,
+  differenceInCalendarDays,
+  format,
+  isSameDay,
+  parseISO,
+  startOfDay,
+} from "date-fns";
 import { toLocalDateTimeInput } from "./prefill";
 
 export function splitLocalDateTimeInput(value: string): {
@@ -134,4 +141,71 @@ export function isSessionDateWithinLimit(sessionDate: string, now = new Date()):
   const max = new Date(now);
   max.setMonth(max.getMonth() + 3);
   return date <= max;
+}
+
+export function formatSessionDateLabel(dateStr: string, now = new Date()): string {
+  const date = parseISO(dateStr);
+  if (Number.isNaN(date.getTime())) return "";
+
+  if (isSameDay(date, now)) return "Today";
+  if (isSameDay(date, addDays(startOfDay(now), 1))) return "Tomorrow";
+  return format(date, "EEE, d MMM");
+}
+
+export function sessionDurationLabel(
+  sessionDate: string,
+  startTime: string,
+  endDate: string,
+  endTime: string,
+): string | null {
+  const { startsAt, endsAt } = composeSessionDatetimes({
+    sessionDate,
+    startTime,
+    endDate,
+    endTime,
+  });
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+    return null;
+  }
+
+  const minutes = Math.round((end.getTime() - start.getTime()) / 60_000);
+  if (minutes < 60) return `${minutes} min`;
+  if (minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return hours === 1 ? "1 hour" : `${hours} hours`;
+  }
+
+  return `${(minutes / 60).toFixed(1).replace(/\.0$/, "")} hours`;
+}
+
+export function formatSchedulePreview(
+  sessionDate: string,
+  startTime: string,
+  endDate: string,
+  endTime: string,
+  now = new Date(),
+): string | null {
+  const { startsAt, endsAt } = composeSessionDatetimes({
+    sessionDate,
+    startTime,
+    endDate,
+    endTime,
+  });
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+    return null;
+  }
+
+  const dateLabel = formatSessionDateLabel(sessionDate, now);
+  const timeRange = isSameDay(start, end)
+    ? `${startTime} – ${endTime}`
+    : `${format(start, "EEE, d MMM")} ${startTime} – ${format(end, "EEE, d MMM")} ${endTime}`;
+  const duration = sessionDurationLabel(sessionDate, startTime, endDate, endTime);
+
+  return duration
+    ? `${dateLabel} · ${timeRange} · ${duration}`
+    : `${dateLabel} · ${timeRange}`;
 }
