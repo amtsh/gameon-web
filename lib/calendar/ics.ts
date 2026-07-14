@@ -1,3 +1,4 @@
+import { formatISO } from "date-fns";
 import type { SportEvent } from "@/app/types";
 
 /** RFC 5545 line endings — best compatibility with iOS Calendar and Google Calendar. */
@@ -12,7 +13,7 @@ function escapeIcsText(value: string): string {
 }
 
 function formatIcsUtc(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  return formatISO(date, { format: "basic" });
 }
 
 function sanitizeFilename(title: string): string {

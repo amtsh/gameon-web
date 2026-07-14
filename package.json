@@ -16,6 +16,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@iconify/react": "^6.0.2",
     "@opennextjs/cloudflare": "^1.20.1",
     "@photostructure/tz-lookup": "^11.6.0",

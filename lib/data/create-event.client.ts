@@ -1,3 +1,4 @@
+import { isAfter, isValid, parse } from "date-fns";
 import type { SkillLevel, SportKind, Venue } from "@/app/types";
 import type { EventCost } from "@/lib/create-event/cost";
 import { eventCostToRow } from "@/lib/create-event/cost";
@@ -21,9 +22,11 @@ export type CreateSportEventInput = {
   profile: Profile;
 };
 
+const DATETIME_LOCAL_FMT = "yyyy-MM-dd'T'HH:mm";
+
 function toIsoFromLocalDateTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
+  const date = parse(value, DATETIME_LOCAL_FMT, new Date());
+  if (!isValid(date)) {
     throw new Error("Invalid date");
   }
   return date.toISOString();
@@ -48,7 +51,7 @@ export async function createSportEvent(input: CreateSportEventInput) {
   const startsAt = toIsoFromLocalDateTime(input.startsAt);
   const endsAt = toIsoFromLocalDateTime(input.endsAt);
 
-  if (new Date(endsAt) <= new Date(startsAt)) {
+  if (!isAfter(new Date(endsAt), new Date(startsAt))) {
     throw new Error("End time must be after start time");
   }
 
@@ -138,7 +141,7 @@ export async function updateSportEvent(input: UpdateSportEventInput) {
   const startsAt = toIsoFromLocalDateTime(input.startsAt);
   const endsAt = toIsoFromLocalDateTime(input.endsAt);
 
-  if (new Date(endsAt) <= new Date(startsAt)) {
+  if (!isAfter(new Date(endsAt), new Date(startsAt))) {
     throw new Error("End time must be after start time");
   }
 

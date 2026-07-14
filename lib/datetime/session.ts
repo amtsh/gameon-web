@@ -3,16 +3,17 @@ import {
   addHours,
   addMonths,
   differenceInCalendarDays,
-  differenceInMinutes,
   format,
   isAfter,
   isSameDay,
-  isToday,
-  isTomorrow,
   parse,
   parseISO,
   startOfHour,
 } from "date-fns";
+import {
+  formatSessionDurationLabel,
+  shortRelativeDayLabel,
+} from "@/lib/datetime/display";
 
 export type SessionFields = {
   sessionDate: string;
@@ -145,30 +146,6 @@ export function isSessionDateWithinLimit(
   return !isAfter(date, addMonths(now, 3));
 }
 
-export function formatSessionDateLabel(dateStr: string, now = new Date()): string {
-  const date = parseISO(dateStr);
-  if (Number.isNaN(date.getTime())) return "";
-
-  if (isToday(date)) return "Today";
-  if (isTomorrow(date)) return "Tomorrow";
-
-  return format(date, "EEE, d MMM");
-}
-
-function sessionDurationLabel(start: Date, end: Date): string | null {
-  if (!isAfter(end, start)) return null;
-
-  const minutes = differenceInMinutes(end, start);
-  if (minutes < 60) return `${minutes} min`;
-
-  if (minutes % 60 === 0) {
-    const hours = minutes / 60;
-    return hours === 1 ? "1 hour" : `${hours} hours`;
-  }
-
-  return `${(minutes / 60).toFixed(1).replace(/\.0$/, "")} hours`;
-}
-
 export function formatSchedulePreview(
   sessionDate: string,
   startTime: string,
@@ -180,11 +157,11 @@ export function formatSchedulePreview(
   const end = parseSession(endDate, endTime);
   if (!start || !end || !isAfter(end, start)) return null;
 
-  const dateLabel = formatSessionDateLabel(sessionDate, now);
+  const dateLabel = shortRelativeDayLabel(sessionDate, now);
   const timeRange = isSameDay(start, end)
     ? `${startTime} – ${endTime}`
     : `${format(start, "EEE, d MMM")} ${startTime} – ${format(end, "EEE, d MMM")} ${endTime}`;
-  const duration = sessionDurationLabel(start, end);
+  const duration = formatSessionDurationLabel(start, end);
 
   return duration
     ? `${dateLabel} · ${timeRange} · ${duration}`

@@ -4,7 +4,6 @@ import { Icon } from "@iconify/react";
 import { Clock, Crown, Lock, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { memo } from "react";
-import { isSameDay } from "date-fns";
 import { sports } from "../data/mock-data";
 import {
   clockTime,
@@ -16,6 +15,7 @@ import {
   spotsLeft,
   weekdayLabel,
 } from "../event-feed";
+import { eventScheduleKind } from "@/lib/datetime/display";
 import { formatDistanceKm } from "@/lib/location/geo";
 import type { SportEvent } from "../types";
 
@@ -138,43 +138,45 @@ function EventRowSchedule({
   event: SportEvent;
   isArchived?: boolean;
 }) {
-  const start = new Date(event.startsAt);
-  const end = new Date(event.endsAt);
+  const kind = eventScheduleKind(event.startsAt, event.endsAt, { isArchived });
 
-  if (isArchived) {
-    return (
-      <span className="row-meta-text">
-        <span className="row-schedule-muted">Ended </span>
-        <ScheduleDate date={end} />
-        <span className="row-meta-sep"> · </span>
-        <span className="row-schedule-muted">{clockTime(end)}</span>
-      </span>
-    );
-  }
-
-  if (isSameDay(start, end)) {
-    return (
-      <span className="row-meta-text">
-        <ScheduleDate date={start} />
-        <span className="row-meta-sep"> · </span>
-        <span className="row-schedule-muted">
-          {clockTime(start)} – {clockTime(end)}
+  switch (kind.type) {
+    case "archived":
+      return (
+        <span className="row-meta-text">
+          <span className="row-schedule-muted">Ended </span>
+          <ScheduleDate date={kind.end} />
+          <span className="row-meta-sep"> · </span>
+          <span className="row-schedule-muted">{clockTime(kind.end)}</span>
         </span>
-      </span>
-    );
+      );
+    case "same-day":
+      return (
+        <span className="row-meta-text">
+          <ScheduleDate date={kind.start} />
+          <span className="row-meta-sep"> · </span>
+          <span className="row-schedule-muted">
+            {clockTime(kind.start)} – {clockTime(kind.end)}
+          </span>
+        </span>
+      );
+    case "multi-day":
+      return (
+        <span className="row-meta-text">
+          <ScheduleDate date={kind.start} />
+          <span className="row-meta-sep"> · </span>
+          <span className="row-schedule-muted">{clockTime(kind.start)}</span>
+          <span className="row-meta-sep"> – </span>
+          <ScheduleDate date={kind.end} />
+          <span className="row-meta-sep"> · </span>
+          <span className="row-schedule-muted">{clockTime(kind.end)}</span>
+        </span>
+      );
+    default: {
+      const exhaustive: never = kind;
+      return exhaustive;
+    }
   }
-
-  return (
-    <span className="row-meta-text">
-      <ScheduleDate date={start} />
-      <span className="row-meta-sep"> · </span>
-      <span className="row-schedule-muted">{clockTime(start)}</span>
-      <span className="row-meta-sep"> – </span>
-      <ScheduleDate date={end} />
-      <span className="row-meta-sep"> · </span>
-      <span className="row-schedule-muted">{clockTime(end)}</span>
-    </span>
-  );
 }
 
 export const EventRow = memo(function EventRow({

@@ -1,107 +1,62 @@
-import { format, isSameDay, addDays, startOfDay } from "date-fns";
+import { startOfDay } from "date-fns";
 import type { SportEvent, SportKind } from "./types";
+import {
+  clockTime,
+  countdownUrgencyLevel,
+  detailDate,
+  eventTime,
+  formatEventDuration,
+  formatEventScheduleLabel,
+  relativeCountdownLabel,
+  sectionHeading,
+  shortDateSuffix,
+  weekdayLabel,
+} from "@/lib/datetime/display";
 
-// Mirrors GameOnDateFormatters.swift
-export const eventTime = (date: Date) => format(date, "EEE, d MMM · HH:mm");
-export const clockTime = (date: Date) => format(date, "HH:mm");
-export const detailDate = (date: Date) => format(date, "EEE, d MMM");
-export const weekdayLabel = (date: Date) => format(date, "EEE");
-export const shortDateSuffix = (date: Date) => format(date, ", d MMM");
+export {
+  clockTime,
+  detailDate,
+  eventTime,
+  shortDateSuffix,
+  weekdayLabel,
+};
+
+export const sectionTitle = sectionHeading;
 
 /** Start and end schedule for list rows. */
 export function eventRowScheduleLabel(
   event: SportEvent,
   options: { isArchived?: boolean } = {},
 ): string {
-  const start = new Date(event.startsAt);
-  const end = new Date(event.endsAt);
-
-  if (options.isArchived) {
-    return `Ended ${eventTime(end)}`;
-  }
-
-  if (isSameDay(start, end)) {
-    return `${detailDate(start)} · ${clockTime(start)} – ${clockTime(end)}`;
-  }
-
-  return `${eventTime(start)} – ${eventTime(end)}`;
-}
-
-export function sectionTitle(date: Date, now = new Date()): [string, string] {
-  if (isSameDay(date, now)) return ["Today", format(date, "EEEE")];
-  if (isSameDay(date, addDays(startOfDay(now), 1))) {
-    return ["Tomorrow", format(date, "EEEE")];
-  }
-  return [format(date, "d MMMM"), format(date, "EEEE")];
+  return formatEventScheduleLabel(event.startsAt, event.endsAt, options);
 }
 
 // Mirrors EventRow.relativeLabel in RecommendedEventsSheet.swift
 export function eventRelativeLabel(event: SportEvent, now = new Date()): string {
-  const startsAt = new Date(event.startsAt);
-  const endsAt = new Date(event.endsAt);
-
-  if (endsAt <= now) return "Ended";
-  if (startsAt <= now) return "Now";
-
-  const totalMinutes = Math.ceil(
-    (startsAt.getTime() - now.getTime()) / 60_000,
+  return relativeCountdownLabel(
+    new Date(event.startsAt),
+    new Date(event.endsAt),
+    now,
   );
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalDays = Math.floor(totalHours / 24);
-
-  if (totalDays >= 1) {
-    return totalDays === 1 ? "In 1 day" : `In ${totalDays} days`;
-  }
-  if (totalHours >= 1) {
-    return totalHours === 1 ? "In 1 hour" : `In ${totalHours} hours`;
-  }
-  if (totalMinutes >= 1) {
-    return totalMinutes === 1 ? "In 1 minute" : `In ${totalMinutes} minutes`;
-  }
-
-  return "Now";
 }
 
-/**
- * Returns the urgency level of the countdown for styling purposes:
- * - "urgent"  → under 3 hours  → red
- * - "hours"   → 3 h or more, but less than 1 day  → yellow
- * - null      → 1 day or more away (or already started/ended) → no colour
- */
 export function countdownUrgency(
   event: SportEvent,
   now = new Date(),
 ): "urgent" | "hours" | null {
-  const startsAt = new Date(event.startsAt);
-  const endsAt = new Date(event.endsAt);
-
-  // Started or ended — no countdown colouring
-  if (endsAt <= now || startsAt <= now) return null;
-
-  const minutesUntilStart = (startsAt.getTime() - now.getTime()) / 60_000;
-  const hoursUntilStart = minutesUntilStart / 60;
-
-  if (hoursUntilStart >= 24) return null;
-  if (hoursUntilStart < 3) return "urgent";
-  return "hours";
+  return countdownUrgencyLevel(
+    new Date(event.startsAt),
+    new Date(event.endsAt),
+    now,
+  );
 }
 
 // Mirrors EventRow.durationText in RecommendedEventsSheet.swift
 export function durationText(event: SportEvent): string {
-  const totalMinutes = Math.max(
-    1,
-    Math.round(
-      (new Date(event.endsAt).getTime() - new Date(event.startsAt).getTime()) /
-        60_000,
-    ),
+  return formatEventDuration(
+    new Date(event.startsAt),
+    new Date(event.endsAt),
   );
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  if (minutes === 0) return `${Math.max(hours, 1)}h`;
-  if (hours > 0 && minutes === 30) return `${hours}.5h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
 }
 
 // Mirrors SportEvent.swift helpers
@@ -183,7 +138,7 @@ export function groupedDiscoverableEvents(
     .sort(([a], [b]) => a - b)
     .map(([day, dayEvents]) => ({
       key: String(day),
-      title: sectionTitle(new Date(day), now),
+      title: sectionHeading(new Date(day), now),
       events: dayEvents,
     }));
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify/react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import clsx from "clsx";
 import { CreditCard, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -11,6 +12,11 @@ import {
 } from "@/lib/data/create-event.client";
 import { haptic } from "@/lib/haptics";
 import type { Profile } from "@/lib/data/profile.shared";
+import {
+  createEventFormSchema,
+  type CreateEventFormValues,
+} from "@/lib/validation/create-event";
+import { whatsappContactError } from "@/lib/validation/contact";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 import { VenueSearchField } from "./VenueSearchField";
@@ -23,8 +29,6 @@ import {
   defaultSessionFields,
   endTimeOneHourAfter,
   formatSchedulePreview,
-  isSessionDateWithinLimit,
-  isSessionScheduleValid,
   sessionFieldsFromDatetimes,
   shiftEndDate,
 } from "@/lib/datetime/session";
@@ -38,55 +42,6 @@ import {
   emptyCostDraft,
 } from "@/lib/create-event/cost";
 import type { SkillLevel, SportEvent, SportKind, Venue } from "../types";
-
-type CreateEventValues = {
-  title: string;
-  sessionDate: string;
-  startTime: string;
-  endTime: string;
-  endDate: string;
-  capacity: number;
-  description?: string;
-};
-
-function isCreateFormReady({
-  title,
-  sessionDate,
-  startTime,
-  endTime,
-  endDate,
-  capacity,
-  venue,
-  profile,
-  isSubmitting,
-}: {
-  title: string;
-  sessionDate: string;
-  startTime: string;
-  endTime: string;
-  endDate: string;
-  capacity: number;
-  venue: Venue | null;
-  profile: Profile | null;
-  isSubmitting: boolean;
-}) {
-  if (!profile || !venue || isSubmitting || !title.trim()) return false;
-  if (!sessionDate || !startTime || !endTime || !endDate) return false;
-  if (!isSessionDateWithinLimit(sessionDate)) return false;
-  if (
-    !isSessionScheduleValid({
-      sessionDate,
-      startTime,
-      endDate,
-      endTime,
-    })
-  ) {
-    return false;
-  }
-  if (!Number.isFinite(capacity) || capacity < 1 || capacity > 100) return false;
-
-  return true;
-}
 
 function playersSoughtLabel(
   capacity: number,
@@ -103,17 +58,6 @@ function playersSoughtLabel(
 function venueError(venue: Venue | null, touched: boolean): string | null {
   if (!touched) return null;
   if (!venue) return "Select a venue from the list";
-  return null;
-}
-
-/** Returns a validation message for the WhatsApp contact, or null if valid. */
-function contactError(
-  method: string | undefined | null,
-  value: string | undefined | null,
-): string | null {
-  if (method !== "whatsapp" || !value) return null;
-  // Must start with + followed by at least 7 digits
-  if (!/^\+\d{7,}/.test(value.trim())) return "Add country code (e.g. +46…)";
   return null;
 }
 
@@ -168,8 +112,9 @@ export function CreateEventSheet({
     reset,
     setValue,
     watch,
-    formState: { errors },
-  } = useForm<CreateEventValues>({
+    formState: { errors, isValid },
+  } = useForm<CreateEventFormValues>({
+    resolver: zodResolver(createEventFormSchema),
     mode: "onChange",
     defaultValues: {
       title: "",
@@ -185,23 +130,12 @@ export function CreateEventSheet({
     setCostCurrency(draft.currency);
   };
 
-  const title = watch("title");
   const sessionDate = watch("sessionDate");
   const startTime = watch("startTime");
   const endTime = watch("endTime");
   const endDate = watch("endDate");
   const capacity = watch("capacity");
-  const canSubmit = isCreateFormReady({
-    title,
-    sessionDate,
-    startTime,
-    endTime,
-    endDate,
-    capacity,
-    venue,
-    profile,
-    isSubmitting,
-  });
+  const canSubmit = Boolean(profile && venue && isValid && !isSubmitting);
 
   useEffect(() => {
     if (wasPresentedRef.current && !presented) {
@@ -354,22 +288,9 @@ export function CreateEventSheet({
   // Telegram is not yet enabled — only WhatsApp is shown in the UI for now.
   const isWhatsappContact = contactMethod === "whatsapp";
   const sheetTitle = isEditing ? "Edit Game" : "Create Game";
-  const sessionDateField = register("sessionDate", {
-    required: true,
-    validate: (value) =>
-      isSessionDateWithinLimit(value) || "Can't be more than 3 months away",
-  });
-  const startTimeField = register("startTime", { required: true });
-  const endTimeField = register("endTime", {
-    required: true,
-    validate: (value, formValues) =>
-      isSessionScheduleValid({
-        sessionDate: formValues.sessionDate,
-        startTime: formValues.startTime,
-        endDate: formValues.endDate,
-        endTime: value,
-      }) || "End must be after start",
-  });
+  const sessionDateField = register("sessionDate");
+  const startTimeField = register("startTime");
+  const endTimeField = register("endTime");
   const playersSought = playersSoughtLabel(capacity, fillYourSpot, isEditing);
   const costDraft: CostDraft = {
     mode: costMode,
@@ -378,7 +299,7 @@ export function CreateEventSheet({
   };
   const costLabel = displayCost(eventCostFromDraft(costDraft)) ?? "Not set";
   const venueValidationError = venueError(venue, venueTouched);
-  const whatsappError = contactError(contactMethod, contactValue);
+  const whatsappError = whatsappContactError(contactMethod, contactValue);
   const schedulePreview = formatSchedulePreview(
     sessionDate,
     startTime,
@@ -455,7 +376,7 @@ export function CreateEventSheet({
           ) : null}
           <input
             placeholder="Title"
-            {...register("title", { required: "Title is required" })}
+            {...register("title")}
           />
           {errors.title ? <p className="form-error">{errors.title.message}</p> : null}
         </div>
@@ -545,11 +466,7 @@ export function CreateEventSheet({
               type="number"
               min={1}
               max={100}
-              {...register("capacity", {
-                min: { value: 1, message: "At least 1 player" },
-                max: { value: 100, message: "100 players max" },
-                valueAsNumber: true,
-              })}
+              {...register("capacity", { valueAsNumber: true })}
             />
           </div>
           {errors.capacity ? (
