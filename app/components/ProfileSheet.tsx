@@ -14,7 +14,7 @@ import type { Profile } from "@/lib/data/profile.shared";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
 import { DeleteAccountSheet } from "./DeleteAccountSheet";
-import { SignInPanel } from "./SignInPanel";
+import { SignInSheet } from "./SignInSheet";
 import type { SkillLevel, SportKind } from "../types";
 
 type Props = {
@@ -116,33 +116,27 @@ export function ProfileSheet({
       presented={presented}
       onPresentedChange={onPresentedChange}
     >
-      <header className="sheet-nav">
-        <SheetDismissTrigger>
-          <button aria-label="Close" type="button">
-            <X size={20} />
-          </button>
-        </SheetDismissTrigger>
-        <h2>{showEditProfile ? "Edit profile" : "Sign in"}</h2>
-        {showEditProfile ? (
-          <button disabled={authBusy || saving || !name.trim()} onClick={() => void handleSave()} type="button">
-            {saving ? "Saving\u2026" : "Save"}
-          </button>
-        ) : (
-          <span />
-        )}
-      </header>
+      {showEditProfile ? (
+        <>
+          <header className="sheet-nav">
+            <SheetDismissTrigger>
+              <button aria-label="Close" type="button">
+                <X size={20} />
+              </button>
+            </SheetDismissTrigger>
+            <h2>Edit profile</h2>
+            <button
+              disabled={authBusy || saving || !name.trim()}
+              onClick={() => void handleSave()}
+              type="button"
+            >
+              {saving ? "Saving\u2026" : "Save"}
+            </button>
+          </header>
 
-      {saveError ? <p className="form-error px-4">{saveError}</p> : null}
+          {saveError ? <p className="form-error px-4">{saveError}</p> : null}
 
-      {!showEditProfile ? (
-        <SignInPanel
-          busy={authBusy}
-          description="Sign in to create games, join events, and manage your profile."
-          onSignIn={onSignIn}
-          title="Welcome to Game On"
-        />
-      ) : (
-        <div className="profile-edit-form">
+          <div className="profile-edit-form">
           <div className="profile-hero">
             <h1>Profile</h1>
             <p>Update your name, games, and current level.</p>
@@ -271,7 +265,15 @@ export function ProfileSheet({
               Sign out
             </button>
           </div>
-        </div>
+          </div>
+        </>
+      ) : (
+        <SignInSheet
+          busy={authBusy}
+          description="Sign in to create games, join events, and manage your profile."
+          onSignIn={onSignIn}
+          title="Welcome to Game On"
+        />
       )}
 
       <DeleteAccountSheet

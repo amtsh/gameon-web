@@ -1113,6 +1113,20 @@ select {
   }
 }
 
+.sheet-nav--transparent {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sheet-nav--transparent {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
 .sheet-nav h2 {
   text-align: center;
   color: var(--primary-text);

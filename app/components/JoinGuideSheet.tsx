@@ -15,7 +15,7 @@ import {
   joinGuideReturnPath,
 } from "@/lib/join/requirements";
 import { ModalSheet } from "./ModalSheet";
-import { SignInPanel } from "./SignInPanel";
+import { SignInSheet } from "./SignInSheet";
 import type { SportEvent } from "../types";
 
 type Props = {
@@ -133,14 +133,14 @@ export function JoinGuideSheet({
 
   return (
     <ModalSheet
-      height="52svh"
-      title={`Join ${event.title}`}
+      height={step === "signIn" ? "50svh" : "52svh"}
+      title={step === "signIn" ? "Sign in" : `Join ${event.title}`}
       presented={presented}
       onPresentedChange={onPresentedChange}
     >
       <div className={clsx("join-guide pb-6", step !== "signIn" && "px-4")}>
         {step === "signIn" ? (
-          <SignInPanel
+          <SignInSheet
             busy={authBusy || busy}
             description="We'll bring you right back here to finish joining."
             onSignIn={() => void handleSignIn()}
