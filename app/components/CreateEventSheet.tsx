@@ -17,8 +17,16 @@ import { VenueSearchField } from "./VenueSearchField";
 import { CostSheet } from "./CostSheet";
 import {
   buildCreatePrefill,
-  toLocalDateTimeInput,
 } from "@/lib/create-event/prefill";
+import {
+  composeSessionDatetimes,
+  defaultSessionFields,
+  endTimeOneHourAfter,
+  isSessionDateWithinLimit,
+  isSessionScheduleValid,
+  sessionFieldsFromDatetimes,
+  shiftEndDate,
+} from "@/lib/create-event/session-datetime";
 import {
   costDraftFromEvent,
   displayCost,
@@ -32,53 +40,48 @@ import type { SkillLevel, SportEvent, SportKind, Venue } from "../types";
 
 type CreateEventValues = {
   title: string;
-  startsAt: string;
-  endsAt: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  endDate: string;
   capacity: number;
   description?: string;
 };
 
-function defaultSessionTimes() {
-  const start = new Date();
-  start.setMinutes(0, 0, 0);
-  start.setHours(start.getHours() + 2);
-  const end = new Date(start.getTime() + 60 * 60_000);
-  return {
-    startsAt: toLocalDateTimeInput(start.toISOString()),
-    endsAt: toLocalDateTimeInput(end.toISOString()),
-  };
-}
-
-function endTimeOneHourAfterStart(startsAt: string) {
-  const start = new Date(startsAt);
-  if (Number.isNaN(start.getTime())) return null;
-  const end = new Date(start.getTime() + 60 * 60_000);
-  return toLocalDateTimeInput(end.toISOString());
-}
-
 function isCreateFormReady({
   title,
-  startsAt,
-  endsAt,
+  sessionDate,
+  startTime,
+  endTime,
+  endDate,
   capacity,
   venue,
   profile,
   isSubmitting,
 }: {
   title: string;
-  startsAt: string;
-  endsAt: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  endDate: string;
   capacity: number;
   venue: Venue | null;
   profile: Profile | null;
   isSubmitting: boolean;
 }) {
   if (!profile || !venue || isSubmitting || !title.trim()) return false;
-
-  const start = new Date(startsAt);
-  const end = new Date(endsAt);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
-  if (end <= start) return false;
+  if (!sessionDate || !startTime || !endTime || !endDate) return false;
+  if (!isSessionDateWithinLimit(sessionDate)) return false;
+  if (
+    !isSessionScheduleValid({
+      sessionDate,
+      startTime,
+      endDate,
+      endTime,
+    })
+  ) {
+    return false;
+  }
   if (!Number.isFinite(capacity) || capacity < 1 || capacity > 100) return false;
 
   return true;
@@ -169,7 +172,7 @@ export function CreateEventSheet({
     mode: "onChange",
     defaultValues: {
       title: "",
-      ...defaultSessionTimes(),
+      ...defaultSessionFields(),
       capacity: 8,
       description: "",
     },
@@ -182,13 +185,17 @@ export function CreateEventSheet({
   };
 
   const title = watch("title");
-  const startsAt = watch("startsAt");
-  const endsAt = watch("endsAt");
+  const sessionDate = watch("sessionDate");
+  const startTime = watch("startTime");
+  const endTime = watch("endTime");
+  const endDate = watch("endDate");
   const capacity = watch("capacity");
   const canSubmit = isCreateFormReady({
     title,
-    startsAt,
-    endsAt,
+    sessionDate,
+    startTime,
+    endTime,
+    endDate,
     capacity,
     venue,
     profile,
@@ -222,8 +229,7 @@ export function CreateEventSheet({
         applyCostDraft(costDraftFromEvent(editEvent.cost));
         reset({
           title: editEvent.title,
-          startsAt: toLocalDateTimeInput(editEvent.startsAt),
-          endsAt: toLocalDateTimeInput(editEvent.endsAt),
+          ...sessionFieldsFromDatetimes(editEvent.startsAt, editEvent.endsAt),
           capacity: editEvent.capacity,
           description: editEvent.description ?? "",
         });
@@ -245,8 +251,7 @@ export function CreateEventSheet({
         applyCostDraft(costDraftFromEvent(prefill.cost));
         reset({
           title: prefill.title,
-          startsAt: prefill.startsAt,
-          endsAt: prefill.endsAt,
+          ...sessionFieldsFromDatetimes(prefill.startsAt, prefill.endsAt),
           capacity: prefill.capacity,
           description: prefill.description,
         });
@@ -264,7 +269,7 @@ export function CreateEventSheet({
       applyCostDraft(emptyCostDraft());
       reset({
         title: "",
-        ...defaultSessionTimes(),
+        ...defaultSessionFields(),
         capacity: 8,
         description: "",
       });
@@ -284,6 +289,12 @@ export function CreateEventSheet({
     setSubmitError(null);
     setIsSubmitting(true);
     const cost = eventCostFromDraft(costDraft);
+    const { startsAt, endsAt } = composeSessionDatetimes({
+      sessionDate: values.sessionDate,
+      startTime: values.startTime,
+      endDate: values.endDate,
+      endTime: values.endTime,
+    });
     try {
       if (editEvent) {
         await updateSportEvent({
@@ -291,8 +302,8 @@ export function CreateEventSheet({
           sport,
           skillLevel,
           title: values.title,
-          startsAt: values.startsAt,
-          endsAt: values.endsAt,
+          startsAt,
+          endsAt,
           capacity: values.capacity,
           cost,
           description: values.description,
@@ -306,8 +317,8 @@ export function CreateEventSheet({
           sport,
           skillLevel,
           title: values.title,
-          startsAt: values.startsAt,
-          endsAt: values.endsAt,
+          startsAt,
+          endsAt,
           capacity: values.capacity,
           cost,
           description: values.description,
@@ -342,15 +353,21 @@ export function CreateEventSheet({
   // Telegram is not yet enabled — only WhatsApp is shown in the UI for now.
   const isWhatsappContact = contactMethod === "whatsapp";
   const sheetTitle = isEditing ? "Edit Game" : "Create Game";
-  const startsAtField = register("startsAt", {
+  const sessionDateField = register("sessionDate", {
     required: true,
-    validate: (v) => {
-      const d = new Date(v);
-      if (Number.isNaN(d.getTime())) return true;
-      const max = new Date();
-      max.setMonth(max.getMonth() + 3);
-      return d <= max || "Can't be more than 3 months away";
-    },
+    validate: (value) =>
+      isSessionDateWithinLimit(value) || "Can't be more than 3 months away",
+  });
+  const startTimeField = register("startTime", { required: true });
+  const endTimeField = register("endTime", {
+    required: true,
+    validate: (value, formValues) =>
+      isSessionScheduleValid({
+        sessionDate: formValues.sessionDate,
+        startTime: formValues.startTime,
+        endDate: formValues.endDate,
+        endTime: value,
+      }) || "End must be after start",
   });
   const playersSought = playersSoughtLabel(capacity, fillYourSpot, isEditing);
   const costDraft: CostDraft = {
@@ -439,16 +456,41 @@ export function CreateEventSheet({
         <div className="form-section">
           <p className="form-label">Game</p>
           <label className="stepper-row row-no-divider">
-            <span>Starts</span>
+            <span>Date</span>
             <input
-              style={{ width: "auto" }}
-              type="datetime-local"
-              {...startsAtField}
-              onBlur={(blurEvent) => {
-                startsAtField.onBlur(blurEvent);
-                const nextEnd = endTimeOneHourAfterStart(blurEvent.target.value);
+              className="stepper-input-date"
+              type="date"
+              {...sessionDateField}
+              onChange={(changeEvent) => {
+                const nextDate = changeEvent.target.value;
+                const previousDate = sessionDate;
+                sessionDateField.onChange(changeEvent);
+                setValue("endDate", shiftEndDate(previousDate, nextDate, endDate), {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+              }}
+            />
+          </label>
+          {errors.sessionDate ? (
+            <p className="form-error">{errors.sessionDate.message}</p>
+          ) : null}
+          <label className="stepper-row row-no-divider">
+            <span>Start time</span>
+            <input
+              className="stepper-input-time"
+              type="time"
+              {...startTimeField}
+              onChange={(changeEvent) => {
+                const previousStart = startTime;
+                const stillDefaultEnd =
+                  endDate === sessionDate &&
+                  endTime === endTimeOneHourAfter(previousStart);
+                startTimeField.onChange(changeEvent);
+                if (!stillDefaultEnd) return;
+                const nextEnd = endTimeOneHourAfter(changeEvent.target.value);
                 if (nextEnd) {
-                  setValue("endsAt", nextEnd, {
+                  setValue("endTime", nextEnd, {
                     shouldDirty: true,
                     shouldValidate: true,
                   });
@@ -456,25 +498,21 @@ export function CreateEventSheet({
               }}
             />
           </label>
-          {errors.startsAt ? (
-            <p className="form-error">{errors.startsAt.message}</p>
+          {errors.startTime ? (
+            <p className="form-error">{errors.startTime.message}</p>
           ) : null}
           <label className="stepper-row">
-            <span>Ends</span>
+            <span>End time</span>
             <input
-              style={{ width: "auto" }}
-              type="datetime-local"
-              {...register("endsAt", {
-                required: true,
-                validate: (endsAt, formValues) =>
-                  new Date(endsAt) > new Date(formValues.startsAt) ||
-                  "End must be after start",
-              })}
+              className="stepper-input-time"
+              type="time"
+              {...endTimeField}
             />
           </label>
-          {errors.endsAt ? (
-            <p className="form-error">{errors.endsAt.message}</p>
+          {errors.endTime ? (
+            <p className="form-error">{errors.endTime.message}</p>
           ) : null}
+          <input type="hidden" {...register("endDate")} />
           <div className="stepper-row row-no-divider">
             <div className="stepper-row-copy">
               <span>Capacity</span>

@@ -25,3 +25,36 @@ export function formatDistanceKm(km: number): string {
   if (km < 10) return `${km.toFixed(1)} km`;
   return `${Math.round(km)} km`;
 }
+
+export type BoundingBox = {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+};
+
+const KM_PER_DEGREE_LAT = 110.574;
+const KM_PER_DEGREE_LNG_AT_EQUATOR = 111.32;
+
+/**
+ * Rectangular (not exact-circle) bounding box for a center + radius, for use
+ * as a cheap DB pre-filter — callers still need a precise haversine check on
+ * the result. Doesn't handle antimeridian wraparound; acceptable for the
+ * small discovery radii this app uses.
+ */
+export function boundingBoxForRadius(
+  center: Coordinates,
+  radiusKm: number,
+): BoundingBox {
+  const latDelta = radiusKm / KM_PER_DEGREE_LAT;
+  const kmPerDegreeLng =
+    KM_PER_DEGREE_LNG_AT_EQUATOR * Math.cos((center.latitude * Math.PI) / 180);
+  const lngDelta = kmPerDegreeLng > 1 ? radiusKm / kmPerDegreeLng : 180;
+
+  return {
+    minLat: Math.max(center.latitude - latDelta, -90),
+    maxLat: Math.min(center.latitude + latDelta, 90),
+    minLng: Math.max(center.longitude - lngDelta, -180),
+    maxLng: Math.min(center.longitude + lngDelta, 180),
+  };
+}

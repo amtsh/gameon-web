@@ -72,19 +72,16 @@ export async function saveProfile(input: SaveProfileInput) {
 
   if (profileError) throw profileError;
 
-  const updates = input.sportPreferences.map((pref) =>
-    supabase
-      .from("sport_preferences")
-      .update({
-        level: pref.level,
-        is_interested: pref.isInterested,
-      })
-      .eq("profile_id", user.id)
-      .eq("sport", pref.sport),
+  const { error: prefError } = await supabase.from("sport_preferences").upsert(
+    input.sportPreferences.map((pref) => ({
+      profile_id: user.id,
+      sport: pref.sport,
+      level: pref.level,
+      is_interested: pref.isInterested,
+    })),
+    { onConflict: "profile_id,sport" },
   );
 
-  const results = await Promise.all(updates);
-  const prefError = results.find((result) => result.error)?.error;
   if (prefError) throw prefError;
 }
 

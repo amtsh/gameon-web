@@ -1392,6 +1392,16 @@ select {
   text-align: center;
 }
 
+.stepper-row .stepper-input-date {
+  width: 172px;
+  text-align: right;
+}
+
+.stepper-row .stepper-input-time {
+  width: 128px;
+  text-align: right;
+}
+
 .stepper-row-copy {
   display: grid;
   gap: 2px;

@@ -2,6 +2,7 @@
 
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { signInWithGoogle, signOut } from "@/lib/auth/google";
 import { getUserAvatarUrl } from "@/lib/auth/user";
 import {
@@ -161,17 +162,27 @@ export default function GameOnApp({
     return () => subscription.unsubscribe();
   }, [refreshSessionData, usesSupabase]);
 
+  // Realtime fires per-row-change and isn't filtered to what this client
+  // cares about, so a burst of writes (e.g. several people joining at once)
+  // can trigger many refreshes back to back. Coalesce them into one.
+  const scheduleRefresh = useDebouncedCallback(() => {
+    void refreshSessionData();
+  }, 500);
+
   useEffect(() => {
     if (!usesSupabase) return;
     const supabase = createClient();
     const channel = supabase
       .channel("gameon-public-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "sport_events" }, () => { void refreshSessionData(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "event_participants" }, () => { void refreshSessionData(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "event_join_requests" }, () => { void refreshSessionData(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "sport_events" }, scheduleRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_participants" }, scheduleRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_join_requests" }, scheduleRefresh)
       .subscribe();
-    return () => { void supabase.removeChannel(channel); };
-  }, [refreshSessionData, usesSupabase]);
+    return () => {
+      scheduleRefresh.cancel();
+      void supabase.removeChannel(channel);
+    };
+  }, [scheduleRefresh, usesSupabase]);
 
   useEffect(() => {
     if (!user || !profile || profile.is_onboarding_complete || onboardingShown.current) return;

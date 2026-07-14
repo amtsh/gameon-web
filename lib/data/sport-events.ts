@@ -9,7 +9,7 @@ import {
   isWithinDiscoveryRadius,
   type DiscoveryFilter,
 } from "@/lib/location/discovery";
-import { haversineDistanceKm } from "@/lib/location/geo";
+import { boundingBoxForRadius, haversineDistanceKm } from "@/lib/location/geo";
 import { isUuid } from "@/lib/share-token";
 
 import { rowToEventCost } from "@/lib/create-event/cost";
@@ -21,6 +21,10 @@ const EVENT_COLUMNS_PUBLIC =
   "cancelled_at";
 
 const EVENT_COLUMNS_WITH_TOKEN = `${EVENT_COLUMNS_PUBLIC}, share_token`;
+
+/** Safety cap on rows fetched per query — prevents unbounded scans for very active users/regions. */
+const UPCOMING_EVENTS_LIMIT = 500;
+const PAST_EVENTS_LIMIT = 200;
 
 type PublicSportEventRow = Omit<
   SportEventRow,
@@ -94,42 +98,73 @@ export function toSportEvent(
   };
 }
 
-async function loadEventContext(
+type UserEventRows = {
+  participantEventIds: string[];
+  requestRows: { event_id: string; status: string }[];
+};
+
+/** Cap on ids spliced into a PostgREST `id.in.(...)` filter — keeps the
+ *  request URL bounded for users with a very large participation history. */
+const RELATED_EVENT_IDS_LIMIT = 200;
+
+/** All of the user's participant rows and live (pending/waitlisted) join
+ *  requests, unfiltered by event — fetched once and reused both to build
+ *  the discovery query's pre-filter and to populate loadEventContext,
+ *  instead of querying the same two tables twice per loadSportEvents call. */
+async function loadUserEventRows(
   supabase: SupabaseClient<Database>,
   userId: string,
-  events: PublicSportEventRow[],
-): Promise<EventContext> {
-  const eventIds = events.map((event) => event.id);
-  const hostedEventIds = events
-    .filter((event) => event.host_id === userId)
-    .map((event) => event.id);
-
-  const [participants, requests, hostedPending] = await Promise.all([
-    supabase
-      .from("event_participants")
-      .select("event_id")
-      .eq("profile_id", userId)
-      .in("event_id", eventIds),
+): Promise<UserEventRows> {
+  const [participants, requests] = await Promise.all([
+    supabase.from("event_participants").select("event_id").eq("profile_id", userId),
     supabase
       .from("event_join_requests")
       .select("event_id, status")
       .eq("requester_id", userId)
-      .in("status", ["pending", "waitlisted"])
-      .in("event_id", eventIds),
+      .in("status", ["pending", "waitlisted"]),
+  ]);
+
+  return {
+    participantEventIds: (participants.data ?? []).map((row) => row.event_id),
+    requestRows: requests.data ?? [],
+  };
+}
+
+/** Event ids the user is a participant of or has a live join request for. */
+function relatedEventIdsFromRows(rows: UserEventRows): string[] {
+  const ids = new Set<string>();
+  for (const id of rows.participantEventIds) ids.add(id);
+  for (const row of rows.requestRows) ids.add(row.event_id);
+  return [...ids];
+}
+
+async function loadEventContext(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  events: PublicSportEventRow[],
+  userRows?: UserEventRows,
+): Promise<EventContext> {
+  const eventIds = new Set(events.map((event) => event.id));
+  const hostedEventIds = events
+    .filter((event) => event.host_id === userId)
+    .map((event) => event.id);
+
+  const rows = userRows ?? (await loadUserEventRows(supabase, userId));
+
+  const hostedPending =
     hostedEventIds.length > 0
-      ? supabase
+      ? await supabase
           .from("event_join_requests")
           .select("event_id")
           .eq("status", "pending")
           .in("event_id", hostedEventIds)
-      : Promise.resolve({ data: [], error: null }),
-  ]);
+      : { data: [], error: null };
 
-  const requestRows = requests.data ?? [];
+  const requestRows = rows.requestRows.filter((row) => eventIds.has(row.event_id));
 
   return {
     participantEventIds: new Set(
-      (participants.data ?? []).map((row) => row.event_id),
+      rows.participantEventIds.filter((id) => eventIds.has(id)),
     ),
     pendingRequestEventIds: new Set(
       requestRows
@@ -155,14 +190,40 @@ export async function loadSportEvents(
   discovery: DiscoveryFilter = DEFAULT_DISCOVERY_FILTER,
 ): Promise<SportEvent[]> {
   const columns = userId ? EVENT_COLUMNS_WITH_TOKEN : EVENT_COLUMNS_PUBLIC;
+  const bbox = boundingBoxForRadius(discovery.center, discovery.radiusKm);
+  const userRows = userId ? await loadUserEventRows(supabase, userId) : undefined;
+  const relatedEventIds = userRows ? relatedEventIdsFromRows(userRows) : [];
+
+  // Push a bounding-box pre-filter (plus the user's own related events, which
+  // may fall outside it) into the query so we don't scan every upcoming
+  // event globally. isWithinDiscoveryRadius() below still applies the exact
+  // circle — the box is a superset used only to shrink what we fetch.
+  const orClauses = [
+    `and(venue_latitude.gte.${bbox.minLat},venue_latitude.lte.${bbox.maxLat},` +
+      `venue_longitude.gte.${bbox.minLng},venue_longitude.lte.${bbox.maxLng})`,
+  ];
+  if (userId) orClauses.push(`host_id.eq.${userId}`);
+  if (relatedEventIds.length > 0) {
+    orClauses.push(
+      `id.in.(${relatedEventIds.slice(0, RELATED_EVENT_IDS_LIMIT).join(",")})`,
+    );
+  }
+
   const { data: events, error } = await supabase
     .from("sport_events")
     .select(columns)
     .gt("ends_at", new Date().toISOString())
+    .or(orClauses.join(","))
     .order("starts_at", { ascending: true })
+    .limit(UPCOMING_EVENTS_LIMIT)
     .overrideTypes<PublicSportEventRow[], { merge: false }>();
 
   if (error) throw error;
+  if (events?.length === UPCOMING_EVENTS_LIMIT) {
+    console.warn(
+      `loadSportEvents: hit UPCOMING_EVENTS_LIMIT (${UPCOMING_EVENTS_LIMIT}) — results may be truncated`,
+    );
+  }
   if (!events?.length) return [];
 
   const hostIds = [...new Set(events.map((event) => event.host_id))];
@@ -174,7 +235,7 @@ export async function loadSportEvents(
   const hostNames = new Map((hosts ?? []).map((host) => [host.id, host.name]));
 
   const ctx = userId
-    ? await loadEventContext(supabase, userId, events)
+    ? await loadEventContext(supabase, userId, events, userRows)
     : emptyEventContext();
 
   const visibleEvents = events.filter((event) => {
@@ -285,7 +346,9 @@ export async function loadPastUserSportEvents(
   const joinedIds = (participantRows ?? []).map((row) => row.event_id);
   const filters = [`host_id.eq.${userId}`];
   if (joinedIds.length > 0) {
-    filters.push(`id.in.(${joinedIds.join(",")})`);
+    filters.push(
+      `id.in.(${joinedIds.slice(0, RELATED_EVENT_IDS_LIMIT).join(",")})`,
+    );
   }
 
   const { data: events, error } = await supabase
@@ -294,9 +357,15 @@ export async function loadPastUserSportEvents(
     .lte("ends_at", now)
     .or(filters.join(","))
     .order("ends_at", { ascending: false })
+    .limit(PAST_EVENTS_LIMIT)
     .overrideTypes<PublicSportEventRow[], { merge: false }>();
 
   if (error) throw error;
+  if (events?.length === PAST_EVENTS_LIMIT) {
+    console.warn(
+      `loadPastUserSportEvents: hit PAST_EVENTS_LIMIT (${PAST_EVENTS_LIMIT}) — results may be truncated`,
+    );
+  }
   if (!events?.length) return [];
 
   const hostIds = [...new Set(events.map((event) => event.host_id))];
