@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  combineLocalDateTime,
   composeSessionDatetimes,
   defaultSessionFields,
   endTimeOneHourAfter,
@@ -9,15 +8,16 @@ import {
   isSessionScheduleValid,
   sessionFieldsFromDatetimes,
   shiftEndDate,
-  splitLocalDateTimeInput,
-} from "./session-datetime";
+  toDateInput,
+  toLocalDateTimeInput,
+  toTimeInput,
+} from "./session";
 
-describe("splitLocalDateTimeInput", () => {
-  it("splits a datetime-local value into date and time", () => {
-    expect(splitLocalDateTimeInput("2026-07-11T16:30")).toEqual({
-      date: "2026-07-11",
-      time: "16:30",
-    });
+describe("toLocalDateTimeInput", () => {
+  it("formats an ISO timestamp for datetime-local inputs", () => {
+    expect(toLocalDateTimeInput("2026-07-11T16:30:00Z")).toBe(
+      "2026-07-11T16:30",
+    );
   });
 });
 
@@ -156,11 +156,11 @@ describe("formatSchedulePreview", () => {
   });
 });
 
-describe("combineLocalDateTime", () => {
-  it("joins date and time for datetime-local storage", () => {
-    expect(combineLocalDateTime("2026-07-11", "18:30")).toBe(
-      "2026-07-11T18:30",
-    );
+describe("toDateInput and toTimeInput", () => {
+  it("formats date and time parts for native inputs", () => {
+    const date = new Date("2026-07-11T18:30:00");
+    expect(toDateInput(date)).toBe("2026-07-11");
+    expect(toTimeInput(date)).toBe("18:30");
   });
 });
 

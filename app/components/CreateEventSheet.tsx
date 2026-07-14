@@ -27,7 +27,7 @@ import {
   isSessionScheduleValid,
   sessionFieldsFromDatetimes,
   shiftEndDate,
-} from "@/lib/create-event/session-datetime";
+} from "@/lib/datetime/session";
 import {
   costDraftFromEvent,
   displayCost,

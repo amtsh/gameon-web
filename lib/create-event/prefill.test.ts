@@ -3,8 +3,8 @@ import {
   buildCreatePrefill,
   nextSessionDatesFromPrevious,
   pickLatestHostedEvent,
-  toLocalDateTimeInput,
 } from "./prefill";
+import { toLocalDateTimeInput } from "@/lib/datetime/session";
 import { NOW, makeEvent } from "@/test/factories";
 
 describe("nextSessionDatesFromPrevious", () => {

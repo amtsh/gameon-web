@@ -1,11 +1,8 @@
 import { addDays } from "date-fns";
 import type { SportEvent } from "@/app/types";
+import { toLocalDateTimeInput } from "@/lib/datetime/session";
 
-export function toLocalDateTimeInput(iso: string) {
-  const date = new Date(iso);
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
+export { toLocalDateTimeInput };
 
 /** Advance weekly until the session start is in the future, keeping duration. */
 export function nextSessionDatesFromPrevious(
