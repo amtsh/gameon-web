@@ -191,8 +191,9 @@ export default async function LandingPage() {
                 <div className="lp-split-col">
                   <h2>Fill every spot without the group chat</h2>
                   <p>
-                    Post your game on the map. Players request spots. Approve each
-                    one yourself, or turn on auto-approve and let spots fill.
+                    Post your game on the map. Players request spots. Approve
+                    each one yourself, or turn on auto-approve and let spots
+                    fill.
                   </p>
                   <Link className="lp-btn lp-btn-dark" href="/app">
                     Host a game
@@ -201,8 +202,9 @@ export default async function LandingPage() {
                 <div className="lp-split-col">
                   <h2>Waitlists backfill dropouts</h2>
                   <p>
-                    Set capacity once. When someone leaves, the next person on the
-                    waitlist is approved automatically — no last-minute scramble.
+                    Set capacity once. When someone leaves, the next person on
+                    the waitlist is approved automatically — no last-minute
+                    scramble.
                   </p>
                 </div>
               </div>
@@ -247,7 +249,7 @@ export default async function LandingPage() {
 
         <footer className="lp-footer">
           <div className="lp-container lp-footer-inner">
-            <span>© 2026 {siteName}</span>
+            <span>Made with passion in 🇸🇪 Sweden</span>
             <nav className="lp-footer-links" aria-label="Footer">
               <Link href="/app">Open map</Link>
               <Link href="/privacy">Privacy</Link>
