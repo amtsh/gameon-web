@@ -1,6 +1,6 @@
 import type { Coordinates } from "./geo";
 
-/** Parse IP geolocation coordinates from Vercel edge headers. */
+/** Parse and validate a lat/lon pair from string-typed geolocation fields. */
 export function parseIpCoordinates(
   latitude: string | null | undefined,
   longitude: string | null | undefined,
@@ -11,13 +11,4 @@ export function parseIpCoordinates(
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
   return { latitude: lat, longitude: lon };
-}
-
-export function readIpCoordinatesFromHeaderMap(
-  headers: Headers,
-): Coordinates | null {
-  return parseIpCoordinates(
-    headers.get("x-vercel-ip-latitude"),
-    headers.get("x-vercel-ip-longitude"),
-  );
 }

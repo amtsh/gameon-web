@@ -2,6 +2,7 @@ import type { SkillLevel, SportKind } from "@/app/types";
 import type { Profile } from "@/lib/data/profile.shared";
 import { geocodePlace } from "@/lib/location/geocode";
 import type { Coordinates } from "@/lib/location/geo";
+import { fetchIpLocation } from "@/lib/location/ip-geo.client";
 import { createClient } from "@/lib/supabase/client";
 
 export type SportPreference = {
@@ -50,7 +51,11 @@ export async function saveProfile(input: SaveProfileInput) {
   let coordinates: Coordinates | null = null;
 
   if (postalCode) {
-    coordinates = await geocodePlace(postalCode);
+    const ipLocation = await fetchIpLocation();
+    coordinates = await geocodePlace(postalCode, {
+      bias: ipLocation.coordinates ?? undefined,
+      countryCode: ipLocation.countryCode ?? undefined,
+    });
   }
 
   const { error: profileError } = await supabase

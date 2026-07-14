@@ -8,9 +8,8 @@ import {
 import { loadProfile, type Profile } from "@/lib/data/profile.shared";
 import { initialDiscoveryFilter } from "@/lib/location/discovery";
 import type { Coordinates } from "@/lib/location/geo";
-import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
+import { readCloudflareGeo } from "@/lib/location/cf-geo";
 import { createClient } from "@/lib/supabase/server";
-import { headers } from "next/headers";
 
 export type AppData = {
   user: User | null;
@@ -32,7 +31,7 @@ export async function loadAppData(sharedEventSlug?: string): Promise<AppData> {
   } = await supabase.auth.getUser();
 
   const profile = user ? await loadProfile(supabase, user.id) : null;
-  const ipLocation = readIpCoordinatesFromHeaderMap(await headers());
+  const { coordinates: ipLocation } = await readCloudflareGeo();
   const discovery = initialDiscoveryFilter(profile, ipLocation);
 
   const [events, pastEvents, sharedEvent] = await Promise.all([

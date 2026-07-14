@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
+import { readCloudflareGeo } from "@/lib/location/cf-geo";
 import { assertSameOrigin } from "@/lib/api/same-origin";
 
 export async function GET(req: NextRequest) {
   const forbidden = assertSameOrigin(req);
   if (forbidden) return forbidden;
 
-  const coords = readIpCoordinatesFromHeaderMap(await headers());
-  if (!coords) {
+  const { coordinates, countryCode } = await readCloudflareGeo();
+  if (!coordinates) {
     return new NextResponse(null, { status: 204 });
   }
-  return NextResponse.json(coords);
+  return NextResponse.json({ ...coordinates, countryCode });
 }
