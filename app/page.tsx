@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { headers } from "next/headers";
 import {
   ArrowRight,
   Calendar,
@@ -14,7 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { resolveInitialDiscoveryLocationLabel } from "@/lib/location/discovery";
-import { readIpCoordinatesFromHeaderMap } from "@/lib/location/ip-geo";
+import { readCloudflareGeo } from "@/lib/location/cf-geo";
 import { createPageMetadata, homeAppTitle, siteName } from "@/lib/seo/metadata";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { loadAppData } from "@/lib/data/app-data";
@@ -34,6 +33,10 @@ export const metadata = createPageMetadata({
   path: "/",
   openGraphImage: false,
 });
+
+// Needs a per-request geo lookup (readCloudflareGeo) — unlike next/headers(),
+// getCloudflareContext() doesn't itself opt the route out of static rendering.
+export const dynamic = "force-dynamic";
 
 const howItWorksTips = [
   {
@@ -91,7 +94,7 @@ export default async function LandingPage() {
     }
   }
 
-  const ipLocation = readIpCoordinatesFromHeaderMap(await headers());
+  const { coordinates: ipLocation } = await readCloudflareGeo();
   const initialCityLabel = await resolveInitialDiscoveryLocationLabel(
     null,
     ipLocation,

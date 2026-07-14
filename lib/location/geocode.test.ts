@@ -133,19 +133,26 @@ describe("geocodePlaceDetailed", () => {
     expect(url.searchParams.get("lon")).toBe("-74.006");
   });
 
-  it("prefers the candidate matching the given country code", async () => {
-    stubFetchOnce({
-      features: [
-        {
-          geometry: { coordinates: [-9.1393, 38.7223] },
-          properties: { city: "Lisbon", countrycode: "pt" },
-        },
-        {
-          geometry: { coordinates: [18.0632, 59.3236] },
-          properties: { city: "Stockholm", countrycode: "se" },
-        },
-      ],
+  it("prefers the Photon candidate matching the given country code", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("zippopotam")) return { ok: false, json: async () => ({}) };
+      return {
+        ok: true,
+        json: async () => ({
+          features: [
+            {
+              geometry: { coordinates: [-9.1393, 38.7223] },
+              properties: { city: "Lisbon", countrycode: "pt" },
+            },
+            {
+              geometry: { coordinates: [18.0632, 59.3236] },
+              properties: { city: "Stockholm", countrycode: "se" },
+            },
+          ],
+        }),
+      };
     });
+    vi.stubGlobal("fetch", fetchMock);
 
     await expect(
       geocodePlaceDetailed("1000", { countryCode: "se" }),
@@ -155,22 +162,132 @@ describe("geocodePlaceDetailed", () => {
     });
   });
 
-  it("falls back to the top candidate when no country matches", async () => {
-    stubFetchOnce({
-      features: [
-        {
-          geometry: { coordinates: [-9.1393, 38.7223] },
-          properties: { city: "Lisbon", countrycode: "pt" },
-        },
-      ],
+  it("returns null rather than a wrong-country Photon match", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("zippopotam")) return { ok: false, json: async () => ({}) };
+      return {
+        ok: true,
+        json: async () => ({
+          features: [
+            {
+              geometry: { coordinates: [-9.1393, 38.7223] },
+              properties: { city: "Lisbon", countrycode: "pt" },
+            },
+          ],
+        }),
+      };
     });
+    vi.stubGlobal("fetch", fetchMock);
 
     await expect(
       geocodePlaceDetailed("1000", { countryCode: "se" }),
-    ).resolves.toEqual({
-      coordinates: { latitude: 38.7223, longitude: -9.1393 },
-      label: "Lisbon",
+    ).resolves.toBeNull();
+  });
+
+  it("uses Zippopotam's exact, country-scoped match without calling Photon", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("zippopotam")) {
+        return {
+          ok: true,
+          json: async () => ({
+            places: [
+              {
+                "place name": "Beverly Hills",
+                state: "California",
+                latitude: "34.0901",
+                longitude: "-118.4065",
+              },
+            ],
+          }),
+        };
+      }
+      throw new Error("Photon should not have been called");
     });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      geocodePlaceDetailed("90210", { countryCode: "us" }),
+    ).resolves.toEqual({
+      coordinates: { latitude: 34.0901, longitude: -118.4065 },
+      label: "Beverly Hills, California",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "https://api.zippopotam.us/us/90210",
+    );
+  });
+
+  it("falls back to Photon when Zippopotam has no match for the country", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("zippopotam")) {
+        return { ok: false, json: async () => ({}) };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          features: [
+            {
+              geometry: { coordinates: [18.0632, 59.3236] },
+              properties: { city: "Stockholm", countrycode: "se" },
+            },
+          ],
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      geocodePlaceDetailed("11620", { countryCode: "se" }),
+    ).resolves.toEqual({
+      coordinates: { latitude: 59.3236, longitude: 18.0632 },
+      label: "Stockholm",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("falls back to Photon when the Zippopotam request errors", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("zippopotam")) {
+        throw new Error("network down");
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          features: [
+            {
+              geometry: { coordinates: [18.0632, 59.3236] },
+              properties: { city: "Stockholm", countrycode: "se" },
+            },
+          ],
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      geocodePlaceDetailed("11620", { countryCode: "se" }),
+    ).resolves.toEqual({
+      coordinates: { latitude: 59.3236, longitude: 18.0632 },
+      label: "Stockholm",
+    });
+  });
+
+  it("propagates abort instead of falling back to Photon", async () => {
+    const controller = new AbortController();
+    const fetchMock = vi.fn(async () => {
+      controller.abort();
+      const error = new DOMException("Aborted", "AbortError");
+      throw error;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      geocodePlaceDetailed("11620", {
+        countryCode: "se",
+        signal: controller.signal,
+      }),
+    ).rejects.toThrow("Aborted");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
 
