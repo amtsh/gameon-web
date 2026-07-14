@@ -1,6 +1,7 @@
 "use client";
 
 import { Bug, Moon, Navigation, Sun } from "lucide-react";
+import { haptic } from "@/lib/haptics";
 import { setTheme, useTheme } from "../theme";
 
 type Props = {
@@ -12,7 +13,13 @@ export function FloatingActions({ onLocate }: Props) {
 
   return (
     <div className="floating-actions" aria-label="Map actions">
-      <button aria-label="Current location" onClick={onLocate}>
+      <button
+        aria-label="Current location"
+        onClick={() => {
+          haptic("light");
+          onLocate();
+        }}
+      >
         <Navigation size={19} style={{ transform: "rotate(-3deg)" }} />
       </button>
       <span />
@@ -27,7 +34,10 @@ export function FloatingActions({ onLocate }: Props) {
       <span />
       <button
         aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        onClick={() => {
+          haptic("light");
+          setTheme(theme === "dark" ? "light" : "dark");
+        }}
       >
         {theme === "dark" ? <Sun size={19} /> : <Moon size={19} />}
       </button>

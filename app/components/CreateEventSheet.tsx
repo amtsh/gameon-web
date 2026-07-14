@@ -9,6 +9,7 @@ import {
   createSportEvent,
   updateSportEvent,
 } from "@/lib/data/create-event.client";
+import { haptic } from "@/lib/haptics";
 import type { Profile } from "@/lib/data/profile.shared";
 import { sports } from "../data/mock-data";
 import { ModalSheet, SheetDismissTrigger } from "./ModalSheet";
@@ -317,11 +318,13 @@ export function CreateEventSheet({
           profile,
         });
       }
+      haptic("success");
       await onSaved(!editEvent);
       preserveDraftRef.current = false;
       skipPreserveOnCloseRef.current = true;
       onPresentedChange(false);
     } catch (error) {
+      haptic("error");
       setSubmitError(
         error instanceof Error
           ? error.message

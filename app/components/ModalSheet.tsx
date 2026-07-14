@@ -2,7 +2,9 @@
 
 import { Scroll, Sheet, VisuallyHidden } from "@silk-hq/components";
 import clsx from "clsx";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { haptic } from "@/lib/haptics";
 import "./ModalSheet.css";
 
 type Props = {
@@ -39,6 +41,15 @@ export function ModalSheet({
   onPresentedChange,
   children,
 }: Props) {
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    haptic("light");
+  }, [presented]);
+
   return (
     <Sheet.Root
       license="commercial"
@@ -141,6 +152,10 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmProps) {
+  useEffect(() => {
+    haptic("warning");
+  }, []);
+
   if (typeof document === "undefined") return null;
 
   return createPortal(
