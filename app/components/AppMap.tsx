@@ -10,6 +10,7 @@ import {
 import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef } from "react";
+import { haptic } from "@/lib/haptics";
 import { sports } from "../data/mock-data";
 import { isArchived, isCancelled } from "../event-feed";
 import type { SportEvent } from "../types";
@@ -89,6 +90,7 @@ export function AppMap({ events, selectedEvent, locateToken, onSelect }: Props) 
                 className={clsx("map-marker", isSelected && "map-marker-selected")}
                 onClick={(clickEvent) => {
                   clickEvent.stopPropagation();
+                  haptic("selection");
                   onSelect(event);
                 }}
                 style={{ ["--marker-accent" as string]: sport?.accent ?? "#ffffff" }}

@@ -2,6 +2,7 @@
 
 import { Icon } from "@iconify/react";
 import clsx from "clsx";
+import { haptic } from "@/lib/haptics";
 import { sports } from "../data/mock-data";
 import type { SportKind } from "../types";
 
@@ -33,7 +34,10 @@ export function SportChips({
           "chip",
           selectedSports.length === 0 && !showingPast && "chip-selected",
         )}
-        onClick={onShowAll}
+        onClick={() => {
+          haptic("selection");
+          onShowAll();
+        }}
       >
         <Icon icon="mdi:view-grid" width={13} />
         All Sports
@@ -46,7 +50,10 @@ export function SportChips({
             selectedSports.includes(sport.id) && "chip-selected",
           )}
           key={sport.id}
-          onClick={() => onToggleSport(sport.id)}
+          onClick={() => {
+            haptic("selection");
+            onToggleSport(sport.id);
+          }}
         >
           <Icon icon={sport.icon} width={13} />
           {sport.label}
@@ -55,7 +62,10 @@ export function SportChips({
 
       <button
         className={clsx("chip", showingPast && "chip-selected")}
-        onClick={onShowPast}
+        onClick={() => {
+          haptic("selection");
+          onShowPast();
+        }}
       >
         <Icon icon="mdi:archive-outline" width={13} />
         Past Games

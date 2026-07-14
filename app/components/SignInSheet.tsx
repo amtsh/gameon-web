@@ -2,6 +2,7 @@
 
 import { Icon } from "@iconify/react";
 import { X } from "lucide-react";
+import { haptic } from "@/lib/haptics";
 import { SheetDismissTrigger } from "./ModalSheet";
 
 type Props = {
@@ -37,7 +38,10 @@ export function SignInSheet({
         <button
           className="google-sign-in auth-panel-action"
           disabled={busy}
-          onClick={onSignIn}
+          onClick={() => {
+            haptic("light");
+            onSignIn();
+          }}
           type="button"
         >
           <span aria-hidden="true" className="google-sign-in-icon">

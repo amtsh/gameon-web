@@ -19,6 +19,7 @@ import { downloadSportEventIcs } from "@/lib/calendar/download-ics.client";
 import { displayCost } from "@/lib/create-event/cost";
 import { contactUrl } from "@/lib/contact-url";
 import { cancelSportEvent } from "@/lib/data/create-event.client";
+import { haptic } from "@/lib/haptics";
 import {
   approveJoinRequest,
   fetchHostContact,
@@ -293,9 +294,11 @@ export function EventDetailSheet({
       await action();
       await onMutated();
       await loadRequests();
+      haptic("success");
       return true;
     } catch (error) {
       setActionError(extractErrorMessage(error));
+      haptic("error");
       return false;
     } finally {
       setBusy(false);
@@ -303,6 +306,7 @@ export function EventDetailSheet({
   };
 
   const handleJoin = () => {
+    haptic("medium");
     if (!profile) {
       setActionError("Profile not loaded");
       return;
@@ -372,6 +376,7 @@ export function EventDetailSheet({
     if (!confirming) return;
     const kind = confirming;
     setConfirming(null);
+    haptic("medium");
     if (kind === "leave") {
       await runMutation(() => leaveEvent(event.id));
       return;
