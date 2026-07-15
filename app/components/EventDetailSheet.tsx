@@ -397,11 +397,9 @@ export function EventDetailSheet({
     new Date(event.startsAt),
   )} - ${clockTime(new Date(event.endsAt))}`;
 
-  const venueSubtitle = [
-    [event.venue.address, event.venue.city].filter(Boolean).join(", "),
-  ]
+  const venueSubtitle = [event.venue.address, event.venue.city]
     .filter(Boolean)
-    .join(" \u00b7 ");
+    .join(", ");
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${event.venue.name}, ${event.venue.city ?? ""}`,

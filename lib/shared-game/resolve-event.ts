@@ -25,37 +25,12 @@ export const resolveSharedEvent = cache(async (slug: string) => {
   return loadSportEventForSeo(slug);
 });
 
-export async function buildSharedGameMetadata(slug: string): Promise<Metadata> {
-  const event = await resolveSharedEvent(slug);
-  const canonical = event
-    ? sportEventSharePath(event.shareToken)
-    : sportEventSharePath(slug);
-
-  const siteUrl = getSiteUrl();
-  const canonicalUrl = `${siteUrl}${canonical}`;
-
-  const title = event ? formatSharedGameLinkTitle(event) : defaultTitle;
-
-  const description = event
-    ? `${formatSharedGameDescription(event)}. Request a spot on ${siteName}.`
-    : siteDescription;
-
-  return createPageMetadata({
-    title,
-    description,
-    path: canonical,
-    openGraphUrl: canonicalUrl,
-    openGraphImage: false,
-    twitterCard: "summary_large_image",
-  });
-}
-
-/** Metadata for the /g/private/{token} invite alias (same event, private URL). */
-export async function buildPrivateSharedGameMetadata(
+async function buildGameMetadata(
   slug: string,
+  options: { isPrivate?: boolean } = {},
 ): Promise<Metadata> {
   const event = await resolveSharedEvent(slug);
-  const path = `/g/private/${event?.shareToken ?? slug}`;
+  const path = sportEventSharePath(event?.shareToken ?? slug, options);
 
   const siteUrl = getSiteUrl();
   const openGraphUrl = `${siteUrl}${path}`;
@@ -74,4 +49,13 @@ export async function buildPrivateSharedGameMetadata(
     openGraphImage: false,
     twitterCard: "summary_large_image",
   });
+}
+
+export function buildSharedGameMetadata(slug: string): Promise<Metadata> {
+  return buildGameMetadata(slug);
+}
+
+/** Metadata for the /g/private/{token} invite alias (same event, private URL). */
+export function buildPrivateSharedGameMetadata(slug: string): Promise<Metadata> {
+  return buildGameMetadata(slug, { isPrivate: true });
 }
