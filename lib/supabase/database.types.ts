@@ -278,6 +278,24 @@ export type Database = {
           },
         ];
       };
+      shared_link_loads: {
+        Row: {
+          id: string;
+          share_token: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          share_token: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          share_token?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       public_profiles: {

@@ -1,4 +1,5 @@
 import { loadAppData } from "@/lib/data/app-data";
+import { logSharedLinkLoad } from "@/lib/monitor/log-shared-link-load";
 import { siteDescription, siteName } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/seo/site";
 import { sportEventSharePath } from "@/lib/share-token";
@@ -56,6 +57,10 @@ export async function SharedGamePage({ slug }: { slug: string }) {
 
   const { user, profile, events, pastEvents, sharedEvent, ipLocation } =
     await loadAppData(slug);
+
+  if (sharedEvent) {
+    logSharedLinkLoad(sharedEvent.shareToken ?? slug);
+  }
 
   return (
     <>
