@@ -2,19 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertSameOrigin } from "@/lib/api/same-origin";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const MONITOR_PIN = "101210";
+const MONITOR_PIN = process.env.MONITOR_PIN ?? "101210";
+
+function normalizePin(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value).trim();
+  }
+  return "";
+}
 
 export async function POST(req: NextRequest) {
   const forbidden = assertSameOrigin(req);
   if (forbidden) return forbidden;
 
   const body = await req.json().catch(() => null);
-  const pin = typeof body?.pin === "string" ? body.pin : "";
+  const pin = normalizePin(body?.pin);
   if (pin !== MONITOR_PIN) {
     return NextResponse.json({ error: "Invalid PIN" }, { status: 401 });
   }
 
-  const supabase = createAdminClient();
+  let supabase;
+  try {
+    supabase = createAdminClient();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Missing SUPABASE_SERVICE_ROLE_KEY"
+    ) {
+      return NextResponse.json(
+        { error: "Monitor stats unavailable (missing server config)" },
+        { status: 503 },
+      );
+    }
+    throw error;
+  }
   const now = new Date().toISOString();
 
   const [accounts, activeGames, pastGames, linkLoads] = await Promise.all([

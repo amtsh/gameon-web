@@ -15,10 +15,22 @@ async function fetchStats(pin: string): Promise<Stats> {
   const res = await fetch("/api/monitor/stats", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pin }),
+    body: JSON.stringify({ pin: pin.trim() }),
   });
   if (!res.ok) {
-    throw new Error(res.status === 401 ? "Wrong PIN" : "Failed to load stats");
+    const payload = (await res.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    if (typeof payload?.error === "string") {
+      throw new Error(payload.error);
+    }
+    if (res.status === 401) {
+      throw new Error("Wrong PIN");
+    }
+    if (res.status === 403) {
+      throw new Error("Request blocked (origin mismatch)");
+    }
+    throw new Error("Failed to load stats");
   }
   return res.json();
 }
