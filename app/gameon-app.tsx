@@ -1,6 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { signInWithGoogle, signOut } from "@/lib/auth/google";
@@ -15,7 +16,6 @@ import { useDiscoveryLocation } from "@/lib/location/use-discovery-location.clie
 import { pickLatestHostedEvent } from "@/lib/create-event/prefill";
 import { usePwaInstallPrompt } from "@/lib/pwa/use-install-prompt.client";
 import { createClient } from "@/lib/supabase/client";
-import { AppMap } from "./components/AppMap";
 import { ContactSheet } from "./components/ContactSheet";
 import { CreateEventSheet } from "./components/CreateEventSheet";
 import { EventDetailSheet } from "./components/EventDetailSheet";
@@ -26,6 +26,14 @@ import { ProfileSheet } from "./components/ProfileSheet";
 import type { Profile } from "@/lib/data/profile.shared";
 import type { Coordinates } from "@/lib/location/geo";
 import type { SheetName, SportEvent, SportKind } from "./types";
+
+// maplibre-gl is large; load it only on the client, after the rest of the
+// shell has mounted. .gameon-root's background already matches the map's
+// base color, so there's no placeholder flash while it loads.
+const AppMap = dynamic(
+  () => import("./components/AppMap").then((mod) => mod.AppMap),
+  { ssr: false },
+);
 
 type Props = {
   initialEvents: SportEvent[];
