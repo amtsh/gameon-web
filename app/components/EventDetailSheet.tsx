@@ -504,8 +504,11 @@ export function EventDetailSheet({
               <Share size={22} />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-3">
-                <p className="detail-label">Share with players</p>
+              <div className="flex flex-nowrap items-baseline">
+                <span className="detail-label">Share with players</span>
+                <span className="detail-share-sep" aria-hidden="true">
+                  ·
+                </span>
                 <button
                   className={clsx(
                     "link-info detail-share-copy-link shrink-0",
@@ -522,10 +525,12 @@ export function EventDetailSheet({
                       : "Copy"}
                 </button>
               </div>
-              <p className="detail-caption mt-1.5 select-all">{shareText}</p>
-              <p className="detail-share-url detail-caption mt-1.5 select-all break-all">
-                {shareUrl}
-              </p>
+              <div className="detail-share-body">
+                <p className="detail-caption select-all">{shareText}</p>
+                <p className="detail-share-url detail-caption select-all break-all">
+                  {shareUrl}
+                </p>
+              </div>
             </div>
           </div>
         ) : null}
