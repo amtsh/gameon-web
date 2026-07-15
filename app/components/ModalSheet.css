@@ -100,3 +100,46 @@
   flex-direction: column;
   overflow: hidden;
 }
+
+/* Touch / mobile: keep frosted glass even in landscape (width can exceed 820px). */
+@media (hover: none), (pointer: coarse) {
+  .ModalSheet-bleedingBackground.form {
+    background-color: color-mix(in srgb, var(--form-background) 82%, transparent) !important;
+    backdrop-filter: blur(28px) saturate(1.6) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(1.6) !important;
+  }
+
+  .ModalSheet-bleedingBackground.detail {
+    background-color: color-mix(in srgb, var(--app-background) 82%, transparent) !important;
+    backdrop-filter: blur(28px) saturate(1.6) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(1.6) !important;
+  }
+
+  .ModalSheet-content.form,
+  .ModalSheet-content.detail {
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* Desktop modal sheets only (not GamesSheet): solid surfaces per theme. */
+@media (min-width: 820px) and (hover: hover) and (pointer: fine) {
+  :root[data-theme="light"] .ModalSheet-content.form,
+  :root[data-theme="light"] .ModalSheet-content.detail,
+  :root[data-theme="light"] .ModalSheet-bleedingBackground.form,
+  :root[data-theme="light"] .ModalSheet-bleedingBackground.detail {
+    background-color: #fff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  :root[data-theme="dark"] .ModalSheet-content.form,
+  :root[data-theme="dark"] .ModalSheet-content.detail,
+  :root[data-theme="dark"] .ModalSheet-bleedingBackground.form,
+  :root[data-theme="dark"] .ModalSheet-bleedingBackground.detail {
+    background-color: #000 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

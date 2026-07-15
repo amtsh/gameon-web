@@ -1372,24 +1372,28 @@ select {
 }
 
 .create-event-form .when-block .when-row {
-  display: grid;
-  grid-template-columns: minmax(3.5rem, auto) minmax(0, max-content);
+  display: flex;
   align-items: center;
-  column-gap: 16px;
+  justify-content: space-between;
+  gap: 12px;
   border-bottom: none;
   padding: 0;
 }
 
+.create-event-form .when-block .when-row > span {
+  flex-shrink: 0;
+}
+
 .create-event-form .when-block .when-row > :last-child {
-  justify-self: end;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .when-time-inputs {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
-  width: max-content;
 }
 
 .when-time-sep {
@@ -1405,20 +1409,19 @@ select {
   text-align: right;
 }
 
-.create-event-form .when-block input[type="date"],
-.create-event-form .when-block input[type="time"] {
-  flex-shrink: 0;
-  text-align: right;
-}
-
-.create-event-form .when-block .stepper-input-date {
-  width: 21.5rem;
-  max-width: 100%;
-}
-
+.create-event-form .when-block .stepper-input-date,
 .create-event-form .when-block .stepper-input-time {
-  width: 16rem;
+  width: auto;
   max-width: 100%;
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  text-align: right;
+  field-sizing: content;
+}
+
+.create-event-form .when-block .stepper-input-date::-webkit-datetime-edit,
+.create-event-form .when-block .stepper-input-time::-webkit-datetime-edit {
+  padding: 0;
 }
 
 .create-event-form .contact-card,

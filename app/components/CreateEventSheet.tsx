@@ -419,6 +419,7 @@ export function CreateEventSheet({
                 <input
                   className="stepper-input-time"
                   type="time"
+                  size={5}
                   {...startTimeField}
                   onChange={(changeEvent) => {
                     const previousStart = startTime;
@@ -440,6 +441,7 @@ export function CreateEventSheet({
                 <input
                   className="stepper-input-time"
                   type="time"
+                  size={5}
                   {...endTimeField}
                 />
               </div>

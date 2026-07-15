@@ -2,10 +2,40 @@
 
 import { Scroll, Sheet, VisuallyHidden } from "@silk-hq/components";
 import clsx from "clsx";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { haptic } from "@/lib/haptics";
+import { useTheme, type Theme } from "@/app/theme";
 import "./ModalSheet.css";
+
+/** True desktop: wide viewport with mouse/trackpad (not phone landscape / touch tablets). */
+const DESKTOP_SURFACE_QUERY = "(min-width: 820px) and (hover: hover) and (pointer: fine)";
+
+function subscribeDesktopSurface(onStoreChange: () => void) {
+  const mq = window.matchMedia(DESKTOP_SURFACE_QUERY);
+  mq.addEventListener("change", onStoreChange);
+  return () => mq.removeEventListener("change", onStoreChange);
+}
+
+function getDesktopSurfaceSnapshot() {
+  return window.matchMedia(DESKTOP_SURFACE_QUERY).matches;
+}
+
+function useDesktopModalSurface() {
+  return useSyncExternalStore(
+    subscribeDesktopSurface,
+    getDesktopSurfaceSnapshot,
+    () => false,
+  );
+}
+
+function desktopModalSurface(theme: Theme) {
+  return {
+    backgroundColor: theme === "dark" ? "#000" : "#fff",
+    backdropFilter: "none",
+    WebkitBackdropFilter: "none",
+  } as const;
+}
 
 type Props = {
   /** Sheet content height, e.g. "96svh" or "52svh". */
@@ -42,6 +72,10 @@ export function ModalSheet({
   children,
 }: Props) {
   const mounted = useRef(false);
+  const theme = useTheme();
+  const isDesktopSurface = useDesktopModalSurface();
+  const desktopSurface = isDesktopSurface ? desktopModalSurface(theme) : null;
+
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
@@ -73,10 +107,15 @@ export function ModalSheet({
           />
           <Sheet.Content
             className={clsx("ModalSheet-content", variant)}
-            style={{ height }}
+            style={
+              desktopSurface
+                ? { height, ...desktopSurface }
+                : { height }
+            }
           >
             <Sheet.BleedingBackground
               className={clsx("ModalSheet-bleedingBackground", variant)}
+              {...(desktopSurface ? { style: desktopSurface } : {})}
             />
             <VisuallyHidden.Root asChild>
               <Sheet.Title>{title}</Sheet.Title>
