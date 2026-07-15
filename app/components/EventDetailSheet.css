@@ -1,0 +1,16 @@
+.detail-share-url.detail-caption {
+  color: var(--secondary-text);
+}
+
+.detail-share-url a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.detail-share-copy-link.is-copied {
+  color: var(--success);
+}
+
+.detail-share-copy-link.is-error {
+  color: var(--danger);
+}

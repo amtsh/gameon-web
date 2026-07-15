@@ -9,11 +9,13 @@ import {
   Lock,
   MapPin,
   Share,
+  Share2,
   User as UserIcon,
   Users,
   X,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { downloadSportEventIcs } from "@/lib/calendar/download-ics.client";
 import { displayCost } from "@/lib/create-event/cost";
@@ -48,6 +50,7 @@ import {
   SpotsLeftBadge,
 } from "./EventRow";
 import { JoinGuideSheet } from "./JoinGuideSheet";
+import "./EventDetailSheet.css";
 import {
   ConfirmDialog,
   ModalSheet,
@@ -184,6 +187,14 @@ export function EventDetailSheet({
   const showPlayers = canSeePlayers(event, privateGameContext);
   const canJoin = !cancelled && canJoinFromDetail(event, privateGameContext);
   const canShare = !cancelled && canShareGame(event);
+  const shareText = useMemo(
+    () => formatSharedGameShareText(event, sport?.label),
+    [event, sport?.label],
+  );
+  const shareCopyText = useMemo(
+    () => `${shareText}\n${shareUrl}`,
+    [shareText, shareUrl],
+  );
 
   const loadRequests = useCallback(async () => {
     setActionError(null);
@@ -349,24 +360,35 @@ export function EventDetailSheet({
     }
   };
 
+  const handleCopyShare = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(shareCopyText);
+      setShareFeedback("Copied");
+      window.setTimeout(() => setShareFeedback(null), 2000);
+    } catch {
+      setShareFeedback("Could not copy");
+      window.setTimeout(() => setShareFeedback(null), 2000);
+    }
+  }, [shareCopyText]);
+
   const handleShare = useCallback(async () => {
     try {
       if (navigator.share) {
         await navigator.share({
           title: event.title,
-          text: formatSharedGameShareText(event, sport?.label),
+          text: shareText,
           url: shareUrl,
         });
         return;
       }
-      await navigator.clipboard.writeText(shareUrl);
-      setShareFeedback("Link copied");
+      await navigator.clipboard.writeText(shareCopyText);
+      setShareFeedback("Copied");
       window.setTimeout(() => setShareFeedback(null), 2000);
     } catch {
       setShareFeedback("Could not share");
       window.setTimeout(() => setShareFeedback(null), 2000);
     }
-  }, [event, shareUrl, sport?.label]);
+  }, [event.title, shareCopyText, shareText, shareUrl]);
 
   const handleAddToCalendar = useCallback(() => {
     downloadSportEventIcs(event, shareUrl);
@@ -440,7 +462,7 @@ export function EventDetailSheet({
                     onClick={() => void handleShare()}
                     type="button"
                   >
-                    <Share size={18} strokeWidth={2.5} />
+                    <Share2 size={18} strokeWidth={2.5} />
                   </button>
                 ) : null}
                 <SheetDismissTrigger>
@@ -470,11 +492,43 @@ export function EventDetailSheet({
                 <span className="status-badge warning">On waitlist</span>
               ) : null}
             </div>
-            {canShare && shareFeedback ? (
+            {canShare && shareFeedback && !event.isCreatedByCurrentUser ? (
               <p className="detail-caption-error mt-2">{shareFeedback}</p>
             ) : null}
           </div>
         </div>
+
+        {event.isCreatedByCurrentUser && canShare ? (
+          <div className="mt-6 flex items-start gap-3.5">
+            <span className="detail-icon-tile">
+              <Share size={22} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <p className="detail-label">Share with players</p>
+                <button
+                  className={clsx(
+                    "link-info detail-share-copy-link shrink-0",
+                    shareFeedback === "Copied" && "is-copied",
+                    shareFeedback === "Could not copy" && "is-error",
+                  )}
+                  onClick={() => void handleCopyShare()}
+                  type="button"
+                >
+                  {shareFeedback === "Copied"
+                    ? "Copied"
+                    : shareFeedback === "Could not copy"
+                      ? "Could not copy"
+                      : "Copy"}
+                </button>
+              </div>
+              <p className="detail-caption mt-1.5 select-all">{shareText}</p>
+              <p className="detail-share-url detail-caption mt-1.5 select-all break-all">
+                {shareUrl}
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         {event.isCreatedByCurrentUser && !archived ? (
           <>
