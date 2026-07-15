@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/validation/zod-resolver";
 import clsx from "clsx";
 import { CreditCard, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
