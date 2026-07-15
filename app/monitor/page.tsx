@@ -9,6 +9,7 @@ type Stats = {
   activeGames: number;
   pastGames: number;
   linkLoads: number;
+  cancelledGames: number;
 };
 
 async function fetchStats(pin: string): Promise<Stats> {
@@ -109,6 +110,7 @@ export default function MonitorPage() {
     { label: "Total upcoming/active games", value: stats?.activeGames ?? 0 },
     { label: "Total past games", value: stats?.pastGames ?? 0 },
     { label: "Total loads from shared links", value: stats?.linkLoads ?? 0 },
+    { label: "Total cancelled games", value: stats?.cancelledGames ?? 0 },
   ];
 
   return (
