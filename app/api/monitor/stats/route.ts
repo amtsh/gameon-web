@@ -17,25 +17,31 @@ export async function POST(req: NextRequest) {
   const supabase = createAdminClient();
   const now = new Date().toISOString();
 
-  const [accounts, activeGames, pastGames, linkLoads] = await Promise.all([
-    supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase
-      .from("sport_events")
-      .select("id", { count: "exact", head: true })
-      .gt("ends_at", now),
-    supabase
-      .from("sport_events")
-      .select("id", { count: "exact", head: true })
-      .lte("ends_at", now),
-    supabase
-      .from("shared_link_loads")
-      .select("id", { count: "exact", head: true }),
-  ]);
+  const [accounts, activeGames, pastGames, linkLoads, cancelledGames] =
+    await Promise.all([
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase
+        .from("sport_events")
+        .select("id", { count: "exact", head: true })
+        .gt("ends_at", now),
+      supabase
+        .from("sport_events")
+        .select("id", { count: "exact", head: true })
+        .lte("ends_at", now),
+      supabase
+        .from("shared_link_loads")
+        .select("id", { count: "exact", head: true }),
+      supabase
+        .from("sport_events")
+        .select("id", { count: "exact", head: true })
+        .not("cancelled_at", "is", null),
+    ]);
 
   return NextResponse.json({
     accounts: accounts.count ?? 0,
     activeGames: activeGames.count ?? 0,
     pastGames: pastGames.count ?? 0,
     linkLoads: linkLoads.count ?? 0,
+    cancelledGames: cancelledGames.count ?? 0,
   });
 }
