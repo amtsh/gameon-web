@@ -47,7 +47,7 @@ function formatAmountNumber(amount: string): number | null {
 }
 
 function formatAmountLabel(value: number): string | null {
-  const label = Number.isInteger(value) ? String(value) : String(value);
+  const label = String(value);
   if (label.includes("e") || label.includes("E")) return null;
   return label;
 }
@@ -105,9 +105,7 @@ export function costDraftFromEvent(cost?: EventCost): CostDraft {
 
   return {
     mode: cost.mode,
-    amount: Number.isInteger(cost.amount)
-      ? String(cost.amount)
-      : String(cost.amount),
+    amount: String(cost.amount),
     currency: cost.currency,
   };
 }

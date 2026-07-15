@@ -17,7 +17,7 @@ import {
   resolveDiscoveryFilter,
   type DiscoveryFilter,
 } from "./discovery";
-import { fetchIpCoordinates } from "./ip-geo.client";
+import { fetchIpLocation } from "./ip-geo.client";
 import type { Coordinates } from "./geo";
 
 type Options = {
@@ -70,8 +70,8 @@ export function useDiscoveryLocation({
     if (resolveDiscoveryCenterFromProfile(profile)) return;
 
     let cancelled = false;
-    void fetchIpCoordinates().then((ip) => {
-      if (!cancelled && ip) setIpLocation(ip);
+    void fetchIpLocation().then(({ coordinates }) => {
+      if (!cancelled && coordinates) setIpLocation(coordinates);
     });
     return () => {
       cancelled = true;
