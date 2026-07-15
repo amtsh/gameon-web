@@ -1,8 +1,8 @@
 "use client";
 
-import { Scroll, Sheet, VisuallyHidden } from "@silk-hq/components";
+import { Scroll, Sheet, useClientMediaQuery, VisuallyHidden } from "@silk-hq/components";
 import clsx from "clsx";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { haptic } from "@/lib/haptics";
 import { useTheme, type Theme } from "@/app/theme";
@@ -10,24 +10,6 @@ import "./ModalSheet.css";
 
 /** True desktop: wide viewport with mouse/trackpad (not phone landscape / touch tablets). */
 const DESKTOP_SURFACE_QUERY = "(min-width: 820px) and (hover: hover) and (pointer: fine)";
-
-function subscribeDesktopSurface(onStoreChange: () => void) {
-  const mq = window.matchMedia(DESKTOP_SURFACE_QUERY);
-  mq.addEventListener("change", onStoreChange);
-  return () => mq.removeEventListener("change", onStoreChange);
-}
-
-function getDesktopSurfaceSnapshot() {
-  return window.matchMedia(DESKTOP_SURFACE_QUERY).matches;
-}
-
-function useDesktopModalSurface() {
-  return useSyncExternalStore(
-    subscribeDesktopSurface,
-    getDesktopSurfaceSnapshot,
-    () => false,
-  );
-}
 
 function desktopModalSurface(theme: Theme) {
   return {
@@ -73,7 +55,7 @@ export function ModalSheet({
 }: Props) {
   const mounted = useRef(false);
   const theme = useTheme();
-  const isDesktopSurface = useDesktopModalSurface();
+  const isDesktopSurface = useClientMediaQuery(DESKTOP_SURFACE_QUERY);
   const desktopSurface = isDesktopSurface ? desktopModalSurface(theme) : null;
 
   useEffect(() => {

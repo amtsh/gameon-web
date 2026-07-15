@@ -22,7 +22,6 @@ export function InstallAppNudge({
 }: Props) {
   return (
     <Toast.Root
-      autoCloseMs={false}
       presented={open}
       onPresentedChange={(presented) => {
         if (!presented) onClose();

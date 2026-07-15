@@ -1,8 +1,13 @@
 "use client";
 
-import { Sheet, Scroll, type SheetViewProps } from "@silk-hq/components";
+import {
+  Scroll,
+  Sheet,
+  useClientMediaQuery,
+  type SheetViewProps,
+} from "@silk-hq/components";
 import { MessagesSquare, Plus, User } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { EventRow } from "./EventRow";
 import { SportChips } from "./SportChips";
 import { activeUserEvents, groupedDiscoverableEvents } from "../event-feed";
@@ -27,21 +32,8 @@ type Props = {
   onOpenSheet: (sheet: SheetName) => void;
 };
 
-/** Returns true once the viewport is ≥820 px wide (matches GamesSheet.css breakpoint). */
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(min-width: 820px)").matches,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 820px)");
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
-}
+/** Matches the GamesSheet.css desktop breakpoint. */
+const DESKTOP_QUERY = "(min-width: 820px)";
 
 export function GamesSheet({
   events,
@@ -67,7 +59,7 @@ export function GamesSheet({
   const pastGames = pastEvents;
   const showNearbyEmpty = sections.length === 0 && yourGames.length === 0;
 
-  const isDesktop = useIsDesktop();
+  const isDesktop = useClientMediaQuery(DESKTOP_QUERY);
 
   // On desktop: single detent (full), sheet is always open, can't collapse.
   // On mobile: half (62svh) + full (100%).
