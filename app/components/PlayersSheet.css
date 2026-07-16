@@ -29,7 +29,7 @@
 }
 
 .players-nav-back:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--primary-text);
   outline-offset: 2px;
 }
 
@@ -71,12 +71,18 @@
   border-bottom: none;
 }
 
+@media (hover: hover) {
+  .players-row:hover {
+    background: var(--subtle-surface);
+  }
+}
+
 .players-row:active {
-  background: var(--subtle-surface);
+  background: var(--field-surface);
 }
 
 .players-row:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--primary-text);
   outline-offset: -2px;
   border-radius: 8px;
 }
