@@ -36,7 +36,7 @@ export const openApiDocument = {
         responses: { "201": { description: "Created game" }, "401": { $ref: "#/components/responses/Unauthorized" }, "422": { $ref: "#/components/responses/ValidationError" } },
       },
     },
-    "/api/v1/me/games": {
+    "/api/v1/me": { get: { operationId: "whoAmI", summary: "Get the authenticated GameOn user", responses: { "200": { description: "Authenticated identity" }, "401": { $ref: "#/components/responses/Unauthorized" } } } },\n    "/api/v1/me/games": {
       get: {
         operationId: "listMyGames",
         summary: "List games related to the authenticated user",
@@ -160,7 +160,7 @@ export const openApiDocument = {
           autoApprove: { type: "boolean" }, isPrivate: { type: "boolean" }, hostContact: { anyOf: [{ $ref: "#/components/schemas/Contact" }, { type: "null" }] }, fillYourSpot: { type: "boolean", default: false },
         },
       },
-      UpdateGame: { allOf: [{ $ref: "#/components/schemas/CreateGame" }], description: "Partial update; at least one field is required." },
+      UpdateGame: { type: "object", minProperties: 1, description: "Partial update; at least one field is required.", properties: { sport: { $ref: "#/components/schemas/SportKind" }, title: { type: "string", maxLength: 120 }, description: { type: "string", maxLength: 2000 }, skillLevel: { $ref: "#/components/schemas/SkillLevel" }, capacity: { type: "integer", minimum: 1, maximum: 500 }, startsAt: { type: "string", format: "date-time" }, endsAt: { type: "string", format: "date-time" }, venue: { $ref: "#/components/schemas/Venue" }, cost: { $ref: "#/components/schemas/Cost" }, autoApprove: { type: "boolean" }, isPrivate: { type: "boolean" }, hostContact: { anyOf: [{ $ref: "#/components/schemas/Contact" }, { type: "null" }] } } },
       JoinGame: {
         type: "object", required: ["skillLevel","contact"],
         properties: {
