@@ -32,6 +32,6 @@ export type CreateGameInput = {
   capacity: number; startsAt: string; endsAt: string;
   venue: { name: string; address?: string | null; city?: string | null; country?: string | null; latitude: number; longitude: number };
   cost?: { amount: number; currency: string; mode: CostMode } | null;
-  autoApprove?: boolean; isPrivate?: boolean;
+  autoApprove?: boolean; isPrivate?: boolean; fillYourSpot?: boolean;
   hostContact?: { method: ContactMethod; value: string } | null;
 };
