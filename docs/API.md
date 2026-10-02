@@ -32,7 +32,7 @@ Results use cursor pagination and are capped at 100 items per page.
 Mutating POST operations accept Idempotency-Key. Keys expire after 24 hours. Reusing a key with the same request body returns the original response; reusing it with a different body returns 409 IDEMPOTENCY_CONFLICT. A failed operation releases its key so the client can retry safely.
 
 ## Errors
-Every error includes a stable error.code and requestId. Clients should branch on error.code, not error.message.
+Every error uses the shape `{ error: { code, message, details? }, requestId }`. `error.code` is stable and clients should branch on it, not `message`. When applicable, `details` also contains an actionable `action` string; validation errors additionally include `details.issues` with field paths and messages. HTTP 429 includes `Retry-After`. Keep `requestId` when reporting failures to support.
 
 ## Security
 The API does not expose share tokens or host contact information in normal public game responses. Private games are excluded from discovery. Capacity and membership transitions remain enforced by database functions/RLS.
