@@ -236,7 +236,7 @@ export const openApiDocument = {
       Error: {
         type: "object",
         properties: {
-          error: { type: "object", properties: { code: { type: "string" }, message: { type: "string" }, details: { type: "object" } } },
+          error: { type: "object", properties: { code: { type: "string" }, message: { type: "string" }, details: { type: "object", properties: { action: { type: "string" }, issues: { type: "array", items: { type: "object" } }, retryAfterSeconds: { type: "integer", minimum: 1 } } } } },
           requestId: { type: "string" },
         },
       },
