@@ -1,6 +1,7 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
+import "./AppMap.css";
 import {
   AttributionControl,
   Map,

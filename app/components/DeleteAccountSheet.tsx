@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { deleteAccount } from "@/lib/data/profile-mutations.client";
 import { ModalSheet, ModalSheetScroll, SheetDismissTrigger } from "./ModalSheet";
 import "./PlayersSheet.css";
+import "./DeleteAccountSheet.css";
 
 type Props = {
   presented: boolean;

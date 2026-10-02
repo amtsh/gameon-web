@@ -1,0 +1,102 @@
+.profile-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding: 0 2px;
+}
+
+.profile-hero h1 {
+  color: var(--primary-text);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.profile-hero p {
+  max-width: 32ch;
+  color: var(--tertiary-text);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.profile-account-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-email {
+  color: var(--secondary-text);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.profile-sign-out {
+  margin-top: 10px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 14px;
+}
+
+.sport-tile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--unselected-border);
+  border-radius: 14px;
+  padding: 12px;
+  color: var(--tertiary-text);
+  font-size: 13px;
+  font-weight: 600;
+  background: transparent;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.sport-tile.selected {
+  border-color: var(--primary-action-bg);
+  background: var(--primary-action-bg);
+  color: var(--primary-action-fg);
+}
+
+/* Edit profile form: same flat treatment as the create form, except the
+   Account section keeps its card look. */
+.profile-edit-form .form-section:not(.profile-account-footer) {
+  margin-bottom: 0;
+  padding: 18px 0;
+  border: none;
+  border-top: 1px solid var(--hairline);
+  border-radius: 0;
+  background: none;
+}
+
+.profile-edit-form .form-section:not(.profile-account-footer):first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.profile-edit-form .stepper-row,
+.profile-edit-form .toggle-row {
+  border: none;
+  border-radius: 0;
+  background: none;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.profile-edit-form .form-section > .stepper-row:last-child,
+.profile-edit-form .form-section > .toggle-row:last-child {
+  border-bottom: none;
+}
+
+.profile-edit-form .contact-card {
+  border: none;
+  border-radius: 0;
+  background: none;
+  padding: 10px 0;
+}

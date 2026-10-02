@@ -1,5 +1,6 @@
 "use client";
 
+import "./VenueSearchField.css";
 import { MapPin, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";

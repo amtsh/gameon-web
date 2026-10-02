@@ -1,0 +1,47 @@
+/* Real map (MapLibre) fills the screen behind the sheet */
+.map-container {
+  position: absolute;
+  inset: 0;
+}
+
+.map-container .maplibregl-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* iOS map gradient overlay: black 8% top → clear → black 28% bottom */
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    var(--map-fade-top) 0%,
+    rgba(0, 0, 0, 0) 42%,
+    var(--map-fade-bottom) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.map-marker {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 2px solid var(--marker-accent, #ffffff);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.84);
+  color: #ffffff;
+  box-shadow: 0 8px 24px
+    color-mix(in srgb, var(--marker-accent, #000) 34%, transparent);
+  transition:
+    width 180ms ease,
+    height 180ms ease,
+    border-width 180ms ease;
+}
+
+.map-marker-selected {
+  width: 48px;
+  height: 48px;
+  border-width: 4px;
+}

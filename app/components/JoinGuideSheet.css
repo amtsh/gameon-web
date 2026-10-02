@@ -1,0 +1,36 @@
+.join-guide-eyebrow {
+  color: var(--tertiary-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.join-guide-steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--tertiary-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.join-guide-steps .active {
+  color: var(--primary-text);
+}
+
+.join-guide-divider {
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
+
+.join-guide-footnote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tertiary-text);
+  font-size: 12px;
+  font-weight: 600;
+}

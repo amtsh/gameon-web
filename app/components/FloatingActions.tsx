@@ -1,5 +1,6 @@
 "use client";
 
+import "./FloatingActions.css";
 import { Bug, Moon, Navigation, Sun } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 import { setTheme, useTheme } from "../theme";

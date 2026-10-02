@@ -1,5 +1,6 @@
 "use client";
 
+import "./gameon-app.css";
 import type { User } from "@supabase/supabase-js";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

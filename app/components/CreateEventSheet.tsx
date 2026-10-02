@@ -1,5 +1,6 @@
 "use client";
 
+import "./CreateEventSheet.css";
 import { Icon } from "@iconify/react";
 import { zodResolver } from "@/lib/validation/zod-resolver";
 import clsx from "clsx";

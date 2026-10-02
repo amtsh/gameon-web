@@ -1,0 +1,51 @@
+.floating-actions {
+  position: absolute;
+  z-index: 4;
+  top: max(24px, env(safe-area-inset-top));
+  left: 22px;
+  display: flex;
+  width: 48px;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  border: 1px solid color-mix(in srgb, var(--hairline) 60%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--app-background) 72%, transparent);
+  color: var(--primary-text);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 var(--glass-specular-top),
+    inset 0 -1px 0 var(--glass-specular-bottom);
+  backdrop-filter: blur(22px) saturate(1.7);
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .floating-actions {
+    background: var(--app-background);
+    border-color: var(--hairline);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.floating-actions button,
+.floating-actions a {
+  display: grid;
+  width: 44px;
+  height: 48px;
+  place-items: center;
+}
+
+.floating-actions span {
+  width: 34px;
+  height: 1px;
+  background: var(--hairline);
+}
+
+@media (min-width: 820px) {
+  .floating-actions {
+    top: 32px;
+    left: 32px;
+  }
+}

@@ -143,3 +143,194 @@
     -webkit-backdrop-filter: none !important;
   }
 }
+
+/* ── Sheet scroll areas: native thin scrollbar ── */
+.sheet-scroll-view {
+  scrollbar-width: thin;
+  scrollbar-color: var(--separator) transparent;
+  scrollbar-gutter: stable;
+}
+
+.sheet-scroll-view::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sheet-scroll-view::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+}
+
+.sheet-scroll-view::-webkit-scrollbar-thumb {
+  background: var(--separator);
+  border-radius: 9999px;
+  transition: background 200ms ease;
+}
+
+@media (hover: hover) {
+  .sheet-scroll-view::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+
+  .sheet-scroll-view:hover::-webkit-scrollbar-thumb,
+  .sheet-scroll-view::-webkit-scrollbar-thumb:hover {
+    background: var(--separator);
+  }
+
+  .sheet-scroll-view::-webkit-scrollbar-thumb:active {
+    background: var(--label-text);
+  }
+}
+
+/* ── Sheet close button (locked sheets: X inside a circle) ──
+   Matches .circle-button visually but is sized slightly smaller (38px)
+   so it sits neatly inside the sheet-nav grid cell. */
+.sheet-close-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--subtle-surface);
+  color: var(--primary-text);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.sheet-close-btn:hover {
+  background: var(--field-surface);
+  border-color: var(--separator);
+}
+
+.sheet-close-btn:active {
+  background: var(--separator);
+  box-shadow: none;
+}
+
+.sheet-nav {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: grid;
+  grid-template-columns: 70px 1fr 70px;
+  align-items: center;
+  margin: 0 -18px 18px;
+  padding: 10px 16px 14px;
+  background: color-mix(in srgb, var(--form-background) 94%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--hairline) 65%, transparent),
+    inset 0 1px 0 var(--glass-specular-top);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sheet-nav {
+    background: var(--form-background);
+    box-shadow: 0 1px 0 var(--hairline);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.sheet-nav--transparent {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sheet-nav--transparent {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+.sheet-nav h2 {
+  text-align: center;
+  color: var(--primary-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.sheet-nav button:first-child {
+  justify-self: start;
+  color: var(--primary-text);
+}
+
+.sheet-nav button:last-child {
+  justify-self: end;
+  color: var(--info);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.confirm-backdrop {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.confirm-card {
+  width: min(100%, 320px);
+  overflow: hidden;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--elevated-surface) 86%, transparent);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 var(--glass-specular-top);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  text-align: center;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .confirm-backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .confirm-card {
+    background: var(--elevated-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.confirm-card .confirm-title {
+  padding: 20px 18px 4px;
+  color: var(--primary-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.confirm-card .confirm-message {
+  padding: 0 18px 16px;
+  color: var(--tertiary-text);
+  font-size: 13px;
+}
+
+.confirm-card button {
+  width: 100%;
+  padding: 13px;
+  border-top: 1px solid var(--hairline);
+  color: var(--info);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.confirm-card button.destructive {
+  color: var(--danger);
+  font-weight: 600;
+}

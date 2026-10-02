@@ -1,5 +1,6 @@
 "use client";
 
+import "./ProfileSheet.css";
 import { Icon } from "@iconify/react";
 import type { User } from "@supabase/supabase-js";
 import clsx from "clsx";

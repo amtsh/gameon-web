@@ -1,5 +1,6 @@
 "use client";
 
+import "./EventRow.css";
 import { Icon } from "@iconify/react";
 import { Clock, Crown, Lock, MapPin } from "lucide-react";
 import clsx from "clsx";

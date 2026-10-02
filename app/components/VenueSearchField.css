@@ -1,0 +1,116 @@
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon svg {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: var(--muted-icon);
+  transform: translateY(-50%);
+}
+
+.input-with-icon input {
+  padding-left: 42px;
+}
+
+.input-with-icon--has-trailing input {
+  padding-right: 42px;
+}
+
+.input-clear-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-icon);
+  transform: translateY(-50%);
+}
+
+.input-clear-btn:hover {
+  background: var(--subtle-surface);
+  color: var(--secondary-text);
+}
+
+.venue-search {
+  position: relative;
+  display: grid;
+  gap: 8px;
+}
+
+.venue-results {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  overflow-y: auto;
+  max-height: 264px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--elevated-surface);
+  box-shadow:
+    0 2px 8px rgba(11, 18, 32, 0.06),
+    0 18px 44px rgba(11, 18, 32, 0.16);
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+.venue-results li + li button {
+  border-top: 1px solid var(--hairline);
+}
+
+.venue-results button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  border-radius: 10px;
+  padding: 11px 10px;
+  text-align: left;
+  transition: background 120ms ease;
+}
+
+.venue-results button:hover,
+.venue-results button:focus-visible {
+  background: var(--field-surface);
+  border-top-color: transparent;
+}
+
+.venue-results .venue-pin {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--subtle-surface);
+  color: var(--muted-icon);
+}
+
+.venue-results .venue-name {
+  display: block;
+  overflow: hidden;
+  color: var(--primary-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.venue-results .venue-subtitle {
+  display: block;
+  overflow: hidden;
+  margin-top: 1px;
+  color: var(--tertiary-text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

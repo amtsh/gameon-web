@@ -1,5 +1,6 @@
 "use client";
 
+import "./JoinGuideSheet.css";
 import type { User } from "@supabase/supabase-js";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
