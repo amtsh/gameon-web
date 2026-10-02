@@ -350,7 +350,7 @@ export function EventDetailSheet({
     setApprovingId(requestId);
     setActionError(null);
     try {
-      await approveJoinRequest(requestId);
+      await approveJoinRequest(requestId, event.id);
       await onMutated();
       await loadRequests();
     } catch (error) {
