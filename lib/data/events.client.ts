@@ -1,25 +1,19 @@
 import type { SportEvent } from "@/app/types";
 import type { DiscoveryFilter } from "@/lib/location/discovery";
 import { getApi } from "@/lib/api/v1/client";
+import type { CostCurrency } from "@/lib/create-event/cost";
 import { createClient } from "@/lib/supabase/client";
-import type { ApiGame } from "@/lib/api/v1/types";
+import type { ApiGame, ApiGameRelationship } from "@/lib/api/v1/types";
 
 type ApiGameResponse = {
   data: ApiGame[];
   pagination?: { hasMore: boolean; nextCursor: string | null };
 };
 
-type Relationship = {
-  isHost?: boolean;
-  isJoined?: boolean;
-  hasPendingRequest?: boolean;
-  isOnWaitlist?: boolean;
-};
-
-type PersonalGame = ApiGame & { relationship?: Relationship; shareToken?: string };
+type PersonalGame = ApiGame & { relationship?: ApiGameRelationship; shareToken?: string };
 
 function toSportEvent(game: PersonalGame): SportEvent {
-  const relationship = game.relationship ?? {};
+  const relationship: Partial<ApiGameRelationship> = game.relationship ?? {};
   return {
     id: game.id,
     title: game.title,
@@ -36,7 +30,13 @@ function toSportEvent(game: PersonalGame): SportEvent {
     },
     capacity: game.capacity,
     joinedCount: game.joinedCount,
-    cost: game.cost ?? undefined,
+    cost: game.cost
+      ? {
+          amount: game.cost.amount,
+          currency: game.cost.currency as CostCurrency,
+          mode: game.cost.mode,
+        }
+      : undefined,
     description: game.description || undefined,
     hostId: game.host.id,
     hostName: game.host.name,
@@ -57,8 +57,6 @@ function toSportEvent(game: PersonalGame): SportEvent {
 
 function discoveryQuery(discovery: DiscoveryFilter) {
   const params = new URLSearchParams();
-  if (discovery.sport) params.set("sport", discovery.sport);
-  if (discovery.skill && discovery.skill !== "any") params.set("skill", discovery.skill);
   params.set("from", new Date().toISOString());
   params.set("lat", String(discovery.center.latitude));
   params.set("lng", String(discovery.center.longitude));

@@ -26,20 +26,43 @@ const hostContact = z.object({
   value: z.string().trim().min(1).max(120),
 }).nullable().optional();
 
-export const createGameSchema = z.object({
+const createGameBodySchema = z.object({
   sport, title: z.string().trim().min(1).max(120),
   description: z.string().trim().max(2000).optional(),
   skillLevel: skillLevel.optional(), capacity: z.number().int().min(1).max(500),
   startsAt: z.string().datetime({ offset: true }), endsAt: z.string().datetime({ offset: true }),
   venue, cost, autoApprove: z.boolean().optional(), isPrivate: z.boolean().optional(), hostContact, fillYourSpot: z.boolean().optional(),
-}).superRefine((value, ctx) => {
-  const starts = new Date(value.startsAt), ends = new Date(value.endsAt);
-  if (ends <= starts) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "endsAt must be after startsAt" });
-  if (starts <= new Date()) ctx.addIssue({ code: "custom", path: ["startsAt"], message: "startsAt must be in the future" });
-  if (ends.getTime() - starts.getTime() > 24 * 60 * 60 * 1000) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "Games cannot last more than 24 hours" });
 });
 
-export const updateGameSchema = createGameSchema.omit({ fillYourSpot: true }).partial().refine(v => Object.keys(v).length > 0, "At least one field is required");
+function refineGameTiming(
+  value: { startsAt?: string; endsAt?: string },
+  ctx: z.RefinementCtx,
+  options: { requireFutureStart: boolean },
+) {
+  if (value.startsAt !== undefined && options.requireFutureStart && new Date(value.startsAt) <= new Date()) {
+    ctx.addIssue({ code: "custom", path: ["startsAt"], message: "startsAt must be in the future" });
+  }
+  if (value.startsAt === undefined || value.endsAt === undefined) return;
+
+  const starts = new Date(value.startsAt);
+  const ends = new Date(value.endsAt);
+  if (ends <= starts) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "endsAt must be after startsAt" });
+  if (ends.getTime() - starts.getTime() > 24 * 60 * 60 * 1000) {
+    ctx.addIssue({ code: "custom", path: ["endsAt"], message: "Games cannot last more than 24 hours" });
+  }
+}
+
+export const createGameSchema = createGameBodySchema.superRefine((value, ctx) => {
+  refineGameTiming(value, ctx, { requireFutureStart: true });
+});
+
+export const updateGameSchema = createGameBodySchema.omit({ fillYourSpot: true }).partial().superRefine((value, ctx) => {
+  if (Object.keys(value).length === 0) {
+    ctx.addIssue({ code: "custom", message: "At least one field is required" });
+    return;
+  }
+  refineGameTiming(value, ctx, { requireFutureStart: value.startsAt !== undefined });
+});
 
 export const joinGameSchema = z.object({
   skillLevel,

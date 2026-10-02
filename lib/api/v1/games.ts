@@ -5,6 +5,8 @@ import { ApiError } from "./errors";
 import type { ApiGame, ApiGameRelationship, ApiJoinRequest, ApiParticipant, CreateGameInput } from "./types";
 
 type Client = SupabaseClient<Database>;
+type SportEventRow = Database["public"]["Tables"]["sport_events"]["Row"];
+type ShareTokenGameRow = Database["public"]["Functions"]["get_sport_event_by_share_token"]["Returns"][number];
 
 export function toApiGame(
   row: any,
@@ -53,7 +55,9 @@ export async function getHostName(client: Client, hostId: string) {
   return data?.name ?? "Player";
 }
 
-export async function getGame(client: Client, id: string, shareToken?: string) {
+export async function getGame(client: Client, id: string, shareToken?: undefined): Promise<SportEventRow>;
+export async function getGame(client: Client, id: string, shareToken: string): Promise<ShareTokenGameRow>;
+export async function getGame(client: Client, id: string, shareToken?: string): Promise<SportEventRow | ShareTokenGameRow> {
   if (shareToken) {
     const { data, error } = await client.rpc("get_sport_event_by_share_token", { p_share_token: shareToken });
     const row = data?.[0];

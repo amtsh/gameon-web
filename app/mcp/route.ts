@@ -84,7 +84,7 @@ const tools: ToolDefinition[] = [
       properties: { status: { type: "string", enum: ["active","archived","all"], default: "active" } },
       additionalProperties: false,
     },
-    annotations: { title: "List my games", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorld: false },
+    annotations: { title: "List my games", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     requiresAuth: true,
   },
   {

@@ -53,6 +53,12 @@ type ApiJoinRequest = {
   status: "pending" | "approved" | "waitlisted";
 };
 
+function isOpenHostJoinRequest(
+  request: ApiJoinRequest,
+): request is ApiJoinRequest & { status: HostJoinRequest["status"] } {
+  return request.status === "pending" || request.status === "waitlisted";
+}
+
 export type ApprovedPlayer = {
   id: string;
   name: string;
@@ -71,7 +77,7 @@ export async function fetchHostJoinRequests(
   );
 
   return response.data
-    .filter((request) => request.status === "pending" || request.status === "waitlisted")
+    .filter(isOpenHostJoinRequest)
     .map((request) => ({
       id: request.id,
       requesterId: request.requester.id,

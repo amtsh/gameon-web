@@ -12,7 +12,9 @@ export async function GET(request: Request, context: Context) {
     const shareToken = new URL(request.url).searchParams.get("shareToken") ?? undefined;
     const rate = await enforceRateLimit(request, "detail", "public");
     const { client } = await optionalClient(request);
-    const row = await getGame(client, gameId, shareToken);
+    const row = shareToken !== undefined
+      ? await getGame(client, gameId, shareToken)
+      : await getGame(client, gameId);
     return json({ data: toApiGame(row, await getHostName(client, row.host_id)) }, 200, rate);
   } catch (error) {
     return handleApiError(error, id);

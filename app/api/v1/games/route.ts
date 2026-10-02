@@ -5,18 +5,20 @@ import { toApiGame, getHostName, createGame } from "@/lib/api/v1/games";
 import { createGameSchema, discoverySchema, parseJson } from "@/lib/api/v1/validation";
 import { handleApiError, json, requestId, userClient } from "@/app/api/v1/_lib";
 
-function decodeCursor(cursor?: string) {
+type DiscoveryCursor = { startsAt: string; id: string };
+
+function decodeCursor(cursor?: string): Partial<DiscoveryCursor> {
   if (!cursor) return {};
   try {
     const value = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(cursor), c => c.charCodeAt(0))));
     if (!value.startsAt || !value.id) throw new Error();
-    return value as { startsAt: string; id: string };
+    return value as DiscoveryCursor;
   } catch {
     throw new ApiError(400, "INVALID_CURSOR", "The cursor is invalid.");
   }
 }
 
-function encodeCursor(value: { startsAt: string; id: string }) {
+function encodeCursor(value: DiscoveryCursor) {
   return btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(value))));
 }
 
@@ -41,7 +43,9 @@ export async function GET(request: Request) {
     const page = hasMore ? rows.slice(0, parsed.limit) : rows;
     const ids = [...new Set(page.map((row: any) => row.host_id))];
     const profiles = ids.length ? await admin.from("public_profiles").select("id,name").in("id", ids) : { data: [] };
-    const names = new Map((profiles.data ?? []).map((p: any) => [p.id, p.name]));
+    const names = new Map<string, string>(
+      (profiles.data ?? []).map((p: { id: string; name: string | null }) => [p.id, p.name ?? "Player"]),
+    );
     const games = page.map((row: any) => toApiGame(row, names.get(row.host_id) ?? "Player", row.distance_meters ?? undefined));
     const nextCursor = hasMore ? encodeCursor({ startsAt: page.at(-1).starts_at, id: page.at(-1).id }) : null;
     return json({ data: games, pagination: { hasMore, nextCursor } }, 200, rate);
