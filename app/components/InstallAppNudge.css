@@ -50,8 +50,8 @@
   flex: 0 0 auto;
   place-items: center;
   border-radius: 12px;
-  background: var(--subtle-surface);
-  color: var(--info);
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+  color: var(--brand);
 }
 
 .install-nudge-body {

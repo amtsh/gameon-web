@@ -55,8 +55,23 @@ export async function SharedGamePage({ slug }: { slug: string }) {
     );
   }
 
-  const { user, profile, events, pastEvents, sharedEvent, ipLocation } =
-    await loadAppData(slug);
+  let appData: Awaited<ReturnType<typeof loadAppData>>;
+  try {
+    appData = await loadAppData(slug);
+  } catch (err) {
+    console.error("[SharedGamePage] loadAppData failed for slug", slug, err);
+    // Render the app shell without a shared event rather than crashing the page.
+    appData = {
+      user: null,
+      profile: null,
+      events: [],
+      pastEvents: [],
+      ipLocation: null,
+      sharedEvent: null,
+    };
+  }
+
+  const { user, profile, events, pastEvents, sharedEvent, ipLocation } = appData;
 
   if (sharedEvent) {
     logSharedLinkLoad(sharedEvent.shareToken ?? slug);

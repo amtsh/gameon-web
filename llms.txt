@@ -1,0 +1,56 @@
+# GameOn agent API
+
+GameOn is a REST API for discovering, creating, joining, and managing local sports games.
+
+## Canonical endpoints
+
+- Base URL: https://gameonsite.com/api/v1
+- OpenAPI: https://gameonsite.com/api/v1/openapi
+- Identity check: GET /api/v1/me
+- Public discovery: GET /api/v1/games
+- Personal games: GET /api/v1/me/games
+- Game detail: GET /api/v1/games/{id}
+
+## Authentication
+
+Public discovery, game detail, and participant listing can be called without authentication where the game visibility rules allow it.
+
+All writes and personal endpoints require:
+
+Authorization: Bearer <Supabase access token>
+
+Use the token of the GameOn user whose games should be read or modified. Do not put credentials in URLs.
+
+## Mutations
+
+- POST /games — create
+- PATCH /games/{id} — update a hosted game
+- DELETE /games/{id} — cancel
+- POST /games/{id}/join — join/request to join
+- DELETE /games/{id}/join — leave
+- POST /games/{id}/join-requests/{requestId}/approve — approve
+- POST /games/{id}/join-requests/{requestId}/reject — reject
+
+Send an Idempotency-Key header on POST/PATCH mutations. The API replays identical requests and rejects reuse with a different body.
+
+## Agent behavior
+
+1. Discover the API from the OpenAPI document rather than guessing fields.
+2. Call GET /me before acting on behalf of a user.
+3. Use GET /games for public discovery and GET /me/games for the user's games.
+4. Confirm the target game with GET /games/{id} before consequential mutations when the user's intent is ambiguous.
+5. Use stable error.code values and requestId for recovery/debugging.
+6. Never expose private share tokens or contact details unless the API explicitly returns them to an authorized caller.
+7. Treat cancellation, leaving, and rejection as destructive actions and obtain user confirmation when the surrounding agent policy requires it.
+
+## Pagination
+
+GET /games uses cursor pagination. Continue with pagination.nextCursor until hasMore is false.
+
+## Rate limits
+
+Responses include X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset. HTTP 429 includes Retry-After.
+
+## Important compatibility note
+
+This REST surface is designed for OpenAPI-capable agents and custom connectors. A hosted MCP endpoint is a separate transport and is not implied by the REST/OpenAPI URL.

@@ -3,8 +3,7 @@ import type { SkillLevel, SportKind, Venue } from "@/app/types";
 import type { EventCost } from "@/lib/create-event/cost";
 import { eventCostToRow } from "@/lib/create-event/cost";
 import type { Profile } from "@/lib/data/profile.shared";
-import { generateShareToken } from "@/lib/share-token";
-import { createClient } from "@/lib/supabase/client";
+import { postApi, patchApi, deleteApi } from "@/lib/api/v1/client";
 
 export type CreateSportEventInput = {
   sport: SportKind;
@@ -26,28 +25,13 @@ const DATETIME_LOCAL_FMT = "yyyy-MM-dd'T'HH:mm";
 
 function toIsoFromLocalDateTime(value: string) {
   const date = parse(value, DATETIME_LOCAL_FMT, new Date());
-  if (!isValid(date)) {
-    throw new Error("Invalid date");
-  }
+  if (!isValid(date)) throw new Error("Invalid date");
   return date.toISOString();
 }
 
-const SHARE_TOKEN_MAX_ATTEMPTS = 8;
+type ApiGameResult = { data: { id: string; shareToken?: string } };
 
-function isUniqueViolation(error: { code?: string } | null): boolean {
-  return error?.code === "23505";
-}
-
-export async function createSportEvent(input: CreateSportEventInput) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Sign in to create a game");
-  }
-
+function toApiInput(input: CreateSportEventInput) {
   const startsAt = toIsoFromLocalDateTime(input.startsAt);
   const endsAt = toIsoFromLocalDateTime(input.endsAt);
 
@@ -56,137 +40,48 @@ export async function createSportEvent(input: CreateSportEventInput) {
   }
 
   const costRow = eventCostToRow(input.cost);
-
-  const baseRow = {
-    host_id: user.id,
+  return {
     sport: input.sport,
+    skillLevel: input.skillLevel,
     title: input.title.trim(),
     description: input.description?.trim() ?? "",
-    ...costRow,
-    skill_level: input.skillLevel,
     capacity: input.capacity,
-    starts_at: startsAt,
-    ends_at: endsAt,
-    host_contact_method: input.profile.contact_method,
-    host_contact_value: input.profile.contact_value,
-    venue_name: input.venue.name,
-    venue_address: input.venue.address ?? null,
-    venue_city: input.venue.city ?? null,
-    venue_latitude: input.venue.latitude,
-    venue_longitude: input.venue.longitude,
-    auto_approve: input.autoApprove,
-    is_private: input.isPrivate,
+    startsAt,
+    endsAt,
+    venue: input.venue,
+    cost: costRow.cost_amount == null
+      ? null
+      : {
+          amount: Number(costRow.cost_amount),
+          currency: String(costRow.cost_currency ?? "SEK"),
+          mode: costRow.cost_mode ?? "total",
+        },
+    autoApprove: input.autoApprove,
+    isPrivate: input.isPrivate,
+    hostContact: input.profile.contact_method && input.profile.contact_value
+      ? { method: input.profile.contact_method, value: input.profile.contact_value.trim() }
+      : null,
   };
-
-  let event: { id: string } | null = null;
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt < SHARE_TOKEN_MAX_ATTEMPTS; attempt += 1) {
-    const { data, error } = await supabase
-      .from("sport_events")
-      .insert({
-        ...baseRow,
-        share_token: generateShareToken(),
-      })
-      .select("id")
-      .single();
-
-    if (!error) {
-      event = data;
-      break;
-    }
-
-    if (!isUniqueViolation(error)) {
-      throw error;
-    }
-
-    lastError = error;
-  }
-
-  if (!event) {
-    throw lastError ?? new Error("Could not allocate a share link");
-  }
-
-  if (input.fillYourSpot) {
-    const { error: participantError } = await supabase
-      .from("event_participants")
-      .insert({
-        event_id: event.id,
-        profile_id: user.id,
-      });
-
-    if (participantError) throw participantError;
-  }
-
-  return event.id;
 }
 
-export type UpdateSportEventInput = Omit<
-  CreateSportEventInput,
-  "fillYourSpot" | "profile"
-> & {
+export async function createSportEvent(input: CreateSportEventInput) {
+  const result = await postApi<ApiGameResult>("/games", toApiInput(input));
+
+  // The existing UI immediately refreshes through the API after save. Returning
+  // the id keeps the component contract unchanged.
+  return result.data.id;
+}
+
+export type UpdateSportEventInput = Omit<CreateSportEventInput, "fillYourSpot" | "profile"> & {
   eventId: string;
   profile: Profile;
 };
 
-
 export async function updateSportEvent(input: UpdateSportEventInput) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Sign in required");
-
-  const startsAt = toIsoFromLocalDateTime(input.startsAt);
-  const endsAt = toIsoFromLocalDateTime(input.endsAt);
-
-  if (!isAfter(new Date(endsAt), new Date(startsAt))) {
-    throw new Error("End time must be after start time");
-  }
-
-  const costRow = eventCostToRow(input.cost);
-
-  const { error } = await supabase
-    .from("sport_events")
-    .update({
-      sport: input.sport,
-      title: input.title.trim(),
-      description: input.description?.trim() ?? "",
-      ...costRow,
-      skill_level: input.skillLevel,
-      capacity: input.capacity,
-      starts_at: startsAt,
-      ends_at: endsAt,
-      host_contact_method: input.profile.contact_method,
-      host_contact_value: input.profile.contact_value,
-      venue_name: input.venue.name,
-      venue_address: input.venue.address ?? null,
-      venue_city: input.venue.city ?? null,
-      venue_latitude: input.venue.latitude,
-      venue_longitude: input.venue.longitude,
-      auto_approve: input.autoApprove,
-      is_private: input.isPrivate,
-    })
-    .eq("id", input.eventId)
-    .eq("host_id", user.id);
-
-  if (error) throw error;
+  const payload = toApiInput({ ...input, fillYourSpot: false });
+  await patchApi(`/games/${input.eventId}`, payload);
 }
 
 export async function cancelSportEvent(eventId: string) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Sign in required");
-
-  const { error } = await supabase
-    .from("sport_events")
-    .update({ cancelled_at: new Date().toISOString() })
-    .eq("id", eventId)
-    .eq("host_id", user.id)
-    .is("cancelled_at", null);
-
-  if (error) throw error;
+  await deleteApi(`/games/${eventId}`);
 }

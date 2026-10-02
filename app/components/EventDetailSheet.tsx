@@ -350,7 +350,7 @@ export function EventDetailSheet({
     setApprovingId(requestId);
     setActionError(null);
     try {
-      await approveJoinRequest(requestId);
+      await approveJoinRequest(requestId, event.id);
       await onMutated();
       await loadRequests();
     } catch (error) {
@@ -709,7 +709,9 @@ export function EventDetailSheet({
         {event.description ? (
           <div className="mt-6 pl-[17px]">
             <p className="detail-label">Description</p>
-            <p className="detail-body mt-1.5">{event.description}</p>
+            <p className="detail-body mt-1.5" style={{ whiteSpace: "pre-wrap" }}>
+              {event.description}
+            </p>
           </div>
         ) : null}
 
