@@ -59,9 +59,7 @@ export const createGameSchema = createGameBodySchema.superRefine((value, ctx) =>
 export const updateGameSchema = createGameBodySchema.omit({ fillYourSpot: true }).partial().superRefine((value, ctx) => {
   if (Object.keys(value).length === 0) {
     ctx.addIssue({ code: "custom", message: "At least one field is required" });
-    return;
   }
-  refineGameTiming(value, ctx, { requireFutureStart: value.startsAt !== undefined });
 });
 
 export const joinGameSchema = z.object({
