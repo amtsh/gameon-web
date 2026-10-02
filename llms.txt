@@ -39,7 +39,8 @@ Send an Idempotency-Key header on POST/PATCH mutations. The API replays identica
 2. Call GET /me before acting on behalf of a user.
 3. Use GET /games for public discovery and GET /me/games for the user's games.
 4. Confirm the target game with GET /games/{id} before consequential mutations when the user's intent is ambiguous.
-5. Use stable error.code values and requestId for recovery/debugging.
+5. Use stable error.code values for branching and use details.action for the recommended recovery step. Validation errors expose details.issues with field paths and messages.
+6. Preserve requestId when reporting failures so server-side logs can be correlated.
 6. Never expose private share tokens or contact details unless the API explicitly returns them to an authorized caller.
 7. Treat cancellation, leaving, and rejection as destructive actions and obtain user confirmation when the surrounding agent policy requires it.
 
