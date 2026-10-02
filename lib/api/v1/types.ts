@@ -1,6 +1,13 @@
 import type { ContactMethod, CostMode, SkillLevel, SportKind } from "@/lib/supabase/database.types";
 export type { ContactMethod, CostMode, SkillLevel, SportKind };
 
+export type ApiGameRelationship = {
+  isHost: boolean;
+  isJoined: boolean;
+  hasPendingRequest: boolean;
+  isOnWaitlist: boolean;
+};
+
 export type ApiGame = {
   id: string; sport: SportKind; title: string; description: string;
   skillLevel: SkillLevel; startsAt: string; endsAt: string;
@@ -9,6 +16,8 @@ export type ApiGame = {
   cost: { amount: number; currency: string; mode: CostMode } | null;
   host: { id: string; name: string };
   autoApprove: boolean; isPrivate: boolean; cancelledAt: string | null; createdAt: string;
+  shareToken?: string;
+  relationship?: ApiGameRelationship;
 };
 
 export type ApiParticipant = { profileId: string; name: string; skillLevel: SkillLevel; isHost: boolean };
