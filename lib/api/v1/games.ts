@@ -2,11 +2,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { generateShareToken } from "@/lib/share-token";
 import { ApiError } from "./errors";
-import type { ApiGame, ApiJoinRequest, ApiParticipant, CreateGameInput } from "./types";
+import type { ApiGame, ApiGameRelationship, ApiJoinRequest, ApiParticipant, CreateGameInput } from "./types";
 
 type Client = SupabaseClient<Database>;
 
-export function toApiGame(row: any, hostName = "Player", distanceMeters?: number): ApiGame {
+export function toApiGame(
+  row: any,
+  hostName = "Player",
+  distanceMeters?: number,
+  relationship?: ApiGameRelationship,
+  includeShareToken = false,
+): ApiGame {
   return {
     id: row.id, sport: row.sport, title: row.title, description: row.description,
     skillLevel: row.skill_level, startsAt: row.starts_at, endsAt: row.ends_at,
@@ -22,6 +28,23 @@ export function toApiGame(row: any, hostName = "Player", distanceMeters?: number
     host: { id: row.host_id, name: hostName },
     autoApprove: row.auto_approve, isPrivate: row.is_private,
     cancelledAt: row.cancelled_at ?? null, createdAt: row.created_at,
+    ...(includeShareToken && row.share_token ? { shareToken: row.share_token } : {}),
+    ...(relationship ? { relationship } : {}),
+  };
+}
+
+export function getRelationship(
+  game: any,
+  userId: string,
+  participantIds: Set<string>,
+  requestRows: Map<string, string>,
+): ApiGameRelationship {
+  const status = requestRows.get(game.id);
+  return {
+    isHost: game.host_id === userId,
+    isJoined: participantIds.has(game.id),
+    hasPendingRequest: status === "pending",
+    isOnWaitlist: status === "waitlisted",
   };
 }
 
