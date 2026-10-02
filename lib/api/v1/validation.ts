@@ -39,7 +39,7 @@ export const createGameSchema = z.object({
   if (ends.getTime() - starts.getTime() > 24 * 60 * 60 * 1000) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "Games cannot last more than 24 hours" });
 });
 
-export const updateGameSchema = createGameSchema.partial().refine(v => Object.keys(v).length > 0, "At least one field is required");
+export const updateGameSchema = createGameSchema.omit({ fillYourSpot: true }).partial().refine(v => Object.keys(v).length > 0, "At least one field is required");
 
 export const joinGameSchema = z.object({
   skillLevel,
