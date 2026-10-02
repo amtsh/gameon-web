@@ -1,5 +1,5 @@
 import { enforceRateLimit } from "@/lib/api/v1/security";
-import { toApiGame, getHostName } from "@/lib/api/v1/games";
+import { toApiGame, getHostName, getRelationship } from "@/lib/api/v1/games";
 import { handleApiError, json, requestId, userClient } from "@/app/api/v1/_lib";
 
 export async function GET(request: Request) {
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const [hosted, participating, requested] = await Promise.all([
       client.from("sport_events").select("*").eq("host_id", user.id),
       client.from("event_participants").select("event_id").eq("profile_id", user.id),
-      client.from("event_join_requests").select("event_id").eq("requester_id", user.id),
+      client.from("event_join_requests").select("event_id,status").eq("requester_id", user.id),
     ]);
 
     if (hosted.error || participating.error || requested.error) {
@@ -30,17 +30,27 @@ export async function GET(request: Request) {
     const { data: games, error } = await client.from("sport_events").select("*").in("id", ids);
     if (error) throw new Error("Failed to load user games.");
 
+    const participantIds = new Set((participating.data ?? []).map(row => row.event_id));
+    const requestRows = new Map((requested.data ?? []).map(row => [row.event_id, row.status]));
+
+    const now = new Date().toISOString();
     const visible = (games ?? []).filter(game => {
       if (status === "all") return true;
-      if (status === "archived") return game.ends_at <= new Date().toISOString() || Boolean(game.cancelled_at);
-      return game.ends_at > new Date().toISOString() && !game.cancelled_at;
+      if (status === "archived") return game.ends_at <= now || Boolean(game.cancelled_at);
+      return game.ends_at > now && !game.cancelled_at;
     });
 
     const names = await Promise.all(visible.map(game => getHostName(client, game.host_id)));
     return json({
       data: visible
         .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
-        .map((game, index) => toApiGame(game, names[index])),
+        .map((game, index) => toApiGame(
+          game,
+          names[index],
+          undefined,
+          getRelationship(game, user.id, participantIds, requestRows),
+          game.host_id === user.id && game.is_private,
+        )),
     }, 200, rate);
   } catch (error) {
     return handleApiError(error, id);
