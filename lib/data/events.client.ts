@@ -57,6 +57,8 @@ function toSportEvent(game: PersonalGame): SportEvent {
 
 function discoveryQuery(discovery: DiscoveryFilter) {
   const params = new URLSearchParams();
+  if (discovery.sport) params.set("sport", discovery.sport);
+  if (discovery.skill && discovery.skill !== "any") params.set("skill", discovery.skill);
   params.set("from", new Date().toISOString());
   params.set("lat", String(discovery.center.latitude));
   params.set("lng", String(discovery.center.longitude));
