@@ -98,6 +98,20 @@ export async function updateGame(client: Client, userId: string, id: string, pat
   if (existing.cancelled_at) throw new ApiError(409, "GAME_CANCELLED", "Cancelled games cannot be edited.");
   if (new Date(existing.ends_at) <= new Date()) throw new ApiError(409, "GAME_ENDED", "Ended games cannot be edited.");
 
+  const startsAt = patch.startsAt ?? existing.starts_at;
+  const endsAt = patch.endsAt ?? existing.ends_at;
+  const starts = new Date(startsAt);
+  const ends = new Date(endsAt);
+  if (patch.startsAt !== undefined && starts <= new Date()) {
+    throw new ApiError(422, "VALIDATION_ERROR", "startsAt must be in the future.");
+  }
+  if (ends <= starts) {
+    throw new ApiError(422, "VALIDATION_ERROR", "endsAt must be after startsAt.");
+  }
+  if (ends.getTime() - starts.getTime() > 24 * 60 * 60 * 1000) {
+    throw new ApiError(422, "VALIDATION_ERROR", "Games cannot last more than 24 hours.");
+  }
+
   const values: Database["public"]["Tables"]["sport_events"]["Update"] = {};
   if (patch.sport !== undefined) values.sport = patch.sport;
   if (patch.title !== undefined) values.title = patch.title.trim();
