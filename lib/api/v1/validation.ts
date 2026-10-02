@@ -31,7 +31,7 @@ export const createGameSchema = z.object({
   description: z.string().trim().max(2000).optional(),
   skillLevel: skillLevel.optional(), capacity: z.number().int().min(1).max(500),
   startsAt: z.string().datetime({ offset: true }), endsAt: z.string().datetime({ offset: true }),
-  venue, cost, autoApprove: z.boolean().optional(), isPrivate: z.boolean().optional(), hostContact,
+  venue, cost, autoApprove: z.boolean().optional(), isPrivate: z.boolean().optional(), hostContact, fillYourSpot: z.boolean().optional(),
 }).superRefine((value, ctx) => {
   const starts = new Date(value.startsAt), ends = new Date(value.endsAt);
   if (ends <= starts) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "endsAt must be after startsAt" });
