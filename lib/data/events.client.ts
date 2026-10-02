@@ -1,6 +1,6 @@
 import type { SportEvent } from "@/app/types";
 import type { DiscoveryFilter } from "@/lib/location/discovery";
-import { getApi } from "@/lib/api/v1/client";
+import { getApi } from "@/lib/api/v1/client";\nimport { createClient } from "@/lib/supabase/client";
 import type { ApiGame } from "@/lib/api/v1/types";
 
 type ApiGameResponse = {
