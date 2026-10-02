@@ -39,7 +39,8 @@ export const openApiDocument = {
       },
     },
     "/api/v1/me": { get: { operationId: "whoAmI", summary: "Get the authenticated GameOn user", responses: { "200": { description: "Authenticated identity" },
-    "401": { $ref: "#/components/responses/Unauthorized" } } } },\n    "/api/v1/me/games": {
+    "401": { $ref: "#/components/responses/Unauthorized" } } } },
+    "/api/v1/me/games": {
       get: {
         operationId: "listMyGames",
         summary: "List games related to the authenticated user",
@@ -220,7 +221,8 @@ export const openApiDocument = {
       GameRelationship: { type: "object", required: ["isHost",
     "isJoined",
     "hasPendingRequest",
-    "isOnWaitlist"], properties: { isHost: { type: "boolean" }, isJoined: { type: "boolean" }, hasPendingRequest: { type: "boolean" }, isOnWaitlist: { type: "boolean" } } },\n      GameResponse: { type: "object", required: ["data"], properties: { data: { $ref: "#/components/schemas/Game" } } },
+    "isOnWaitlist"], properties: { isHost: { type: "boolean" }, isJoined: { type: "boolean" }, hasPendingRequest: { type: "boolean" }, isOnWaitlist: { type: "boolean" } } },
+      GameResponse: { type: "object", required: ["data"], properties: { data: { $ref: "#/components/schemas/Game" } } },
       GameList: { type: "object", required: ["data"], properties: { data: { type: "array", items: { $ref: "#/components/schemas/Game" } } } },
       GamePage: {
         type: "object", required: ["data",
